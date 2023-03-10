@@ -2,5 +2,5 @@ const authController = require("./auth-controller");
 
 module.exports = (app) => {
 
-    app.post("/hello-world", authController.helloWorld);
+    app.get("/hello-world", authController.helloWorld);
 }

@@ -2,9 +2,10 @@ import needle from "needle";
 
 //================================================================
 
-// Save user POST request (Valid User)
+// link to app
+const app = "mockup-backend-128.heroku.com"
 
-needle.get("http://localhost:3001/get-users",
+needle.get(app + "/get-users",
     (err,res) =>{
         if(err) console.log(err);
         else console.log(res.body);

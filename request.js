@@ -1,17 +1,11 @@
-// This is a test file of POST requests for the server in TOPINIOMGC_exer6.js
 import needle from "needle";
 
 //================================================================
 
 // Save user POST request (Valid User)
 
-needle.post("http://localhost:3000/get-user",
-    {
-        firstName: "Tim",
-        lastName: "Berners-Lee",
-        email: "timbernerslee@w3c.com",
-        age: 65,
-    },
+needle.get("http://localhost:3001/get-users",
     (err,res) =>{
-        console.log(res.body);
+        if(err) console.log(err);
+        else console.log(res.body);
 });

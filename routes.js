@@ -1,7 +1,7 @@
 const authController = require("./auth-controller");
 
-module.exports = (app) => {
+module.exports = (app, pool) => {
 
     app.get("/hello-world", authController.helloWorld);
-    app.get("/find-user", authController.findUser);
+    app.get("/get-users", authController.getUsers(pool));
 }

@@ -6,10 +6,10 @@ const app = express();
 
 // Create a database connection pool
 const pool = mysql.createPool({
-  host:"sql12.freesqldatabase.com",
-  user:"sql12604743",
-  password:"rt94McFHS5",
-  database:"sql12604743"
+  host:"us-cdbr-east-06.cleardb.net",
+  user:"bb119cab8b99eb",
+  password:"b30902db",
+  database:"heroku_7b30b189342afea"
 });
 
 // The two lines below is to ensure that the server has parser to read the body of incoming requests

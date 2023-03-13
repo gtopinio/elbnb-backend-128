@@ -1,0 +1,11 @@
+{
+  "name": "official-backend-128",
+  "version": "1.0.0",
+  "description": "Backend Server of CMSC 128 - E1L",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "MGCT",
+  "license": "ISC"
+}

@@ -1,9 +1,9 @@
-import needle from "needle";
+const needle = require('needle')
 
 //================================================================
 
 // link to app
-const app = "mockup-backend-128.heroku.com"
+const app = "https://mockup-backend-128.herokuapp.com/"
 
 needle.get(app + "/get-users",
     (err,res) =>{
@@ -18,10 +18,10 @@ const data = {
     password: 'password123'
   };
 
-  needle.post(app + '/signUp', data, function(err, res, body) {
-    if (err) {
-      console.error(err);
-    } else {
-      console.log(body);
-    }
-  });
+needle.post(app + '/signUp', data, function(err, res, body) {
+if (err) {
+    console.error(err);
+} else {
+    console.log(body);
+}
+});

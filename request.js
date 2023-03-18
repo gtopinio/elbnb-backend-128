@@ -17,8 +17,8 @@ needle.post(app + "/signUp", {
     email: "mgct@example.com",
     password: "p@ssw0rd",
     username: "mgct",
-    is_registered: 1,
-    is_admin: 1,
+    is_registered: true,
+    is_admin: true,
     contact_no: "1234567890"
   }, (err, res) => {
     console.log(res.body);

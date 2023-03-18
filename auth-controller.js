@@ -1,7 +1,7 @@
 const User = require('./models/user');
 
 exports.helloWorld = (req, res) => {
-  res.send("Hello World!");
+  res.send({message: "Hello World!"});
 }
 
 exports.getUsers = (pool) => (req, res) => {

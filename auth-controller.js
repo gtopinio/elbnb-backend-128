@@ -1,25 +1,25 @@
 const User = require('./models/user');
 
 exports.helloWorld = (req, res) => {
-  res.send({message: "Hello World!"});
-};
+  res.send("Hello World!");
+}
 
-exports.getUsers = (req, res, pool) => {
-  pool.getConnection((err, connection) => {
-    if (err) console.log(err);
+exports.getUsers = (pool) => (req, res) => {
+pool.getConnection((err, connection) => {
+  if (err) console.log(err);
 
-    connection.query('SELECT * FROM USERS', (err, results, fields) => {
-      if (err) console.log("Query Error:\n" + err);
-      console.log(results);
+  connection.query('SELECT * FROM USERS', (err, results, fields) => {
+    if (err) console.log("Query Error:\n" + err);
+    console.log(results);
 
-      connection.release();
+    connection.release();
 
-      res.send(results);
-    });
+    res.send(results);
   });
-};
+});
+}
 
-exports.signUp = (req, res, pool) => {
+exports.signUp = (pool) => (req, res) => {
   User.create(pool, req.body.firstName, req.body.lastName, req.body.email, req.body.password, (error, userId) => {
     if (error) {
       console.log(error);
@@ -28,4 +28,4 @@ exports.signUp = (req, res, pool) => {
     console.log(`User created with id ${userId}`);
     return res.send({ success: true });
   });
-};
+}

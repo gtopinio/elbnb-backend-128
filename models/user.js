@@ -1,24 +1,25 @@
+const bcrypt = require("bcrypt");
 
-const DATABASE_URL = "mysql://root:1P0DwS7uiI2Y3BiOO83e@containers-us-west-159.railway.app:6686/railway";
-const Sequelize = require('sequelize');
-const sequelize = new Sequelize(DATABASE_URL);
+const User = {
+  create: (connection, firstName, lastName, email, password, callback) => {
+    const sql = 'INSERT INTO users (firstName, lastName, email, password) VALUES (?, ?, ?, ?)';
+    const hash = bcrypt.hashSync(password, 10); // 10 is the number of rounds for salting
+    connection.query(sql, [firstName, lastName, email, hash], (error, results) => {
+      if (error) {
+        return callback(error);
+      }
+      return callback(null, results.insertId);
+    });
+  },
 
-// Define a User model
-const User = sequelize.define('User', {
-    username: {
-      type: Sequelize.STRING,
-      allowNull: false
-    },
-    email: {
-      type: Sequelize.STRING,
-      allowNull: false,
-      unique: true
-    },
-    password: {
-      type: Sequelize.STRING,
-      allowNull: false
-    }
-  });
-
+  comparePassword: (password, hash, callback) => {
+    bcrypt.compare(password, hash, (err, isMatch) => {
+      if (err) {
+        return callback(err);
+      }
+      return callback(null, isMatch);
+    });
+  }
+}
 
 module.exports = User;

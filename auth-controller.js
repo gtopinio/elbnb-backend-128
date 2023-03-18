@@ -19,7 +19,7 @@ pool.getConnection((err, connection) => {
 });
 }
 
-exports.signUp = (pool) = (req, res) => {
+exports.signUp = (pool) => (req, res) => {
   User.create(pool, req.body.firstName, req.body.lastName, req.body.email, req.body.password, (error, userId) => {
     if (error) {
       console.log(error);

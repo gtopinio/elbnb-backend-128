@@ -5,6 +5,8 @@ const PORT = process.env.PORT || 3001;
 const app = express();
 const appLink = "https://mockup-backend-128.herokuapp.com/"
 
+const User = require('./models/user');
+
 // Create a database connection pool
 const pool = mysql.createPool({
   host:"us-cdbr-east-06.cleardb.net",

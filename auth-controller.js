@@ -20,8 +20,7 @@ pool.getConnection((err, connection) => {
 }
 
 exports.signUp = (pool) = (req, res) => {
-  const { firstName, lastName, email, password } = req.body;
-  User.create(pool, firstName, lastName, email, password, (error, userId) => {
+  User.create(pool, req.body.firstName, req.body.lastName, req.body.email, req.body.password, (error, userId) => {
     if (error) {
       console.log(error);
       return res.send({ success: false });

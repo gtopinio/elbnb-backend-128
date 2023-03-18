@@ -20,7 +20,7 @@ pool.getConnection((err, connection) => {
 }
 
 exports.signUp = (pool) => (req, res) => {
-  User.create(pool, req.body.first_name, req.body.last_name, req.body.email, req.body.password, req.body.username, req.body.contact_no, (error, userId) => {
+  User.create(pool, req.body.first_name, req.body.last_name, req.body.email, req.body.password, req.body.username, req.body.contact_no, req.body.is_registered, req.body.is_admin, (error, userId) => {
     if (error) {
       console.log(error);
       return res.send({ success: false });

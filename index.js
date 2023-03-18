@@ -15,6 +15,15 @@ const pool = mysql.createPool({
   database:"heroku_7b30b189342afea"
 });
 
+pool.getConnection((err, connection) => {
+  if (err) {
+    console.log("Error connecting to database:", err);
+  } else {
+    console.log("Connected to database!");
+    connection.release();
+  }
+});
+
 // The two lines below is to ensure that the server has parser to read the body of incoming requests
 app.use(express.urlencoded({extended: true}));
 app.use(express.json());

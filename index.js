@@ -20,6 +20,16 @@ const pool = mysql.createPool({
     database:dbConfig.database,
   });
 
+// Check if database is connected
+pool.getConnection((err, connection) => {
+  if (err) {
+    console.log("Error connecting to database:", err);
+  } else {
+    console.log("Connected to database!");
+    connection.release();
+  }
+});
+
 // Function to parse the database URL into a config object
 function parseDbUrl(dbUrl) {
   const dbUrlRegex = /^mysql:\/\/([\w-]+):([\w-]+)@([\w.-]+)\/([\w-]+)$/;

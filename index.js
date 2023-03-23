@@ -3,6 +3,7 @@
 // Dependencies
 const express = require("express");
 const mysql = require("mysql");
+const url = require("url");
 
 // Port number : Use 3001 when testing locally
 const PORT = process.env.PORT || 3001;

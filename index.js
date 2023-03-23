@@ -10,6 +10,7 @@ const app = express();
 
 // Parse the database URL from the config var
 const dbUrl = process.env.CLEARDB_DATABASE_URL;
+console.log("URL: "+ dbUrl)
 if (!dbUrl) {
   throw new Error('Database URL not found');
 }

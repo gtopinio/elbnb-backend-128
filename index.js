@@ -1,5 +1,6 @@
 const express = require("express");
 const mysql = require("mysql");
+const url = require("url");
 
 const PORT = process.env.PORT || 3001;
 const app = express();
@@ -7,12 +8,20 @@ const appLink = "https://mockup-backend-128.herokuapp.com/"
 
 require('./models/user');
 
-// Create a database connection pool
+// Parse the database URL from the config var
+const dbUrl = url.parse(process.env.CLEARDB_DATABASE_URL);
+console.log("URL: "+ dbUrl)
+if (!dbUrl) {
+  throw new Error('Database URL not found');
+}
+
+// Create a connection pool to the database
 const pool = mysql.createPool({
-  host:"us-cdbr-east-06.cleardb.net",
-  user:"bb119cab8b99eb",
-  password:"b30902db",
-  database:"heroku_7b30b189342afea"
+  host: dbUrl.hostname,
+  user: dbUrl.auth.split(':')[0],
+  password: dbUrl.auth.split(':')[1],
+  database: dbUrl.pathname.substring(1),
+  connectionLimit: 10,
 });
 
 pool.getConnection((err, connection) => {

@@ -8,13 +8,32 @@ const mysql = require("mysql");
 const PORT = process.env.PORT || 3001;
 const app = express();
 
+// Parse the database URL from the config var
+const dbUrl = process.env.CLEARDB_DATABASE_URL;
+const dbConfig = parseDbUrl(dbUrl);
+
 // Create a database connection pool [Temporary database]
 const pool = mysql.createPool({
-    host:"us-cdbr-east-06.cleardb.net",
-    user:"bb119cab8b99eb",
-    password:"b30902db",
-    database:"heroku_7b30b189342afea"
+    host: dbConfig.host,
+    user: dbConfig.user,
+    password: dbConfig.password,
+    database:dbConfig.database,
   });
+
+// Function to parse the database URL into a config object
+function parseDbUrl(dbUrl) {
+  const dbUrlRegex = /^mysql:\/\/([\w-]+):([\w-]+)@([\w.-]+)\/([\w-]+)$/;
+  const matches = dbUrl.match(dbUrlRegex);
+  if (!matches) {
+    throw new Error('Invalid database URL');
+  }
+  return {
+    user: matches[1],
+    password: matches[2],
+    host: matches[3],
+    database: matches[4],
+  };
+}
 
 // The two lines below is to ensure that the server has parser to read the body of incoming requests
 app.use(express.urlencoded({extended: true}));

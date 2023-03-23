@@ -10,14 +10,21 @@ const app = express();
 
 // Parse the database URL from the config var
 const dbUrl = process.env.CLEARDB_DATABASE_URL;
-const dbConfig = parseDbUrl(dbUrl);
+if (!dbUrl) {
+  throw new Error('Database URL not found');
+}
+
+const dbConfig = dbUrl.match(/mysql:\/\/([a-zA-Z0-9]+):([a-zA-Z0-9]+)@([a-zA-Z0-9.]+)\/([a-zA-Z0-9_-]+)/);
+if (!dbConfig) {
+  throw new Error('Invalid database URL');
+}
 
 // Create a database connection pool [Temporary database]
 const pool = mysql.createPool({
-    host: dbConfig.host,
-    user: dbConfig.user,
-    password: dbConfig.password,
-    database:dbConfig.database,
+  host: dbConfig[3],
+  user: dbConfig[1],
+  password: dbConfig[2],
+  database: dbConfig[4],
   });
 
 // Check if database is connected

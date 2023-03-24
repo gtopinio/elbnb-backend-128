@@ -36,21 +36,6 @@ pool.getConnection((err, connection) => {
   }
 });
 
-// Function to parse the database URL into a config object
-function parseDbUrl(dbUrl) {
-  const dbUrlRegex = /^mysql:\/\/([\w-]+):([\w-]+)@([\w.-]+)\/([\w-]+)$/;
-  const matches = dbUrl.match(dbUrlRegex);
-  if (!matches) {
-    throw new Error('Invalid database URL');
-  }
-  return {
-    user: matches[1],
-    password: matches[2],
-    host: matches[3],
-    database: matches[4],
-  };
-}
-
 // The two lines below is to ensure that the server has parser to read the body of incoming requests
 app.use(express.urlencoded({extended: true}));
 app.use(express.json());

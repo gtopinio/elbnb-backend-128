@@ -8,6 +8,7 @@ const url = require("url");
 // Port number : Use 3001 when testing locally
 const PORT = process.env.PORT || 3001;
 const app = express();
+const appLink = "https://official-backend-128.herokuapp.com/"
 
 // Parse the database URL from the config var
 const dbUrl = url.parse(process.env.CLEARDB_DATABASE_URL);

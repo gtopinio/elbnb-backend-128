@@ -8,7 +8,7 @@ exports.getUsers = (pool) => (req, res) => {
 pool.getConnection((err, connection) => {
   if (err) console.log(err);
 
-  connection.query('SELECT * FROM USERS', (err, results, fields) => {
+  connection.query('SELECT * FROM USER', (err, results, fields) => {
     if (err) console.log("Query Error:\n" + err);
     console.log(results);
 

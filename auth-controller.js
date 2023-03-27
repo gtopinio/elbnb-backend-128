@@ -1,5 +1,5 @@
 // Imports
-import jwt from 'jsonwebtoken';
+const jwt = require("jsonwebtoken");
 const User = require('./models/user');
 
 // Test Endpoints 

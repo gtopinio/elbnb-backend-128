@@ -38,11 +38,11 @@ exports.signUp = (pool) => (req, res) => {
 exports.login = (pool) => (req, res) => {
 
   console.log("Body (login): " + req.body);
+  console.log("email (login): " + req.body.email);
+  console.log("password (login): " + req.body.password);
   // Credentials
   const email = req.body.email.trim();
   const password = req.body.password;
-  console.log("email (login): " + email);
-  console.log("password (login): " + password);
 
   // Check if email exists in the database
   User.checkIfEmailExists(pool, email, (error, results) => {

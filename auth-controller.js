@@ -24,6 +24,7 @@ pool.getConnection((err, connection) => {
 
 // User Management Edpoitns
 exports.signUp = (pool) => (req, res) => {
+  console.log("Auth-controller: " + req.body);
   User.create(pool, req.body.first_name, req.body.last_name, req.body.email, req.body.password, req.body.contact_no, req.body.is_business_account, req.body.is_admin, (error, userId) => {
     if (error) {
       console.log(error);

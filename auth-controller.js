@@ -1,3 +1,5 @@
+// Imports
+import jwt from 'jsonwebtoken';
 const User = require('./models/user');
 
 // Test Endpoints 
@@ -29,5 +31,55 @@ exports.signUp = (pool) => (req, res) => {
     }
     console.log(`User created with id ${userId}`);
     return res.send({ success: true });
+  });
+}
+
+exports.login = (pool) => (req, res) => {
+  // Credentials
+  const email = req.body.email.trim();
+  const password = req.body.password;
+
+  // Check if email exists in the database
+  User.checkIfEmailExists(pool, email, (error, results) => {
+    // If an error occured or user is not found
+    if (error) {
+      console.log(error);
+      return res.send({ success: false });
+    }
+    if (!results.exists) {
+      console.log("User not found");
+      return res.send({ success: false });
+    }
+
+    // If user is found, check if password is correct
+    const user = results.result[0]
+    User.comparePassword(password, user.password, (error, isMatch) => {
+      // If an error occured or incorrect password
+      if (error) {
+        console.log(error);
+        return res.send({ success: false });
+      }
+      if (!isMatch) {
+        console.log("Incorrect password");
+        return res.send({ success: false });
+      }
+
+      // Successful login
+      console.log("Successfully logged in");
+      const tokenPayload = {
+          // TODO: Token payload subject to change
+          _id: user._id
+      }
+      // TODO: JWT secretKey placeholder only
+      const token = jwt.sign(tokenPayload, "CD718D6872E1A6D69F47578A41FCD");
+
+      // Return response with token
+      return res.send({
+        success: true,
+        token,
+        fname: user.user_first_name,
+        lname: user.user_last_name
+      });
+    })
   });
 }

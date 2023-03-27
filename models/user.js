@@ -12,6 +12,22 @@ const User = {
     });
   },
 
+  // TODO: Subject to change, adding custom functions for testing
+  // TODO: Will replace if better way of querying is found
+  // Check if User email exists
+  checkIfEmailExists: (connection, email, callback) => {
+    const sql = 'SELECT 1 FROM users WHERE user_email = ?';
+    connection.query(sql, [email], (error, result) => {
+      if (error) {
+        return callback(error);
+      }
+      if (Array.isArray(result) && !result.length) {
+        return callback(null, { exists: false, result });
+      }
+      return callback(null, { exists: true, result });
+    });
+  },
+
   comparePassword: (password, hash, callback) => {
     bcrypt.compare(password, hash, (err, isMatch) => {
       if (err) {

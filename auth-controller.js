@@ -54,7 +54,7 @@ exports.login = (pool) => (req, res) => {
 
     // If user is found, check if password is correct
     const user = results.result[0]
-    User.comparePassword(password, user.password, (error, isMatch) => {
+    User.comparePassword(password, user.user_password, (error, isMatch) => {
       // If an error occured or incorrect password
       if (error) {
         console.log(error);

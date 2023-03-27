@@ -4,43 +4,24 @@ const url = require("url");
 
 const PORT = process.env.PORT || 3001;
 const app = express();
-const appLink = "http://localhost:3000";
-// const appLink = "https://mockup-backend-128.herokuapp.com/"
+const appLink = "https://mockup-backend-128.herokuapp.com/"
 
 require('./models/user');
 
-// // Parse the database URL from the config var
-// const dbUrl = url.parse(process.env.CLEARDB_DATABASE_URL);
-// console.log("URL: "+ dbUrl)
-// if (!dbUrl) {
-//   throw new Error('Database URL not found');
-// }
+// Parse the database URL from the config var
+const dbUrl = url.parse(process.env.CLEARDB_DATABASE_URL);
+console.log("URL: "+ dbUrl)
+if (!dbUrl) {
+  throw new Error('Database URL not found');
+}
 
-// // Create a connection pool to the database
-// const pool = mysql.createPool({
-//   host: dbUrl.hostname,
-//   user: dbUrl.auth.split(':')[0],
-//   password: dbUrl.auth.split(':')[1],
-//   database: dbUrl.pathname.substring(1),
-//   connectionLimit: 10,
-// });
-
-// pool.getConnection((err, connection) => {
-//   if (err) {
-//     console.log("Error connecting to database:", err);
-//   } else {
-//     console.log("Connected to database!");
-//     connection.release();
-//   }
-// });
-
-// TODO: This is for local testing, do not push to live
+// Create a connection pool to the database
 const pool = mysql.createPool({
-  connectionLimit : 10,
-  host     : 'localhost',
-  user     : 'root',
-  password : '',
-  database : 'localdb'
+  host: dbUrl.hostname,
+  user: dbUrl.auth.split(':')[0],
+  password: dbUrl.auth.split(':')[1],
+  database: dbUrl.pathname.substring(1),
+  connectionLimit: 10,
 });
 
 pool.getConnection((err, connection) => {

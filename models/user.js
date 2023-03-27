@@ -1,7 +1,5 @@
 const bcrypt = require("bcrypt");
 
-// TODO: Needs input validation for empty strings
-// TODO: Is this client-side or server-side?
 const User = {
   create: (connection, firstName, lastName, email, password, contactNum, is_registered, is_admin, callback) => {
     console.log("User Model: " + firstName + " " + lastName + " " + email + " " + password + " " + contactNum + " " + is_registered + " " + is_admin + " ");
@@ -19,15 +17,15 @@ const User = {
   // TODO: Will replace if better way of querying is found
   // Check if User email exists
   checkIfEmailExists: (connection, email, callback) => {
-    const sql = 'SELECT * FROM user WHERE user_email = ? LIMIT 1';
+    const sql = 'SELECT 1 FROM users WHERE user_email = ?';
     connection.query(sql, [email], (error, result) => {
       if (error) {
         return callback(error);
       }
       if (Array.isArray(result) && !result.length) {
-        return callback(null, { exists: false });
+        return callback(null, { exists: false, result });
       }
-      return callback(null, { exists: true, result: result });
+      return callback(null, { exists: true, result });
     });
   },
 

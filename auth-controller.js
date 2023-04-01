@@ -4,22 +4,24 @@ const User = require('./models/user');
 
 // Test Endpoints 
 exports.helloWorld = (req, res) => {
+  req.cookies.title = 'cookie';
+  console.log(req.cookies);
   res.send("Hello World!");
 }
 
 exports.getUsers = (pool) => (req, res) => {
-pool.getConnection((err, connection) => {
-  if (err) console.log(err);
+  pool.getConnection((err, connection) => {
+    if (err) console.log(err);
 
-  connection.query('SELECT * FROM USER', (err, results, fields) => {
-    if (err) console.log("Query Error:\n" + err);
-    console.log(results);
+    connection.query('SELECT * FROM USER', (err, results, fields) => {
+      if (err) console.log("Query Error:\n" + err);
+      console.log(results);
 
-    connection.release();
+      connection.release();
 
-    res.send(results);
+      res.send(results);
+    });
   });
-});
 }
 
 // User Management Edpoitns
@@ -66,21 +68,55 @@ exports.login = (pool) => (req, res) => {
       }
 
       // Successful login
-      console.log("Successfully logged in");
       const tokenPayload = {
           // TODO: Token payload subject to change
-          _id: user._id
+          user_id: user.user_id
       }
       // TODO: JWT secretKey placeholder only
-      const token = jwt.sign(tokenPayload, "CD718D6872E1A6D69F47578A41FCD");
+      const token = jwt.sign(tokenPayload, "THIS_IS_A_SECRET_STRING");
+      console.log("Successfully logged in");
 
       // Return response with token
+      // res.cookie('authToken', token, { maxAge: 900000, httpOnly: true });
       return res.send({
         success: true,
-        token,
+        authToken: token,
         fname: user.user_first_name,
         lname: user.user_last_name
       });
     })
   });
+}
+
+exports.checkIfLoggedIn = (pool) => (req, res) => {
+  // Checking if cookies/authToken cookie exists
+  if (!req.cookies.authToken) {
+    console.log("failed")
+    return res.send({ isLoggedIn: false });
+  }
+
+  jwt.verify(
+    req.cookies.authToken,
+    "THIS_IS_A_SECRET_STRING",
+    (err, tokenPayload) => {
+      if (err) {
+        return res.send({ isLoggedIn: false });
+      }
+
+      const user_id = tokenPayload.user_id; // Use the id that has been sent
+      User.findBy(pool, "user_id", user_id, (error, result) => {
+        // If an error occured or user is not found
+        if (error) {
+          console.log(error);
+          return res.send({ isLoggedIn: false });
+        }
+        if (!result.exists) {
+          console.log("User not found");
+          return res.send({ isLoggedIn: false });
+        }
+
+        console.log("User is currently logged in");
+        return res.send({ isLoggedIn: true });
+      });
+    });
 }

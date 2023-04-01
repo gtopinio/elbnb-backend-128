@@ -1,4 +1,5 @@
 const bcrypt = require("bcrypt");
+const { connect } = require("undici");
 
 // TODO: Needs input validation for empty strings
 // TODO: Is this client-side or server-side?
@@ -21,6 +22,22 @@ const User = {
   checkIfEmailExists: (connection, email, callback) => {
     const sql = 'SELECT * FROM user WHERE user_email = ? LIMIT 1';
     connection.query(sql, [email], (error, result) => {
+      if (error) {
+        return callback(error);
+      }
+      if (Array.isArray(result) && !result.length) {
+        return callback(null, { exists: false });
+      }
+      return callback(null, { exists: true, result: result });
+    });
+  },
+
+  // TODO: Subject to change, adding custom functions for testing
+  // TODO: Will replace if better way of querying is found
+  // Check if User ID exists
+  findBy: (connection, field, value, callback) => {
+    const sql = 'SELECT * FROM user WHERE ? = ? LIMIT 1';
+    connection.query(sql, [field, value], (error, result) => {
       if (error) {
         return callback(error);
       }

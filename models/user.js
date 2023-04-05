@@ -1,5 +1,4 @@
 const bcrypt = require("bcrypt");
-const { connect } = require("undici");
 
 // TODO: Needs input validation for empty strings
 // TODO: Is this client-side or server-side?

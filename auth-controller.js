@@ -137,60 +137,76 @@ exports.addAccommodation = (pool) => (req, res) => {
       if (err){
         return res.send({ success: false });
       } 
-
-      // check if the accommodation name already exists
-      const checkQuery = `
-        SELECT ACCOMMODATION_ID
-        FROM accommodations
-        WHERE ACCOMMODATION_NAME = ?
-      `;
-      connection.query(checkQuery, [name], (err, result) => {
-        if (err) {
-          connection.rollback(() => {
-              return res.send({ success: false });
-          });
-        }
-        else if (result !== undefined) {
-          // accommodation name already exists, rollback and return failure
-          connection.rollback(() => {
-              return res.send({ success: false });
-          });
-        }
-
-        // accommodation name doesn't exist, proceed with inserting the new accommodation
-        const accommodationQuery = `
-          INSERT INTO accommodations
-            (ACCOMMODATION_NAME, ACCOMMODATION_TYPE, ACCOMMODATION_DESCRIPTION, ACCOMMODATION_PRICE, ACCOMMODATION_LOCATION)
-          VALUES
-            (?, ?, ?, ?, ?)
+      else{
+          // check if the accommodation name already exists
+          const checkQuery = `
+          SELECT ACCOMMODATION_ID
+          FROM accommodations
+          WHERE ACCOMMODATION_NAME = ?
         `;
-        connection.query(accommodationQuery, [name, type, description, price, location], (err, resultQuery) => {
+        connection.query(checkQuery, [name], (err, result) => {
           if (err) {
             connection.rollback(() => {
                 return res.send({ success: false });
             });
           }
 
-          else {
-            const accommodationId = resultQuery.insertId; // get the auto-generated id of the newly inserted accommodation
+          else if (result != undefined) {
+            // accommodation name already exists, rollback and return failure
+            connection.rollback(() => {
+                return res.send({ success: false });
 
-          if (amenities.length > 0) {
-            // if there are amenities, insert them into the accommodation_amenities table
-            const amenityQueries = amenities.map((amenity) => {
-              return [`${accommodationId}-${amenity}`, accommodationId];
             });
-            const amenityQuery = `
-              INSERT INTO accommodation_amenities
-                (ACCOMMODATION_AMENITIES_ID, ACCOMMODATION_ID)
-              VALUES
-                ?
-            `;
-            connection.query(amenityQuery, [amenityQueries], (err) => {
-              if (err) {
+          }
+
+          // accommodation name doesn't exist, proceed with inserting the new accommodation
+          const accommodationQuery = `
+            INSERT INTO accommodations
+              (ACCOMMODATION_NAME, ACCOMMODATION_TYPE, ACCOMMODATION_DESCRIPTION, ACCOMMODATION_PRICE, ACCOMMODATION_LOCATION)
+            VALUES
+              (?, ?, ?, ?, ?)
+          `;
+          connection.query(accommodationQuery, [name, type, description, price, location], (err, resultQuery) => {
+            if (err) {
+              connection.rollback(() => {
                   return res.send({ success: false });
-              }
-              else {
-                // commit the transaction if everything is successful
+              });
+            }
+            else {
+              const accommodationId = resultQuery.insertId; // get the auto-generated id of the newly inserted accommodation
+
+              if (amenities.length > 0) {
+                // if there are amenities, insert them into the accommodation_amenities table
+                const amenityQueries = amenities.map((amenity) => {
+                  return [`${accommodationId}-${amenity}`, accommodationId];
+                });
+                const amenityQuery = `
+                  INSERT INTO accommodation_amenities
+                    (ACCOMMODATION_AMENITIES_ID, ACCOMMODATION_ID)
+                  VALUES
+                    ?
+                `;
+                connection.query(amenityQuery, [amenityQueries], (err) => {
+                  if (err) {
+                    connection.rollback(() => {
+                        return res.send({ success: false });
+                    });
+                  }
+
+                  // commit the transaction if everything is successful
+                  else connection.commit((err) => {
+                    if (err) {
+                      connection.rollback(() => {
+                          return res.send({ success: false });
+                      });
+                    }
+
+                    // return a JSON object indicating success
+                    else  return res.send({ success: true });
+                  });
+                });
+              } else {
+                // commit the transaction if there are no amenities
                 connection.commit((err) => {
                   if (err) {
                     connection.rollback(() => {
@@ -199,29 +215,16 @@ exports.addAccommodation = (pool) => (req, res) => {
                   }
 
                   // return a JSON object indicating success
-                    return res.send({ success: true });
+                  else  return res.send({ success: true });
 
                 });
               }
-              
-            });
-          } else {
-            // commit the transaction if there are no amenities
-            connection.commit((err) => {
-              if (err) {
-                connection.rollback(() => {
-                    return res.send({ success: false });
-                });
-              }
-
-              // return a JSON object indicating success
-              else return res.send({ success: true });
-            });
-          }
-          }
-          
+            }
+            
+          });
         });
-      });
+      }
+      
     });
   });
 };

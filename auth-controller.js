@@ -154,11 +154,11 @@ exports.addAccommodation = (pool) => (req, res) => {
         // accommodation name doesn't exist, proceed with inserting the new accommodation
         const accommodationQuery = `
           INSERT INTO accomodations
-            (ACCOMODATION_NAME, ACCOMODATION_TYPE, ACCOMODATION_DESCRIPTION, ACCOMMODATION_PRICE, ACCOMODATION_LOCATION)
+            (ACCOMODATION_NAME, ACCOMODATION_TYPE, ACCOMODATION_DESCRIPTION, ACCOMODATION_LOCATION, ACCOMMODATION_PRICE)
           VALUES
             (?, ?, ?, ?, ?)
         `;
-        connection.query(accommodationQuery, [name, type, description, price, location], (err, result) => {
+        connection.query(accommodationQuery, [name, type, description, location, price], (err, result) => {
           if (err) {
             connection.rollback(() => {
               return res.send({ success: false });

@@ -125,11 +125,11 @@ exports.addAccommodation = (pool) => (req, res) => {
   const { name, type, description, location, amenities } = req.body; // assuming amenities is an array of strings
 
   pool.getConnection((err, connection) => {
-    if (err) throw err;
+    if (err) return res.send({ success: false });
 
     // start a transaction to ensure atomicity
     connection.beginTransaction((err) => {
-      if (err) throw err;
+      if (err) return res.send({ success: false });
 
       // first, insert the new accommodation
       const accommodationQuery = `
@@ -141,7 +141,7 @@ exports.addAccommodation = (pool) => (req, res) => {
       connection.query(accommodationQuery, [name, type, description, location], (err, result) => {
         if (err) {
           connection.rollback(() => {
-            throw err;
+            return res.send({ success: false });
           });
         }
 

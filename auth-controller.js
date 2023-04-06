@@ -138,7 +138,7 @@ exports.addAccommodation = (pool) => (req, res) => {
         VALUES
           (?, ?, ?, ?, ?)
       `;
-      connection.query(accommodationQuery, [name, type, description, location], (err, result) => {
+      connection.query(accommodationQuery, [name, type, description, price, location], (err, result) => {
         if (err) {
           connection.rollback(() => {
             return res.send({ success: false });

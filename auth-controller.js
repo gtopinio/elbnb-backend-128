@@ -123,7 +123,8 @@ exports.checkIfLoggedIn = (pool) => (req, res) => {
 
 exports.addAccommodation = (pool) => (req, res) => {
   const { name, type, description, location, amenities } = req.body; // assuming amenities is an array of strings
-
+  console.log("Name: " + name);
+  console.log("Type: " + type);
   pool.getConnection((err, connection) => {
     if (err) return res.send({ success: false });
 
@@ -148,6 +149,7 @@ exports.addAccommodation = (pool) => (req, res) => {
         const accommodationId = result.insertId; // get the auto-generated id of the newly inserted accommodation
 
         if (amenities.length > 0) {
+          console.log("Ameneties len: " + amenities.length);
           // if there are amenities, insert them into the accomodation_ameneties table
           const amenityQueries = amenities.map((amenity) => {
             return [`${accommodationId}-${amenity}`, accommodationId];

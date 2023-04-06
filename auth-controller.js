@@ -159,7 +159,7 @@ exports.addAccommodation = (pool) => (req, res) => {
             // accommodation name already exists, rollback and return failure
             connection.rollback(() => {
               console.log("Error 4: " + err);
-
+              return res.send({ success: false });
             });
           }
 

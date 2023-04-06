@@ -128,10 +128,6 @@ exports.addAccommodation = (pool) => (req, res) => {
   pool.getConnection((err, connection) => {
     if (err) return res.send({ success: false });
 
-    // start a transaction to ensure atomicity
-    connection.beginTransaction((err) => {
-      if (err) return res.send({ success: false });
-
       // first, insert the new accommodation
       const accommodationQuery = `
         INSERT INTO accomodations
@@ -141,9 +137,7 @@ exports.addAccommodation = (pool) => (req, res) => {
       `;
       connection.query(accommodationQuery, [name, type, description, location], (err, result) => {
         if (err) {
-          connection.rollback(() => {
-            return res.send({ success: false });
-          });
+          return res.send({ success: false });
         }
 
         const accommodationId = result.insertId; // get the auto-generated id of the newly inserted accommodation
@@ -162,17 +156,13 @@ exports.addAccommodation = (pool) => (req, res) => {
           `;
           connection.query(amenityQuery, [amenityQueries], (err) => {
             if (err) {
-              connection.rollback(() => {
-                res.send({ success: false });
-              });
+              res.send({ success: false });
             }
 
             // commit the transaction if everything is successful
             connection.commit((err) => {
               if (err) {
-                connection.rollback(() => {
-                  res.send({ success: false });
-                });
+                res.send({ success: false });
               }
 
               // return a JSON object indicating success
@@ -183,9 +173,7 @@ exports.addAccommodation = (pool) => (req, res) => {
           // commit the transaction if there are no amenities
           connection.commit((err) => {
             if (err) {
-              connection.rollback(() => {
-                res.send({ success: false });
-              });
+              res.send({ success: false });
             }
 
             // return a JSON object indicating success
@@ -193,6 +181,6 @@ exports.addAccommodation = (pool) => (req, res) => {
           });
         }
       });
-    });
+
   });
 };

@@ -124,12 +124,11 @@ exports.checkIfLoggedIn = (pool) => (req, res) => {
 exports.addAccommodation = (pool) => async (req, res) => {
   const { name, type, description, location, price, amenities } = req.body;
 
-  const connection = await pool.getConnection();
+  const connection = pool.getConnection();
 
   try {
-    await connection.beginTransaction();
 
-    const [result] = await connection.query(
+    const [result] = connection.query(
       'SELECT ACCOMMODATION_ID FROM accommodations WHERE ACCOMMODATION_NAME = ?',
       [name]
     );
@@ -138,7 +137,7 @@ exports.addAccommodation = (pool) => async (req, res) => {
       return res.send({ success: false });
     }
 
-    const { insertId } = await connection.query(
+    const { insertId } = connection.query(
       'INSERT INTO accommodations (ACCOMMODATION_NAME, ACCOMMODATION_TYPE, ACCOMMODATION_DESCRIPTION, ACCOMMODATION_LOCATION, ACCOMMODATION_PRICE) VALUES (?, ?, ?, ?, ?)',
       [name, type, description, location, price]
     );
@@ -149,17 +148,15 @@ exports.addAccommodation = (pool) => async (req, res) => {
         insertId,
       ]);
 
-      await connection.query(
+      connection.query(
         'INSERT INTO accommodation_amenities (ACCOMMODATION_AMENETIES_ID, ACCOMMODATION_ID) VALUES ?',
         [amenityQueries]
       );
     }
 
-    await connection.commit();
+    connection.commit();
     return res.send({ success: true });
   } catch (err) {
-    await connection.rollback();
-    console.error(err);
     return res.send({ success: false });
   }
 };

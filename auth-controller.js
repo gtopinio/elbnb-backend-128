@@ -144,7 +144,8 @@ function checkAccommDup(pool, name, callback) {
 
 exports.addAccommodation = (pool) => (req, res) => {
   const { name, type, description, location, price, amenities } = req.body; // assuming amenities is an array of strings
-
+  // Printing the details of the accommodation query
+  console.log("========== ACCOMMODATION DETAILS ==========")
   console.log("Name: " + name);
   console.log("Type: " + type);
   console.log("Price: " + price);

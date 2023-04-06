@@ -132,15 +132,24 @@ exports.addAccommodation = (pool) => (req, res) => {
 
   let hasDup = false;
 
-  // See if there's an accommodation with the same name
-  const checkQuery = `SELECT ACCOMMODATION_ID FROM accommodations WHERE ACCOMMODATION_NAME = ?`;
-  connection.query(checkQuery, [name], (err, result) => {
-    if (err) console.log("Error: " + err);
 
-    if(result > 0){
-      hasDup = true;
+  // get the pool connection first
+  pool.getConnection((err, connection) => {
+    if(err) return res.send({success: false});
+
+    else{
+        // See if there's an accommodation with the same name
+        const checkQuery = `SELECT ACCOMMODATION_ID FROM accommodations WHERE ACCOMMODATION_NAME = ?`;
+        connection.query(checkQuery, [name], (err, result) => {
+          if (err) console.log("Error: " + err);
+
+          if(result > 0){
+            hasDup = true;
+          }
+        });
     }
   });
+
 
   return res.send({success: hasDup});
 

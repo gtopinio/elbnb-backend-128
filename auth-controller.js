@@ -123,10 +123,13 @@ exports.checkIfLoggedIn = (pool) => (req, res) => {
 
 exports.addAccommodation = (pool) => (req, res) => {
   const { name, type, description, location, amenities } = req.body; // assuming amenities is an array of strings
-  console.log("Name: " + req.body.name);
-  console.log("Type: " + req.body.type);
+
   pool.getConnection((err, connection) => {
     if (err) return res.send({ success: false });
+
+    // start a transaction to ensure atomicity
+    connection.beginTransaction((err) => {
+      if (err) return res.send({ success: false });
 
       // first, insert the new accommodation
       const accommodationQuery = `
@@ -137,13 +140,14 @@ exports.addAccommodation = (pool) => (req, res) => {
       `;
       connection.query(accommodationQuery, [name, type, description, location], (err, result) => {
         if (err) {
-          return res.send({ success: false });
+          connection.rollback(() => {
+            return res.send({ success: false });
+          });
         }
 
         const accommodationId = result.insertId; // get the auto-generated id of the newly inserted accommodation
 
         if (amenities.length > 0) {
-          console.log("Ameneties len: " + amenities.length);
           // if there are amenities, insert them into the accomodation_ameneties table
           const amenityQueries = amenities.map((amenity) => {
             return [`${accommodationId}-${amenity}`, accommodationId];
@@ -156,31 +160,37 @@ exports.addAccommodation = (pool) => (req, res) => {
           `;
           connection.query(amenityQuery, [amenityQueries], (err) => {
             if (err) {
-              res.send({ success: false });
+              connection.rollback(() => {
+                return res.send({ success: false });
+              });
             }
 
             // commit the transaction if everything is successful
             connection.commit((err) => {
               if (err) {
-                res.send({ success: false });
+                connection.rollback(() => {
+                  return res.send({ success: false });
+                });
               }
 
               // return a JSON object indicating success
-              res.send({ success: true });
+              return res.send({ success: true });
             });
           });
         } else {
           // commit the transaction if there are no amenities
           connection.commit((err) => {
             if (err) {
-              res.send({ success: false });
+              connection.rollback(() => {
+                return res.send({ success: false });
+              });
             }
 
             // return a JSON object indicating success
-            res.send({ success: true });
+            return res.send({ success: true });
           });
         }
       });
-
+    });
   });
 };

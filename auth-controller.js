@@ -296,3 +296,30 @@ exports.filterAccommodations = (pool) => (req, res) => {
   });
 };
 
+exports.addAccommodationPictures = (pool) => (req, res) => {
+    const accommodationId = req.params.id;
+    const picturePath = req.file.path;
+
+    // get pool connection first
+    pool.getConnection((err, connection) => {
+        if(err) return res.send({uploadStatus: false});
+
+        // Insert the picture path and the corresponding accommodation ID into the `accommodation_pictures` table
+        const query = `
+        INSERT INTO accommodation_pictures
+          (ACCOMMODATION_PICTURE_ID, ACCOMMODATION_ID)
+        VALUES
+          (?, ?)
+        `;
+        const pictureId = `${accommodationId}-${Date.now()}`;
+        connection.query(query, [pictureId, accommodationId], (err) => {
+          if (err) {
+            console.error('Error inserting picture into accommodation_pictures table:', err);
+            return res.send({uploadStatus: false});
+          } else {
+            console.log(`Picture uploaded for accommodation ID ${accommodationId}: ${picturePath}`);
+            return res.send({uploadStatus: true});
+          }
+        });
+    });
+  };

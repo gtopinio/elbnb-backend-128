@@ -121,42 +121,128 @@ exports.checkIfLoggedIn = (pool) => (req, res) => {
     });
 }
 
-exports.addAccommodation = (pool) => async (req, res) => {
-  const { name, type, description, location, price, amenities } = req.body;
-
-  const connection = pool.getConnection();
-
-  try {
-
-    const [result] = connection.query(
-      'SELECT ACCOMMODATION_ID FROM accommodations WHERE ACCOMMODATION_NAME = ?',
-      [name]
-    );
-
-    if (result.length > 0) {
+exports.addAccommodation = (pool) => (req, res) => {
+  const { name, type, description, location, price, amenities } = req.body; // assuming amenities is an array of strings
+  let responseSent = false; // flag variable to prevent sending multiple responses
+  pool.getConnection((err, connection) => {
+    if (err){
+      responseSent = true;
       return res.send({ success: false });
-    }
+    } 
 
-    const { insertId } = connection.query(
-      'INSERT INTO accommodations (ACCOMMODATION_NAME, ACCOMMODATION_TYPE, ACCOMMODATION_DESCRIPTION, ACCOMMODATION_LOCATION, ACCOMMODATION_PRICE) VALUES (?, ?, ?, ?, ?)',
-      [name, type, description, location, price]
-    );
+    // start a transaction to ensure atomicity
+    connection.beginTransaction((err) => {
+      if (err){
+        responseSent = true;
+        return res.send({ success: false });
+      } 
 
-    if (amenities.length > 0) {
-      const amenityQueries = amenities.map((amenity) => [
-        `${insertId}-${amenity}`,
-        insertId,
-      ]);
+      // check if the accommodation name already exists
+      const checkQuery = `
+        SELECT ACCOMODATION_ID
+        FROM accomodations
+        WHERE ACCOMODATION_NAME = ?
+      `;
+      connection.query(checkQuery, [name], (err, result) => {
+        if (err) {
+          connection.rollback(() => {
+            if (!responseSent) { // check if a response has already been sent
+              responseSent = true;
+              return res.send({ success: false });
+            }
+          });
+        }
 
-      connection.query(
-        'INSERT INTO accommodation_amenities (ACCOMMODATION_AMENETIES_ID, ACCOMMODATION_ID) VALUES ?',
-        [amenityQueries]
-      );
-    }
+        if (result.length > 0) {
+          // accommodation name already exists, rollback and return failure
+          connection.rollback(() => {
+            if (!responseSent) { // check if a response has already been sent
+              responseSent = true;
+              return res.send({ success: false });
+            }
+          });
+        }
 
-    connection.commit();
-    return res.send({ success: true });
-  } catch (err) {
-    return res.send({ success: false });
-  }
+        // accommodation name doesn't exist, proceed with inserting the new accommodation
+        const accommodationQuery = `
+          INSERT INTO accomodations
+            (ACCOMODATION_NAME, ACCOMODATION_TYPE, ACCOMODATION_DESCRIPTION, ACCOMMODATION_PRICE, ACCOMODATION_LOCATION)
+          VALUES
+            (?, ?, ?, ?, ?)
+        `;
+        connection.query(accommodationQuery, [name, type, description, price, location], (err, result) => {
+          if (err) {
+            connection.rollback(() => {
+              if (!responseSent) { // check if a response has already been sent
+                responseSent = true;
+                return res.send({ success: false });
+              }
+            });
+          }
+
+          const accommodationId = result.insertId; // get the auto-generated id of the newly inserted accommodation
+
+          if (amenities.length > 0) {
+            // if there are amenities, insert them into the accomodation_ameneties table
+            const amenityQueries = amenities.map((amenity) => {
+              return [`${accommodationId}-${amenity}`, accommodationId];
+            });
+            const amenityQuery = `
+              INSERT INTO accomodation_ameneties
+                (ACCOMODATION_AMENETIES_ID, ACCOMODATION_ID)
+              VALUES
+                ?
+            `;
+            connection.query(amenityQuery, [amenityQueries], (err) => {
+              if (err) {
+                connection.rollback(() => {
+                  if (!responseSent) { // check if a response has already been sent
+                    responseSent = true;
+                    return res.send({ success: false });
+                  }
+                });
+              }
+
+              // commit the transaction if everything is successful
+              connection.commit((err) => {
+                if (err) {
+                  connection.rollback(() => {
+                    if (!responseSent) { // check if a response has already been sent
+                      responseSent = true;
+                      return res.send({ success: false });
+                    }
+                  });
+                }
+
+                // return a JSON object indicating success
+                if (!responseSent) { // check if a response has already been sent
+                  responseSent = true;
+                  return res.send({ success: true });
+                }
+              });
+            });
+          } else {
+            // commit the transaction if there are no amenities
+            connection.commit((err) => {
+              if (err) {
+                connection.rollback(() => {
+                  if (!responseSent) { // check if a response has already been sent
+                    responseSent = true;
+                    return res.send({ success: false });
+                  }
+                });
+              }
+
+              // return a JSON object indicating success
+              if (!responseSent) { // check if a response has already been sent
+                responseSent = true;
+                return res.send({ success: true });
+              }
+
+            });
+          }
+        });
+      });
+    });
+  });
 };

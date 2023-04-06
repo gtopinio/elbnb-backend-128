@@ -121,29 +121,26 @@ exports.checkIfLoggedIn = (pool) => (req, res) => {
     });
 }
 
-function checkAccommDup(pool, name) {
-  let hasDup = false;
-
+function checkAccommDup(pool, name, callback) {
   pool.getConnection((err, connection) => {
-    if(err){
+    if (err) {
       console.log("Error: " + err);
-    }
-
-    else{
-        // See if there's an accommodation with the same name
-        const checkQuery = `SELECT ACCOMMODATION_ID FROM accommodations WHERE ACCOMMODATION_NAME = ?`;
-        connection.query(checkQuery, [name], (err, result) => {
-          if (err) console.log("Error: " + err);
-
-          if(result > 0){
-            hasDup = true;
-          }
-        });
+      callback(err, null);
+    } else {
+      const checkQuery = `SELECT ACCOMMODATION_ID FROM accommodations WHERE ACCOMMODATION_NAME = ?`;
+      connection.query(checkQuery, [name], (err, result) => {
+        if (err) {
+          console.log("Error: " + err);
+          callback(err, null);
+        } else {
+          callback(null, result.length > 0);
+        }
+      });
     }
   });
-
-  return hasDup;
 }
+
+
 
 exports.addAccommodation = (pool) => (req, res) => {
   const { name, type, description, location, price, amenities } = req.body; // assuming amenities is an array of strings
@@ -155,10 +152,14 @@ exports.addAccommodation = (pool) => (req, res) => {
   console.log("Location: " + location);
 
   // check if there's an accommodation that already has the same name
-  if(checkAccommDup(pool, name)){
-    console.log("Duplicate accommodation.")
-    return res.send({success: false});
-  } else {
+  checkAccommDup(pool, name, (err, hasDup) => {
+    if (err) {
+      console.log("Error: " + err);
+      return res.send({ success: false });
+    } else if (hasDup) {
+      console.log("Duplicate accommodation.");
+      return res.send({ success: false });
+    } else {
     // get pool connection
     pool.getConnection((err, connection) => {
       if(err) {
@@ -249,6 +250,7 @@ exports.addAccommodation = (pool) => (req, res) => {
   
     });
   }
+  }); // end of checkAccommDup
 
 
 

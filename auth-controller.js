@@ -124,18 +124,22 @@ exports.checkIfLoggedIn = (pool) => (req, res) => {
 exports.addAccommodation = (pool) => (req, res) => {
   const { name, type, description, location, price, amenities } = req.body; // assuming amenities is an array of strings
 
+  let hasResponded = false;
+
   console.log("Name: " + name);
   console.log("Type: " + type);
   console.log("Price: " + price);
+
   pool.getConnection((err, connection) => {
     if (err){
-      return res.send({ success: false });
+      console.log("Error: " + err);
     } 
 
+    else{
     // start a transaction to ensure atomicity
     connection.beginTransaction((err) => {
       if (err){
-        return res.send({ success: false });
+        console.log("Error: " + err);
       } 
       else{
           // check if the accommodation name already exists
@@ -147,14 +151,14 @@ exports.addAccommodation = (pool) => (req, res) => {
         connection.query(checkQuery, [name], (err, result) => {
           if (err) {
             connection.rollback(() => {
-                return res.send({ success: false });
+              console.log("Error: " + err);
             });
           }
 
           else if (result != undefined) {
             // accommodation name already exists, rollback and return failure
             connection.rollback(() => {
-                return res.send({ success: false });
+              console.log("Error: " + err);
 
             });
           }
@@ -169,7 +173,7 @@ exports.addAccommodation = (pool) => (req, res) => {
           connection.query(accommodationQuery, [name, type, description, price, location], (err, resultQuery) => {
             if (err) {
               connection.rollback(() => {
-                  return res.send({ success: false });
+                console.log("Error: " + err);
               });
             }
             else {
@@ -189,7 +193,7 @@ exports.addAccommodation = (pool) => (req, res) => {
                 connection.query(amenityQuery, [amenityQueries], (err) => {
                   if (err) {
                     connection.rollback(() => {
-                        return res.send({ success: false });
+                      console.log("Error: " + err);
                     });
                   }
 
@@ -197,12 +201,15 @@ exports.addAccommodation = (pool) => (req, res) => {
                   else connection.commit((err) => {
                     if (err) {
                       connection.rollback(() => {
-                          return res.send({ success: false });
+                         console.log("Error: " + err);
                       });
                     }
 
                     // return a JSON object indicating success
-                    else  return res.send({ success: true });
+                    else{
+                      hasResponded = true;
+                      return res.send({ success: true });
+                    }  
                   });
                 });
               } else {
@@ -210,12 +217,15 @@ exports.addAccommodation = (pool) => (req, res) => {
                 connection.commit((err) => {
                   if (err) {
                     connection.rollback(() => {
-                        return res.send({ success: false });
+                      console.log("Error: " + err);
                     });
                   }
 
                   // return a JSON object indicating success
-                  else  return res.send({ success: true });
+                  else{
+                    hasResponded = true;
+                    return res.send({ success: true });
+                  } 
 
                 });
               }
@@ -226,5 +236,8 @@ exports.addAccommodation = (pool) => (req, res) => {
       }
       
     });
+  } // else block
   });
+  // If unsuccessful transactions, return false success
+  if(!hasResponded) return res.send({ success: false });
 };

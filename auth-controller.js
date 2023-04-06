@@ -123,6 +123,7 @@ exports.checkIfLoggedIn = (pool) => (req, res) => {
 
 exports.addAccommodation = (pool) => (req, res) => {
   const { name, type, description, location, price, amenities } = req.body; // assuming amenities is an array of strings
+  console.log(price);
 
   pool.getConnection((err, connection) => {
     if (err) return res.send({ success: false });

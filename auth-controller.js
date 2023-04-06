@@ -251,3 +251,48 @@ exports.addAccommodation = (pool) => (req, res) => {
   }     // else when there's no duplicate
   }); // end of checkAccommDup
 };
+
+exports.filterAccommodations = (pool) => (req, res) => {
+  const { minPrice, maxPrice, type } = req.body;
+  let query = `
+    SELECT * 
+    FROM accommodations
+  `;
+
+  let values = [];
+
+  // add filters to the query
+  if (minPrice !== undefined && maxPrice !== undefined) {
+    query += ' WHERE ACCOMMODATION_PRICE BETWEEN ? AND ?';
+    values = [minPrice, maxPrice];
+  } else if (minPrice !== undefined) {
+    query += ' WHERE ACCOMMODATION_PRICE >= ?';
+    values = [minPrice];
+  } else if (maxPrice !== undefined) {
+    query += ' WHERE ACCOMMODATION_PRICE <= ?';
+    values = [maxPrice];
+  }
+
+  if (type !== undefined) {
+    if (values.length === 0) {
+      query += ' WHERE ACCOMMODATION_TYPE = ?';
+    } else {
+      query += ' AND ACCOMMODATION_TYPE = ?';
+    }
+    values.push(type);
+  }
+
+  // sort by name
+  query += ' ORDER BY ACCOMMODATION_NAME ASC';
+
+  // execute the query
+  pool.query(query, values, (err, results) => {
+    if (err) {
+      console.log('Error: ' + err);
+      return res.send({ success: false });
+    } else {
+      return res.send({ success: true, accommodations: results });
+    }
+  });
+};
+

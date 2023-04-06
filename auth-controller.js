@@ -145,10 +145,8 @@ exports.addAccommodation = (pool) => (req, res) => {
         }
 
         if (result.length > 0) {
-          // accommodation name already exists, rollback and return failure
-          connection.rollback(() => {
-            return res.send({ success: false });
-          });
+          // accommodation name already exists, send sucess = false
+          return res.send({ success: false });
         }
 
         // accommodation name doesn't exist, proceed with inserting the new accommodation

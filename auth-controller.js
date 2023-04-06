@@ -123,7 +123,6 @@ exports.checkIfLoggedIn = (pool) => (req, res) => {
 
 exports.addAccommodation = (pool) => (req, res) => {
   const { name, type, description, location, price, amenities } = req.body; // assuming amenities is an array of strings
-  console.log(price);
 
   pool.getConnection((err, connection) => {
     if (err) return res.send({ success: false });
@@ -134,9 +133,9 @@ exports.addAccommodation = (pool) => (req, res) => {
 
       // check if the accommodation name already exists
       const checkQuery = `
-        SELECT ACCOMODATION_ID
-        FROM accomodations
-        WHERE ACCOMODATION_NAME = ?
+        SELECT ACCOMMODATION_ID
+        FROM accommodations
+        WHERE ACCOMMODATION_NAME = ?
       `;
       connection.query(checkQuery, [name], (err, result) => {
         if (err) {
@@ -154,8 +153,8 @@ exports.addAccommodation = (pool) => (req, res) => {
 
         // accommodation name doesn't exist, proceed with inserting the new accommodation
         const accommodationQuery = `
-          INSERT INTO accomodations
-            (ACCOMODATION_NAME, ACCOMODATION_TYPE, ACCOMODATION_DESCRIPTION, ACCOMODATION_LOCATION, ACCOMMODATION_PRICE)
+          INSERT INTO accommodations
+            (ACCOMMODATION_NAME, ACCOMMODATION_TYPE, ACCOMMODATION_DESCRIPTION, ACCOMMODATION_LOCATION, ACCOMMODATION_PRICE)
           VALUES
             (?, ?, ?, ?, ?)
         `;
@@ -169,13 +168,13 @@ exports.addAccommodation = (pool) => (req, res) => {
           const accommodationId = result.insertId; // get the auto-generated id of the newly inserted accommodation
 
           if (amenities.length > 0) {
-            // if there are amenities, insert them into the accomodation_ameneties table
+            // if there are amenities, insert them into the accommodation_amenities table
             const amenityQueries = amenities.map((amenity) => {
               return [`${accommodationId}-${amenity}`, accommodationId];
             });
             const amenityQuery = `
-              INSERT INTO accomodation_ameneties
-                (ACCOMODATION_AMENETIES_ID, ACCOMODATION_ID)
+              INSERT INTO accommodation_amenities
+                (ACCOMMODATION_AMENETIES_ID, ACCOMMODATION_ID)
               VALUES
                 ?
             `;

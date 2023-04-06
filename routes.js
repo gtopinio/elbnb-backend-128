@@ -7,5 +7,5 @@ module.exports = (app, pool) => {
     app.post("/signUp", authController.signUp(pool));
     app.post("/login", authController.login(pool));
     app.post("/checkIfLoggedIn", authController.checkIfLoggedIn(pool));
-    app.post("/add-accom", authController.addAccommodation(pool));
+    app.post("/add-accommodation", authController.addAccommodation(pool));
 }

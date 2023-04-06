@@ -121,7 +121,7 @@ exports.checkIfLoggedIn = (pool) => (req, res) => {
     });
 }
 
-function checkAccommDup(name) {
+function checkAccommDup(pool, name) {
   let hasDup = false;
 
   pool.getConnection((err, connection) => {
@@ -155,7 +155,7 @@ exports.addAccommodation = (pool) => (req, res) => {
   console.log("Location: " + location);
 
   // check if there's an accommodation that already has the same name
-  if(checkAccommDup(name)){
+  if(checkAccommDup(pool, name)){
     console.log("Duplicate accommodation.")
     return res.send({success: false});
   } else {

@@ -123,20 +123,18 @@ exports.checkIfLoggedIn = (pool) => (req, res) => {
 
 exports.addAccommodation = (pool) => (req, res) => {
   const { name, type, description, location, price, amenities } = req.body; // assuming amenities is an array of strings
-  let responseSent = false; // flag variable to prevent sending multiple responses
+
   console.log("Name: " + name);
   console.log("Type: " + type);
   console.log("Price: " + price);
   pool.getConnection((err, connection) => {
     if (err){
-      responseSent = true;
       return res.send({ success: false });
     } 
 
     // start a transaction to ensure atomicity
     connection.beginTransaction((err) => {
       if (err){
-        responseSent = true;
         return res.send({ success: false });
       } 
 
@@ -149,20 +147,13 @@ exports.addAccommodation = (pool) => (req, res) => {
       connection.query(checkQuery, [name], (err, result) => {
         if (err) {
           connection.rollback(() => {
-            if (!responseSent) { // check if a response has already been sent
-              responseSent = true;
               return res.send({ success: false });
-            }
           });
         }
-        console.log("result: " + result);
-        if (result != undefined) {
+        else if (result !== undefined) {
           // accommodation name already exists, rollback and return failure
           connection.rollback(() => {
-            if (!responseSent) { // check if a response has already been sent
-              responseSent = true;
               return res.send({ success: false });
-            }
           });
         }
 
@@ -176,14 +167,12 @@ exports.addAccommodation = (pool) => (req, res) => {
         connection.query(accommodationQuery, [name, type, description, price, location], (err, resultQuery) => {
           if (err) {
             connection.rollback(() => {
-              if (!responseSent) { // check if a response has already been sent
-                responseSent = true;
                 return res.send({ success: false });
-              }
             });
           }
 
-          const accommodationId = resultQuery.insertId; // get the auto-generated id of the newly inserted accommodation
+          else {
+            const accommodationId = resultQuery.insertId; // get the auto-generated id of the newly inserted accommodation
 
           if (amenities.length > 0) {
             // if there are amenities, insert them into the accommodation_ameneties table
@@ -198,52 +187,39 @@ exports.addAccommodation = (pool) => (req, res) => {
             `;
             connection.query(amenityQuery, [amenityQueries], (err) => {
               if (err) {
-                connection.rollback(() => {
-                  if (!responseSent) { // check if a response has already been sent
-                    responseSent = true;
-                    return res.send({ success: false });
+                  return res.send({ success: false });
+              }
+              else {
+                // commit the transaction if everything is successful
+                connection.commit((err) => {
+                  if (err) {
+                    connection.rollback(() => {
+                        return res.send({ success: false });
+                    });
                   }
+
+                  // return a JSON object indicating success
+                    return res.send({ success: true });
+
                 });
               }
-
-              // commit the transaction if everything is successful
-              connection.commit((err) => {
-                if (err) {
-                  connection.rollback(() => {
-                    if (!responseSent) { // check if a response has already been sent
-                      responseSent = true;
-                      return res.send({ success: false });
-                    }
-                  });
-                }
-
-                // return a JSON object indicating success
-                if (!responseSent) { // check if a response has already been sent
-                  responseSent = true;
-                  return res.send({ success: true });
-                }
-              });
+              
             });
           } else {
             // commit the transaction if there are no amenities
             connection.commit((err) => {
               if (err) {
                 connection.rollback(() => {
-                  if (!responseSent) { // check if a response has already been sent
-                    responseSent = true;
                     return res.send({ success: false });
-                  }
                 });
               }
 
               // return a JSON object indicating success
-              if (!responseSent) { // check if a response has already been sent
-                responseSent = true;
-                return res.send({ success: true });
-              }
-
+              else return res.send({ success: true });
             });
           }
+          }
+          
         });
       });
     });

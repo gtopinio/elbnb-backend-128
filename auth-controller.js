@@ -161,7 +161,5 @@ exports.addAccommodation = (pool) => async (req, res) => {
     await connection.rollback();
     console.error(err);
     return res.send({ success: false });
-  } finally {
-    connection.release();
   }
 };

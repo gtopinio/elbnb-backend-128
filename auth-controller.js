@@ -132,14 +132,14 @@ exports.addAccommodation = (pool) => (req, res) => {
 
   pool.getConnection((err, connection) => {
     if (err){
-      console.log("Error: " + err);
+      console.log("Erro 1: " + err);
     } 
 
     else{
     // start a transaction to ensure atomicity
     connection.beginTransaction((err) => {
       if (err){
-        console.log("Error: " + err);
+        console.log("Error 2: " + err);
       } 
       else{
           // check if the accommodation name already exists
@@ -151,14 +151,14 @@ exports.addAccommodation = (pool) => (req, res) => {
         connection.query(checkQuery, [name], (err, result) => {
           if (err) {
             connection.rollback(() => {
-              console.log("Error: " + err);
+              console.log("Error 3: " + err);
             });
           }
 
           else if (result != undefined) {
             // accommodation name already exists, rollback and return failure
             connection.rollback(() => {
-              console.log("Error: " + err);
+              console.log("Error 4: " + err);
 
             });
           }
@@ -173,7 +173,7 @@ exports.addAccommodation = (pool) => (req, res) => {
           connection.query(accommodationQuery, [name, type, description, price, location], (err, resultQuery) => {
             if (err) {
               connection.rollback(() => {
-                console.log("Error: " + err);
+                console.log("Error 5: " + err);
               });
             }
             else {
@@ -193,7 +193,7 @@ exports.addAccommodation = (pool) => (req, res) => {
                 connection.query(amenityQuery, [amenityQueries], (err) => {
                   if (err) {
                     connection.rollback(() => {
-                      console.log("Error: " + err);
+                      console.log("Error 6: " + err);
                     });
                   }
 
@@ -201,7 +201,7 @@ exports.addAccommodation = (pool) => (req, res) => {
                   else connection.commit((err) => {
                     if (err) {
                       connection.rollback(() => {
-                         console.log("Error: " + err);
+                         console.log("Error 7: " + err);
                       });
                     }
 
@@ -217,7 +217,7 @@ exports.addAccommodation = (pool) => (req, res) => {
                 connection.commit((err) => {
                   if (err) {
                     connection.rollback(() => {
-                      console.log("Error: " + err);
+                      console.log("Error 8: " + err);
                     });
                   }
 

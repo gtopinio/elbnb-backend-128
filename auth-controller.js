@@ -155,8 +155,8 @@ exports.addAccommodation = (pool) => (req, res) => {
             }
           });
         }
-
-        else if (result != undefined) {
+        console.log("result: " + result);
+        if (result != undefined) {
           // accommodation name already exists, rollback and return failure
           connection.rollback(() => {
             if (!responseSent) { // check if a response has already been sent
@@ -173,7 +173,7 @@ exports.addAccommodation = (pool) => (req, res) => {
           VALUES
             (?, ?, ?, ?, ?)
         `;
-        connection.query(accommodationQuery, [name, type, description, price, location], (err, result) => {
+        connection.query(accommodationQuery, [name, type, description, price, location], (err, resultQuery) => {
           if (err) {
             connection.rollback(() => {
               if (!responseSent) { // check if a response has already been sent
@@ -183,7 +183,7 @@ exports.addAccommodation = (pool) => (req, res) => {
             });
           }
 
-          const accommodationId = result.insertId; // get the auto-generated id of the newly inserted accommodation
+          const accommodationId = resultQuery.insertId; // get the auto-generated id of the newly inserted accommodation
 
           if (amenities.length > 0) {
             // if there are amenities, insert them into the accomodation_ameneties table

@@ -175,12 +175,12 @@ exports.addAccommodation = (pool) => (req, res) => {
             const accommodationId = resultQuery.insertId; // get the auto-generated id of the newly inserted accommodation
 
           if (amenities.length > 0) {
-            // if there are amenities, insert them into the accommodation_ameneties table
+            // if there are amenities, insert them into the accommodation_amenities table
             const amenityQueries = amenities.map((amenity) => {
               return [`${accommodationId}-${amenity}`, accommodationId];
             });
             const amenityQuery = `
-              INSERT INTO accommodation_ameneties
+              INSERT INTO accommodation_amenities
                 (ACCOMMODATION_AMENITIES_ID, ACCOMMODATION_ID)
               VALUES
                 ?

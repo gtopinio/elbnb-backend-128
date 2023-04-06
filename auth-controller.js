@@ -122,7 +122,7 @@ exports.checkIfLoggedIn = (pool) => (req, res) => {
 }
 
 exports.addAccommodation = (pool) => (req, res) => {
-  const { name, type, description, location, amenities } = req.body; // assuming amenities is an array of strings
+  const { name, type, description, location, price, amenities } = req.body; // assuming amenities is an array of strings
 
   pool.getConnection((err, connection) => {
     if (err) return res.send({ success: false });
@@ -134,9 +134,9 @@ exports.addAccommodation = (pool) => (req, res) => {
       // first, insert the new accommodation
       const accommodationQuery = `
         INSERT INTO accomodations
-          (ACCOMODATION_NAME, ACCOMODATION_TYPE, ACCOMODATION_DESCRIPTION, ACCOMODATION_LOCATION)
+          (ACCOMODATION_NAME, ACCOMODATION_TYPE, ACCOMODATION_DESCRIPTION, ACCOMMODATION_PRICE, ACCOMODATION_LOCATION)
         VALUES
-          (?, ?, ?, ?)
+          (?, ?, ?, ?, ?)
       `;
       connection.query(accommodationQuery, [name, type, description, location], (err, result) => {
         if (err) {

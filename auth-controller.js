@@ -244,13 +244,11 @@ exports.addAccommodation = (pool) => (req, res) => {
                       }
             
                   }
+          });
+        }   // else when no errors in beginning transaction
       });
-      }
     });
-    
-  
-    });
-  }
+  }     // else when there's no duplicate
   }); // end of checkAccommDup
 
 

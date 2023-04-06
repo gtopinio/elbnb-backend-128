@@ -124,6 +124,9 @@ exports.checkIfLoggedIn = (pool) => (req, res) => {
 exports.addAccommodation = (pool) => (req, res) => {
   const { name, type, description, location, price, amenities } = req.body; // assuming amenities is an array of strings
   let responseSent = false; // flag variable to prevent sending multiple responses
+  console.log("Name: " + name);
+  console.log("Type: " + type);
+  console.log("Price: " + price);
   pool.getConnection((err, connection) => {
     if (err){
       responseSent = true;

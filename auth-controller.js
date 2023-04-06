@@ -144,7 +144,7 @@ exports.addAccommodation = (pool) => (req, res) => {
           });
         }
 
-        if (result.length > 0) {
+        else if (result.length > 0) {
           // accommodation name already exists, send sucess = false
           return res.send({ success: false });
         }

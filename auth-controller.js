@@ -153,7 +153,7 @@ exports.addAccommodation = (pool) => (req, res) => {
           });
         }
 
-        if (result.length > 0) {
+        else if (result != undefined) {
           // accommodation name already exists, rollback and return failure
           connection.rollback(() => {
             if (!responseSent) { // check if a response has already been sent

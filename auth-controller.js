@@ -263,42 +263,51 @@ exports.filterAccommodations = (pool) => (req, res) => {
   `;
   let params = [];
 
+  // Check if there are any filters, and add them to the query string and params
+  let filtersPresent = false;
   if (minPrice) {
     query += ` WHERE ACCOMMODATION_PRICE >= ? `;
     params.push(parseInt(minPrice));
+    filtersPresent = true;
   }
 
   if (maxPrice) {
-    if (params.length > 0) {
+    if (filtersPresent) {
       query += ` AND `;
     } else {
       query += ` WHERE `;
+      filtersPresent = true;
     }
     query += ` ACCOMMODATION_PRICE <= ? `;
     params.push(parseInt(maxPrice));
   }
 
   if (capacity) {
-    if (params.length > 0) {
+    if (filtersPresent) {
       query += ` AND `;
     } else {
       query += ` WHERE `;
+      filtersPresent = true;
     }
     query += ` ACCOMMODATION_CAPACITY = ? `;
     params.push(parseInt(capacity));
   }
 
   if (type) {
-    if (params.length > 0) {
+    if (filtersPresent) {
       query += ` AND `;
     } else {
       query += ` WHERE `;
+      filtersPresent = true;
     }
     query += ` ACCOMMODATION_TYPE = ? `;
     params.push(type);
   }
 
-  query += ` ORDER BY ACCOMMODATION_NAME`;
+  // If there are no filters, sort by accommodation name
+  if (!filtersPresent) {
+    query += ` ORDER BY ACCOMMODATION_NAME`;
+  }
 
   // Execute the query
   pool.query(query, params, (err, result) => {

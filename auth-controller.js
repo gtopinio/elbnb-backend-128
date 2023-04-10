@@ -256,13 +256,6 @@ exports.addAccommodation = (pool) => (req, res) => {
 exports.filterAccommodations = (pool) => (req, res) => {
   const { minPrice, maxPrice, capacity, type } = req.query;
 
-    // Printing the details of the accommodation filter query
-    console.log("========== Filter DETAILS ==========")
-    console.log("Type: " + type);
-    console.log("Min Price: " + minPrice);
-    console.log("Max Price: " + maxPrice);
-    console.log("Capacity: " + capacity);
-
   // Build the query string based on the filters
   let query = `
     SELECT *
@@ -311,22 +304,54 @@ exports.filterAccommodations = (pool) => (req, res) => {
     params.push(type);
   }
 
-  // If there are no filters, sort by accommodation name
-  if (!filtersPresent) {
-    query += ` ORDER BY ACCOMMODATION_NAME`;
+  // Add a HAVING clause to select only those accommodations that satisfy the filter criteria
+  if (filtersPresent) {
+    query += ` HAVING `;
+    let filterConditions = [];
+    if (minPrice) {
+      filterConditions.push(`ACCOMMODATION_PRICE >= ?`);
+    }
+    if (maxPrice) {
+      filterConditions.push(`ACCOMMODATION_PRICE <= ?`);
+    }
+    if (capacity) {
+      filterConditions.push(`ACCOMMODATION_CAPACITY = ?`);
+    }
+    if (type) {
+      filterConditions.push(`ACCOMMODATION_TYPE = ?`);
+    }
+    query += filterConditions.join(" AND ");
   }
 
-  // Execute the query
-  pool.query(query, params, (err, result) => {
-    if (err) {
-      console.log("Filter Accommodations Error: " + err);
-      return res.send({ success: false });
-    } else {
-      return res.send({ success: true, accommodations: result });
+  // Add an ORDER BY clause to order the accommodations based on the filter criteria
+  if (!filtersPresent || minPrice) {
+    query += ` ORDER BY ACCOMMODATION_PRICE`;
+    if (capacity) {
+      query +=
+      `DESC, ACCOMMODATION_CAPACITY`;
     }
-  });
+    } else if (minPrice && maxPrice) {
+    query += `ORDER BY ACCOMMODATION_PRICE`;
+    } else if (maxPrice) {
+    query += `ORDER BY ACCOMMODATION_PRICE DESC`;
+    }
+    
+    // If there are no filters, sort by accommodation name
+    if (!filtersPresent) {
+    query += `ORDER BY ACCOMMODATION_NAME`;
+    }
+    
+    // Execute the query
+    pool.query(query, params, (err, result) => {
+    if (err) {
+    console.log("Filter Accommodations Error: " + err);
+    return res.send({ success: false });
+    } else {
+    return res.send({ success: true, accommodations: result });
+    }
+    });
 };
-
+    
 
 exports.addAccommodationPictures = (pool) => (req, res) => {
     const accommodationId = req.params.id;

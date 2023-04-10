@@ -311,6 +311,8 @@ exports.filterAccommodations = (pool) => (req, res) => {
 
   // Printing the query
   console.log("Query: " + query);
+  console.log("\nWhere Clause: " + whereClause);
+  console.log("orderByClause: " + orderByClause);
   
   pool.query(query, filterValues, (err, results) => {
     if (err) {

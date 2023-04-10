@@ -261,7 +261,14 @@ exports.filterAccommodations = (pool) => (req, res) => {
   let filterValues = [];
 
   if (filters) {
-    const { minPrice, maxPrice, capacity, types } = filters;
+    const { minPrice, maxPrice, capacity, type } = filters;
+
+    // Print the filters
+    console.log("========== FILTER DETAILS ==========")
+    console.log("Type: " + type);
+    console.log("Min Price: " + minPrice);
+    console.log("Max Price: " + maxPrice);
+    console.log("Capacity: " + capacity);
 
     if (minPrice && maxPrice) {
       whereClause += "WHERE ACCOMMODATION_PRICE BETWEEN ? AND ? ";
@@ -281,11 +288,11 @@ exports.filterAccommodations = (pool) => (req, res) => {
       filterValues.push(capacity);
     }
 
-    if (types && types.length > 0) {
+    if (type && type.length > 0) {
       if (whereClause) whereClause += "AND ";
       else whereClause += "WHERE ";
       whereClause += "ACCOMMODATION_TYPE IN (?) ";
-      filterValues.push(types);
+      filterValues.push(type);
     }
 
     if (minPrice || maxPrice || capacity || (types && types.length > 0)) {

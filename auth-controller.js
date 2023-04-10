@@ -143,7 +143,7 @@ function checkAccommDup(pool, name, callback) {
 
 
 exports.addAccommodation = (pool) => (req, res) => {
-  const { name, type, description, location, price, amenities } = req.body; // assuming amenities is an array of strings
+  const { name, type, description, location, price, capacity, amenities } = req.body; // assuming amenities is an array of strings
   // Printing the details of the accommodation query
   console.log("========== ACCOMMODATION DETAILS ==========")
   console.log("Name: " + name);
@@ -151,6 +151,7 @@ exports.addAccommodation = (pool) => (req, res) => {
   console.log("Price: " + price);
   console.log("Description: " + description);
   console.log("Location: " + location);
+  console.log("Capacity: " + capacity);
 
   // check if there's an accommodation that already has the same name
   checkAccommDup(pool, name, (err, hasDup) => {
@@ -178,11 +179,11 @@ exports.addAccommodation = (pool) => (req, res) => {
         // accommodation name doesn't exist, proceed with inserting the new accommodation
         const accommodationQuery = `
         INSERT INTO accommodations
-          (ACCOMMODATION_NAME, ACCOMMODATION_TYPE, ACCOMMODATION_DESCRIPTION, ACCOMMODATION_PRICE, ACCOMMODATION_LOCATION)
+          (ACCOMMODATION_NAME, ACCOMMODATION_TYPE, ACCOMMODATION_DESCRIPTION, ACCOMMODATION_PRICE, ACCOMMODATION_LOCATION, ACCOMMODATION_CAPACITY)
         VALUES
           (?, ?, ?, ?, ?)
       `;
-      connection.query(accommodationQuery, [name, type, description, price, location], (err, resultQuery) => {
+      connection.query(accommodationQuery, [name, type, description, price, location, capacity], (err, resultQuery) => {
                   if (err) {
                     connection.rollback(() => {
                       console.log("Insert Accommodation Error: " + err);

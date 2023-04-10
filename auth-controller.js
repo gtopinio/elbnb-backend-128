@@ -294,7 +294,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
       filterValues.push(type);
     }
 
-    if (minPrice || maxPrice || capacity || (types && types.length > 0)) {
+    if (minPrice || maxPrice || capacity || (type && type.length > 0)) {
       orderByClause = "ORDER BY ";
       if (minPrice) orderByClause += "ACCOMMODATION_PRICE ASC, ";
       if (capacity) orderByClause += "ACCOMMODATION_CAPACITY DESC, ";

@@ -254,7 +254,7 @@ exports.addAccommodation = (pool) => (req, res) => {
 };
 
 exports.filterAccommodations = (pool) => (req, res) => {
-  const { filters } = req.body;
+  const { filters } = req.query;
   
   let whereClause = "";
   let orderByClause = "ORDER BY ACCOMMODATION_NAME ASC";

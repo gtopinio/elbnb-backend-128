@@ -256,6 +256,13 @@ exports.addAccommodation = (pool) => (req, res) => {
 exports.filterAccommodations = (pool) => (req, res) => {
   const { minPrice, maxPrice, capacity, type } = req.query;
 
+    // Printing the details of the accommodation filter query
+    console.log("========== Filter DETAILS ==========")
+    console.log("Type: " + type);
+    console.log("Min Price: " + minPrice);
+    console.log("Max Price: " + maxPrice);
+    console.log("Capacity: " + capacity);
+
   // Build the query string based on the filters
   let query = `
     SELECT *

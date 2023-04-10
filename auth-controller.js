@@ -181,7 +181,7 @@ exports.addAccommodation = (pool) => (req, res) => {
         INSERT INTO accommodations
           (ACCOMMODATION_NAME, ACCOMMODATION_TYPE, ACCOMMODATION_DESCRIPTION, ACCOMMODATION_PRICE, ACCOMMODATION_LOCATION, ACCOMMODATION_CAPACITY)
         VALUES
-          (?, ?, ?, ?, ?)
+          (?, ?, ?, ?, ?, ?)
       `;
       connection.query(accommodationQuery, [name, type, description, price, location, capacity], (err, resultQuery) => {
                   if (err) {

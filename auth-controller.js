@@ -254,14 +254,13 @@ exports.addAccommodation = (pool) => (req, res) => {
 };
 
 exports.filterAccommodations = (pool) => (req, res) => {
-  const { filters } = req.query;
+  const { minPrice, maxPrice, capacity, type } = req.query;
   
   let whereClause = "";
   let orderByClause = "ORDER BY ACCOMMODATION_NAME ASC";
   let filterValues = [];
 
-  if (filters) {
-    const { minPrice, maxPrice, capacity, type } = filters;
+  if (minPrice || maxPrice || capacity || type) {
 
     // Print the filters
     console.log("========== FILTER DETAILS ==========")

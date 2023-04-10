@@ -302,6 +302,9 @@ exports.filterAccommodations = (pool) => (req, res) => {
     ${whereClause}
     ${orderByClause}
   `;
+
+  // Printing the query
+  console.log("Query: " + query);
   
   pool.query(query, filterValues, (err, results) => {
     if (err) {

@@ -290,15 +290,9 @@ exports.filterAccommodations = (pool) => (req, res) => {
     if (type && type.length > 0) {
       if (whereClause) whereClause += "AND ";
       else whereClause += "WHERE ";
-      whereClause += "ACCOMMODATION_TYPE IN (";
-      for (let i = 0; i < type.length; i++) {
-        if (i > 0) whereClause += ", ";
-        whereClause += "?";
-        filterValues.push(type[i]);
-      }
-      whereClause += ") ";
+      whereClause += "ACCOMMODATION_TYPE IN (?) ";
+      filterValues.push(type);
     }
-    
 
     if (minPrice || maxPrice || capacity || (type && type.length > 0)) {
       orderByClause = "ORDER BY ";

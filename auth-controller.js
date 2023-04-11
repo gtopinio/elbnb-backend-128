@@ -391,7 +391,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
 
 exports.uploadAccommodationPic = (pool) => async (req, res) => {
   // Extract the image data from the request body
-  const imageData = req.files.data[0].buffer;
+  const imageData = req.files.data[0].buffer.toString('base64');;
 
   console.log("Image data: " + imageData);
     

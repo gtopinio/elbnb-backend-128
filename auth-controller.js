@@ -391,7 +391,7 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
   console.log("Accommodation Name: " + accommodationName);
   
   // check if there's an accommodation that has the same name
-  checkAccommDup(pool, accommodationName, (err, accommodationId) => {
+  getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
     if (err) {
       console.log("Error: " + err);
       return res.send({ success: false });

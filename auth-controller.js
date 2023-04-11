@@ -361,6 +361,8 @@ exports.filterAccommodations = (pool) => (req, res) => {
 };
 
 exports.addAccommodationPictures = (pool) => (req, res) => {
+  console.log(req.file);
+
   const picturePath = req.file.path;
 
   // Get the accommodation ID using the getAccommodationIdByName function

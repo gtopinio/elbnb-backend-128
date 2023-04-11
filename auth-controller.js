@@ -406,6 +406,14 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
       return res.send({ success: false });
     } else if (result > 0) {
 
+      // Check if request contains an image
+      const contentType = req.headers['content-type'];
+      const isImage = contentType && mime.lookup(contentType).startsWith('image/');
+
+      if (!isImage) {
+        return res.send({ success: false, message: 'Request must contain an image' });
+      }
+
       return res.send({ success: true, id: result});
     //   pool.getConnection(async (err, connection) => {
     //     if (err) {

@@ -403,12 +403,11 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
       console.log("Error: " + err);
       return res.send({ success: false });
     } else if (accommodationId > 0) {
-      // Create a readable stream from the image buffer using streamifier
-      const stream = streamifier.createReadStream(imageData);
       
       // Upload the image to Cloudinary
       try {
-        const result = await cloudinary.uploader.upload(stream, { upload_preset: 'your_upload_preset' });
+        const stream = streamifier.createReadStream(imageData);
+        const result = await cloudinary.uploader.upload(stream, { folder: 'mockup_setup', use_filename: true });
         const accommodationPictureId = result.public_id;
         
         // Update the accommodation_pictures table

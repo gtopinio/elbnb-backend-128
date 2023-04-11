@@ -254,39 +254,58 @@ exports.addAccommodation = (pool) => (req, res) => {
   }); // end of checkAccommDup
 };
 
-exports.getAccommodationIdByName = (pool) => (req, res) => {
-  const name = req.body.accommodationName;
-  // print out name of listing
-  console.log("Accommodation Name: "+ name);
-  // get pool connection
+function getAccommodationIdByName(pool, name, callback) {
   pool.getConnection((err, connection) => {
-    if(err) {
-      console.log("Get Connection Error: " + err);
-      return res.send({success:false});
+    if (err) {
+      console.log("Error: " + err);
+      callback(err, null);
+    } else {
+      const checkQuery = `SELECT ACCOMMODATION_ID FROM accommodations WHERE ACCOMMODATION_NAME = ?`;
+      connection.query(checkQuery, [name], (err, result) => {
+        if (err) {
+          console.log("Error: " + err);
+          callback(err, null);
+        } else {
+          callback(null, result[0].ACCOMMODATION_ID);
+        }
+      });
     }
-
-    const query = `
-      SELECT ACCOMMODATION_ID
-      FROM accommodations
-      WHERE ACCOMMODATION_NAME = ?
-    `;
-
-    connection.query(query, [name], (err, result) => {
-      if (err) {
-        console.log("Query Error: " + err);
-        return res.send({ success: false });
-      }
-
-      if (result.length > 0) {
-        const accommodationId = result[0].ACCOMMODATION_ID;
-        return res.send({ success: true, accommodationId: accommodationId });
-      } else {
-        console.log("Accommodation not found.");
-        return res.send({ success: false });
-      }
-    });
   });
-};
+}
+
+// exports.getAccommodationIdByName = (pool) => (req, res) => {
+//   const name = req.body.accommodationName;
+//   // print out name of listing
+//   console.log("Accommodation Name: "+ name);
+//   // get pool connection
+//   pool.getConnection((err, connection) => {
+//     if(err) {
+//       console.log("Get Connection Error: " + err);
+//       return res.send({success:false});
+//     }
+
+//     const query = `
+//       SELECT ACCOMMODATION_ID
+//       FROM accommodations
+//       WHERE ACCOMMODATION_NAME = ?
+//     `;
+
+//     connection.query(query, [name], (err, result) => {
+//       if (err) {
+//         console.log("Query Error: " + err);
+//         return res.send({ success: false });
+//       }
+
+//       if (result.length > 0) {
+//         const accommodationId = result[0].ACCOMMODATION_ID;
+//         return res.send({ success: true, accommodationId: accommodationId });
+//       } else {
+//         console.log("Accommodation not found.");
+//         return res.send({ success: false });
+//       }
+//     });
+//   });
+// };
 
 
 exports.filterAccommodations = (pool) => (req, res) => {
@@ -370,28 +389,39 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
 
   console.log("Data: " + base64Data);
   console.log("Accommodation Name: " + accommodationName);
-  const { success, accommodationId } = this.getAccommodationIdByName(pool)(req, res);
   
-  // Check if the accommodation exists
-  if (!success) {
-    return res.status(404).json({ success: false, message: 'Accommodation not found' });
-  }
+  // check if there's an accommodation that has the same name
+  checkAccommDup(pool, accommodationName, (err, accommodationId) => {
+    if (err) {
+      console.log("Error: " + err);
+      return res.send({ success: false });
+    } else if (accommodationId) {
+
+
+      pool.getConnection(async (err, connection) => {
+        if (err) {
+          console.log("Error: " + err);
+          callback(err, null);
+        } else {
   
-  // Upload the image to Cloudinary
-  try {
-    const result = await cloudinary.uploader.upload(base64Data, { upload_preset: 'mockup_setup' });
-    const accommodationPictureId = result.public_id;
-    
-    // Update the accommodation_pictures table
-    const insertAccommodationPictureQuery = `INSERT INTO accommodation_pictures (ACCOMMODATION_PICTURE_ID, ACCOMMODATION_ID) VALUES ('${accommodationPictureId}', ${accommodationId})`;
-    await pool.query(insertAccommodationPictureQuery);
-    
-    // Return success response
-    return res.status(200).json({ success: true });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ success: false, message: 'Error uploading image' });
-  }
+        // Upload the image to Cloudinary
+        try {
+          const result = await cloudinary.uploader.upload(base64Data, { upload_preset: 'mockup_setup' });
+          const accommodationPictureId = result.public_id;
+          
+          // Update the accommodation_pictures table
+          const insertAccommodationPictureQuery = `INSERT INTO accommodation_pictures (ACCOMMODATION_PICTURE_ID, ACCOMMODATION_ID) VALUES ('${accommodationPictureId}', ${accommodationId})`;
+          await connection.query(insertAccommodationPictureQuery);
+          
+          // Return success response
+          return res.send({ success: true });
+        } catch (error) {
+          console.error(error);
+          return res.send({ success: false, message: 'Error uploading image' });
+        }
+      }
+    });
+  }});
 }
 
 

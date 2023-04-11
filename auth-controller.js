@@ -1,6 +1,7 @@
 // Imports
 const jwt = require("jsonwebtoken");
 const cloudinary = require('cloudinary').v2;
+const mime = require('mime-types');
 const User = require('./models/user');
 
 // Configuration 

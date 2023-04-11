@@ -1,7 +1,6 @@
 // Imports
 const jwt = require("jsonwebtoken");
 const cloudinary = require('cloudinary').v2;
-const mime = require('mime');
 const User = require('./models/user');
 
 // Configuration 
@@ -391,7 +390,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
 };
 
 exports.uploadAccommodationPic = (pool) => async (req, res) => {
-  // Extract the base64 data from the request body
+  // Extract the image data from the request body
   const imageData = req.body.data;
   
   // Find the accommodation id from the request parameters
@@ -407,39 +406,29 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
       return res.send({ success: false });
     } else if (result > 0) {
 
-      // Check if request contains an image
-      const contentType = req.headers['content-type'];
-      const mimeType = contentType ? mime.lookup(contentType) : false;
-      const isImage = mimeType && mime.lookup(contentType).startsWith('image/');
-
-      if (!isImage) {
-        return res.send({ success: false, message: 'Request must contain an image' });
-      }
-
-      return res.send({ success: true, id: result});
-    //   pool.getConnection(async (err, connection) => {
-    //     if (err) {
-    //       console.log("Error: " + err);
-    //       callback(err, null);
-    //     } else {
+      pool.getConnection(async (err, connection) => {
+        if (err) {
+          console.log("Error: " + err);
+          callback(err, null);
+        } else {
   
-    //     // Upload the image to Cloudinary
-    //     try {
-    //       const result = await cloudinary.uploader.upload(base64Data, { upload_preset: 'mockup_setup' });
-    //       const accommodationPictureId = result.public_id;
+        // Upload the image to Cloudinary
+        try {
+          const result = await cloudinary.uploader.upload(base64Data, { upload_preset: 'mockup_setup' });
+          const accommodationPictureId = result.public_id;
           
-    //       // Update the accommodation_pictures table
-    //       const insertAccommodationPictureQuery = `INSERT INTO accommodation_pictures (ACCOMMODATION_PICTURE_ID, ACCOMMODATION_ID) VALUES ('${accommodationPictureId}', ${accommodationId})`;
-    //       await connection.query(insertAccommodationPictureQuery);
+          // Update the accommodation_pictures table
+          const insertAccommodationPictureQuery = `INSERT INTO accommodation_pictures (ACCOMMODATION_PICTURE_ID, ACCOMMODATION_ID) VALUES ('${accommodationPictureId}', ${accommodationId})`;
+          await connection.query(insertAccommodationPictureQuery);
           
-    //       // Return success response
-    //       return res.send({ success: true });
-    //     } catch (error) {
-    //       console.error(error);
-    //       return res.send({ success: false, message: 'Error uploading image' });
-    //     }
-    //   }
-    // });
+          // Return success response
+          return res.send({ success: true });
+        } catch (error) {
+          console.error(error);
+          return res.send({ success: false, message: 'Error uploading image' });
+        }
+      }
+    });
   } else {
     console.log("Full upload error");
     return res.send({ success: false });

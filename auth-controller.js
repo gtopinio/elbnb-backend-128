@@ -274,6 +274,7 @@ function getAccommodationIdByName(pool, name, callback) {
           console.log("Error: " + err);
           callback(err, null);
         } else {
+          console.log("Result from get accomm id: " + result);
           callback(null, result[0].ACCOMMODATION_ID);
         }
       });

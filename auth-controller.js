@@ -1,7 +1,7 @@
 // Imports
 const jwt = require("jsonwebtoken");
 const cloudinary = require('cloudinary').v2;
-const mime = require('mime-types');
+const mime = require('mime');
 const User = require('./models/user');
 
 // Configuration 
@@ -409,7 +409,8 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
 
       // Check if request contains an image
       const contentType = req.headers['content-type'];
-      const isImage = contentType && mime.lookup(contentType).startsWith('image/');
+      const mimeType = contentType ? mime.lookup(contentType) : false;
+      const isImage = mimeType && mime.lookup(contentType).startsWith('image/');
 
       if (!isImage) {
         return res.send({ success: false, message: 'Request must contain an image' });

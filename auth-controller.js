@@ -395,7 +395,7 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
     if (err) {
       console.log("Error: " + err);
       return res.send({ success: false });
-    } else if (accommodationId) {
+    } else if (accommodationId > 0) {
 
 
       pool.getConnection(async (err, connection) => {
@@ -421,7 +421,12 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
         }
       }
     });
-  }});
+  } else {
+    console.log("Full upload error");
+    return res.send({ success: false });
+  }
+
+  });
 }
 
 

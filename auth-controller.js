@@ -392,7 +392,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
 
 exports.uploadAccommodationPic = (pool) => async (req, res) => {
   // Extract the base64 data from the request body
-  const base64Data = req.body.data;
+  const imageData = req.body.data;
   
   // Find the accommodation id from the request parameters
   const accommodationName = req.body.accommodationName;
@@ -408,12 +408,12 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
     } else if (result > 0) {
 
       // Check if request contains an image
-      // const contentType = req.headers['content-type'];
-      // const isImage = contentType && mime.lookup(contentType).startsWith('image/');
+      const contentType = req.headers['content-type'];
+      const isImage = contentType && mime.lookup(contentType).startsWith('image/');
 
-      // if (!isImage) {
-      //   return res.send({ success: false, message: 'Request must contain an image' });
-      // }
+      if (!isImage) {
+        return res.send({ success: false, message: 'Request must contain an image' });
+      }
 
       return res.send({ success: true, id: result});
     //   pool.getConnection(async (err, connection) => {

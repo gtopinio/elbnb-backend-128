@@ -23,6 +23,7 @@ module.exports = (app, pool) => {
     app.post("/login", authController.login(pool));
     app.post("/checkIfLoggedIn", authController.checkIfLoggedIn(pool));
     app.post("/add-accommodation", authController.addAccommodation(pool));
+    app.post("/get-accommid", authController.getAccommodationIdByName(pool));
     app.post("/filter-accommodation", authController.filterAccommodations(pool));
     app.post("/accommodations/:id/pictures", upload.single("picture") , authController.addAccommodationPictures(pool));
 }

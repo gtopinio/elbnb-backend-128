@@ -253,6 +253,32 @@ exports.addAccommodation = (pool) => (req, res) => {
   }); // end of checkAccommDup
 };
 
+exports.getAccommodationIdByName = (pool) => (req, res) => {
+  const { name } = req.body.accommodationName;
+
+    const query = `
+      SELECT ACCOMMODATION_ID
+      FROM accommodations
+      WHERE ACCOMMODATION_NAME = ?
+    `;
+
+    connection.query(query, [name], (err, result) => {
+      if (err) {
+        console.log("Query Error: " + err);
+        return res.send({ success: false });
+      }
+
+      if (result.length > 0) {
+        const accommodationId = result[0].ACCOMMODATION_ID;
+        return res.send({ success: true, accommodationId: accommodationId });
+      } else {
+        console.log("Accommodation not found.");
+        return res.send({ success: false });
+      }
+    });
+};
+
+
 exports.filterAccommodations = (pool) => (req, res) => {
   const { minPrice, maxPrice, capacity, type } = req.query;
   

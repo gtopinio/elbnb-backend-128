@@ -366,8 +366,8 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
   const base64Data = req.body.data;
   
   // Find the accommodation id from the request parameters
-  const accommodationName = req.params.accommodationName;
-  const { success, accommodationId } = await getAccommodationIdByName(pool)(req, res);
+  const accommodationName = req.body.accommodationName;
+  const { success, accommodationId } = this.getAccommodationIdByName(pool)(req, res);
   
   // Check if the accommodation exists
   if (!success) {

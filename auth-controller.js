@@ -392,6 +392,9 @@ exports.filterAccommodations = (pool) => (req, res) => {
 exports.uploadAccommodationPic = (pool) => async (req, res) => {
   // Extract the image data from the request body
   const imageData = req.body.data;
+
+  // Convert the image data to base64 format
+  const base64Data = Buffer.from(imageData).toString('base64');
   
   // Find the accommodation id from the request parameters
   const accommodationName = req.body.accommodationName;
@@ -414,7 +417,7 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
   
         // Upload the image to Cloudinary
         try {
-          const result = await cloudinary.uploader.upload(imageData, { upload_preset: 'mockup_setup' });
+          const result = await cloudinary.uploader.upload(base64Data, { upload_preset: 'mockup_setup' });
           const accommodationPictureId = result.public_id;
           
           // Update the accommodation_pictures table

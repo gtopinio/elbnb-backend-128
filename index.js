@@ -1,4 +1,5 @@
 const express = require("express");
+const bodyParser = require("body-parser");
 const mysql = require("mysql");
 const url = require("url");
 
@@ -34,8 +35,8 @@ pool.getConnection((err, connection) => {
 });
 
 // The two lines below is to ensure that the server has parser to read the body of incoming requests
-app.use(express.urlencoded({extended: true}));
-app.use(express.json());
+app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.json());
 
 // allow CORS
 app.use((req, res, next) => {

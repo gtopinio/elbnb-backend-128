@@ -1,7 +1,6 @@
 // Imports
 const jwt = require("jsonwebtoken");
 const cloudinary = require('cloudinary').v2;
-const fileType = require('file-type');
 const User = require('./models/user');
 
 // Configuration 
@@ -394,15 +393,7 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
   // Extract the image data from the request body
   const imageData = req.body.data;
 
-  // Detect the MIME type of the file from its buffer
-  const detectedType = fileType(imageData);
-
-  // Check if the detected MIME type is an image
-  if (detectedType && detectedType.mime.startsWith('image/')) {
-    console.log("Image!");
-  } else {
-    console.log("NOT an Image!");
-  }
+  console.log("Image data: " + imageData);
     
   // Find the accommodation id from the request parameters
   const accommodationName = req.body.accommodationName;

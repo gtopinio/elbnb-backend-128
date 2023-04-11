@@ -399,6 +399,7 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
 
   // console.log("Data: " + base64Data);
   console.log("Accommodation Name: " + accommodationName);
+  console.log(req.body);
   
   // check if there's an accommodation that has the same name
   getAccommodationIdByName(pool, accommodationName, (err, result) => {

@@ -10,7 +10,7 @@ require('./models/user');
 
 // Parse the database URL from the config var
 const dbUrl = url.parse(process.env.CLEARDB_DATABASE_URL);
-console.log("URL: "+ dbUrl)
+// Check if database URL exists
 if (!dbUrl) {
   throw new Error('Database URL not found');
 }

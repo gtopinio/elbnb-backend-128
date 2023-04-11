@@ -400,11 +400,11 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
   console.log("Accommodation Name: " + accommodationName);
   
   // check if there's an accommodation that has the same name
-  getAccommodationIdByName(pool, accommodationName, (err, result) => {
+  getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
     if (err) {
       console.log("Error: " + err);
       return res.send({ success: false });
-    } else if (result > 0) {
+    } else if (accommodationId > 0) {
 
       pool.getConnection(async (err, connection) => {
         if (err) {
@@ -414,7 +414,7 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
   
         // Upload the image to Cloudinary
         try {
-          const result = await cloudinary.uploader.upload(base64Data, { upload_preset: 'mockup_setup' });
+          const result = await cloudinary.uploader.upload(imageData, { upload_preset: 'mockup_setup' });
           const accommodationPictureId = result.public_id;
           
           // Update the accommodation_pictures table

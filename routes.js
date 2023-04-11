@@ -4,7 +4,7 @@ const multer = require('multer');
 // Set up multer storage configuration
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/');
+    cb(null, './uploads/');
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -25,5 +25,5 @@ module.exports = (app, pool) => {
     app.post("/add-accommodation", authController.addAccommodation(pool));
     app.post("/get-accommid", authController.getAccommodationIdByName(pool));
     app.post("/filter-accommodation", authController.filterAccommodations(pool));
-    app.post("/accommodations/:accommodationName/pictures", upload.single("picture") , authController.addAccommodationPictures(pool));
+    app.post("/add-accommodation-picture", upload.single("picture") , authController.addAccommodationPictures(pool));
 }

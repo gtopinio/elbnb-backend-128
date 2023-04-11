@@ -365,7 +365,7 @@ exports.addAccommodationPictures = (pool) => (req, res) => {
 
   // Get the accommodation ID using the getAccommodationIdByName function
   const getAccommodationId = exports.getAccommodationIdByName(pool);
-  getAccommodationId({ body: { accommodationName: req.params.accommodationName } }, (err, result) => {
+  getAccommodationId({ body: { accommodationName: req.body.accommodationName } }, (err, result) => {
     if (err) {
       console.error('Error getting accommodation ID:', err);
       return res.send({ uploadStatus: false });

@@ -1,5 +1,6 @@
 // Imports
 const jwt = require("jsonwebtoken");
+const cloudinary = require('cloudinary').v2;
 const User = require('./models/user');
 
 // Test Endpoints 
@@ -360,42 +361,73 @@ exports.filterAccommodations = (pool) => (req, res) => {
   });
 };
 
-exports.addAccommodationPictures = (pool) => (req, res) => {
-  console.log(req.file);
+exports.uploadAccommodationPic = (pool) => async (req, res) => {
+  // Extract the base64 data from the request body
+  const base64Data = req.body.data;
+  
+  // Find the accommodation id from the request parameters
+  const accommodationName = req.params.accommodationName;
+  const { success, accommodationId } = await getAccommodationIdByName(pool)(req, res);
+  
+  // Check if the accommodation exists
+  if (!success) {
+    return res.status(404).json({ success: false, message: 'Accommodation not found' });
+  }
+  
+  // Upload the image to Cloudinary
+  try {
+    const result = await cloudinary.uploader.upload(base64Data, { upload_preset: 'mockup_setup' });
+    const accommodationPictureId = result.public_id;
+    
+    // Update the accommodation_pictures table
+    const insertAccommodationPictureQuery = `INSERT INTO accommodation_pictures (ACCOMMODATION_PICTURE_ID, ACCOMMODATION_ID) VALUES ('${accommodationPictureId}', ${accommodationId})`;
+    await pool.query(insertAccommodationPictureQuery);
+    
+    // Return success response
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ success: false, message: 'Error uploading image' });
+  }
+}
 
-  const picturePath = req.file.path;
 
-  // Get the accommodation ID using the getAccommodationIdByName function
-  const getAccommodationId = exports.getAccommodationIdByName(pool);
-  getAccommodationId({ body: { accommodationName: req.body.accommodationName } }, (err, result) => {
-    if (err) {
-      console.error('Error getting accommodation ID:', err);
-      return res.send({ uploadStatus: false });
-    }
+// exports.addAccommodationPictures = (pool) => (req, res) => {
+//   console.log(req.file);
 
-    const accommodationId = result.accommodationId;
+//   const picturePath = req.file.path;
 
-    // get pool connection first
-    pool.getConnection((err, connection) => {
-      if (err) return res.send({ uploadStatus: false });
+//   // Get the accommodation ID using the getAccommodationIdByName function
+//   const getAccommodationId = exports.getAccommodationIdByName(pool);
+//   getAccommodationId({ body: { accommodationName: req.body.accommodationName } }, (err, result) => {
+//     if (err) {
+//       console.error('Error getting accommodation ID:', err);
+//       return res.send({ uploadStatus: false });
+//     }
 
-      // Insert the picture path and the corresponding accommodation ID into the `accommodation_pictures` table
-      const query = `
-        INSERT INTO accommodation_pictures
-          (ACCOMMODATION_PICTURE_ID, ACCOMMODATION_ID)
-        VALUES
-          (?, ?)
-      `;
-      const pictureId = `${accommodationId}-${Date.now()}`;
-      connection.query(query, [pictureId, accommodationId], (err) => {
-        if (err) {
-          console.error('Error inserting picture into accommodation_pictures table:', err);
-          return res.send({ uploadStatus: false });
-        } else {
-          console.log(`Picture uploaded for accommodation ID ${accommodationId}: ${picturePath}`);
-          return res.send({ uploadStatus: true });
-        }
-      });
-    });
-  });
-};
+//     const accommodationId = result.accommodationId;
+
+//     // get pool connection first
+//     pool.getConnection((err, connection) => {
+//       if (err) return res.send({ uploadStatus: false });
+
+//       // Insert the picture path and the corresponding accommodation ID into the `accommodation_pictures` table
+//       const query = `
+//         INSERT INTO accommodation_pictures
+//           (ACCOMMODATION_PICTURE_ID, ACCOMMODATION_ID)
+//         VALUES
+//           (?, ?)
+//       `;
+//       const pictureId = `${accommodationId}-${Date.now()}`;
+//       connection.query(query, [pictureId, accommodationId], (err) => {
+//         if (err) {
+//           console.error('Error inserting picture into accommodation_pictures table:', err);
+//           return res.send({ uploadStatus: false });
+//         } else {
+//           console.log(`Picture uploaded for accommodation ID ${accommodationId}: ${picturePath}`);
+//           return res.send({ uploadStatus: true });
+//         }
+//       });
+//     });
+//   });
+// };

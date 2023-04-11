@@ -256,6 +256,13 @@ exports.addAccommodation = (pool) => (req, res) => {
 exports.getAccommodationIdByName = (pool) => (req, res) => {
   const { name } = req.body.accommodationName;
 
+  // get pool connection
+  pool.getConnection((err, connection) => {
+    if(err) {
+      console.log("Get Connection Error: " + err);
+      return res.send({success:false});
+    }
+
     const query = `
       SELECT ACCOMMODATION_ID
       FROM accommodations
@@ -276,6 +283,7 @@ exports.getAccommodationIdByName = (pool) => (req, res) => {
         return res.send({ success: false });
       }
     });
+  });
 };
 
 

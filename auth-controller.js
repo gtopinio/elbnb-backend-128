@@ -255,7 +255,8 @@ exports.addAccommodation = (pool) => (req, res) => {
 
 exports.getAccommodationIdByName = (pool) => (req, res) => {
   const { name } = req.body.accommodationName;
-
+  // print out name of listing
+  console.log("Accommodation Name: "+ name);
   // get pool connection
   pool.getConnection((err, connection) => {
     if(err) {

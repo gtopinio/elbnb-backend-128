@@ -1,6 +1,7 @@
 const express = require("express");
 const mysql = require("mysql");
-const upload = require("multer");
+const multer = require("multer");
+const upload = multer();
 const url = require("url");
 
 const PORT = process.env.PORT || 3001;

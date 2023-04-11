@@ -3,6 +3,14 @@ const jwt = require("jsonwebtoken");
 const cloudinary = require('cloudinary').v2;
 const User = require('./models/user');
 
+// Configuration 
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_API_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+
 // Test Endpoints 
 exports.helloWorld = (req, res) => {
   req.cookies.title = 'cookie';

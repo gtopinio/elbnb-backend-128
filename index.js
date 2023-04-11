@@ -40,7 +40,7 @@ app.use(express.urlencoded({extended: true}));
 app.use(express.json());
 
 // for parsing multipart/form-data
-app.use(upload.array());
+app.use(upload.fields([{ name: 'accommodationName', maxCount: 1 }, { name: 'data', maxCount: 1 }]));
 
 // allow CORS
 app.use((req, res, next) => {

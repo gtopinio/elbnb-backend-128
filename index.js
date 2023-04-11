@@ -1,5 +1,6 @@
 const express = require("express");
 const mysql = require("mysql");
+const upload = require("multer");
 const url = require("url");
 
 const PORT = process.env.PORT || 3001;
@@ -36,6 +37,9 @@ pool.getConnection((err, connection) => {
 // The two lines below is to ensure that the server has parser to read the body of incoming requests
 app.use(express.urlencoded({extended: true}));
 app.use(express.json());
+
+// for parsing multipart/form-data
+app.use(upload.array());
 
 // allow CORS
 app.use((req, res, next) => {

@@ -396,7 +396,7 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
   // Find the accommodation id from the request parameters
   const accommodationName = req.body.accommodationName;
 
-  console.log("Data: " + base64Data);
+  // console.log("Data: " + base64Data);
   console.log("Accommodation Name: " + accommodationName);
   
   // check if there's an accommodation that has the same name
@@ -406,30 +406,30 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
       return res.send({ success: false });
     } else if (accommodationId > 0) {
 
-
-      pool.getConnection(async (err, connection) => {
-        if (err) {
-          console.log("Error: " + err);
-          callback(err, null);
-        } else {
+      return res.send({ success: true });
+    //   pool.getConnection(async (err, connection) => {
+    //     if (err) {
+    //       console.log("Error: " + err);
+    //       callback(err, null);
+    //     } else {
   
-        // Upload the image to Cloudinary
-        try {
-          const result = await cloudinary.uploader.upload(base64Data, { upload_preset: 'mockup_setup' });
-          const accommodationPictureId = result.public_id;
+    //     // Upload the image to Cloudinary
+    //     try {
+    //       const result = await cloudinary.uploader.upload(base64Data, { upload_preset: 'mockup_setup' });
+    //       const accommodationPictureId = result.public_id;
           
-          // Update the accommodation_pictures table
-          const insertAccommodationPictureQuery = `INSERT INTO accommodation_pictures (ACCOMMODATION_PICTURE_ID, ACCOMMODATION_ID) VALUES ('${accommodationPictureId}', ${accommodationId})`;
-          await connection.query(insertAccommodationPictureQuery);
+    //       // Update the accommodation_pictures table
+    //       const insertAccommodationPictureQuery = `INSERT INTO accommodation_pictures (ACCOMMODATION_PICTURE_ID, ACCOMMODATION_ID) VALUES ('${accommodationPictureId}', ${accommodationId})`;
+    //       await connection.query(insertAccommodationPictureQuery);
           
-          // Return success response
-          return res.send({ success: true });
-        } catch (error) {
-          console.error(error);
-          return res.send({ success: false, message: 'Error uploading image' });
-        }
-      }
-    });
+    //       // Return success response
+    //       return res.send({ success: true });
+    //     } catch (error) {
+    //       console.error(error);
+    //       return res.send({ success: false, message: 'Error uploading image' });
+    //     }
+    //   }
+    // });
   } else {
     console.log("Full upload error");
     return res.send({ success: false });

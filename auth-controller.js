@@ -400,13 +400,13 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
   console.log("Accommodation Name: " + accommodationName);
   
   // check if there's an accommodation that has the same name
-  getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+  getAccommodationIdByName(pool, accommodationName, (err, result) => {
     if (err) {
       console.log("Error: " + err);
       return res.send({ success: false });
-    } else if (accommodationId > 0) {
+    } else if (result > 0) {
 
-      return res.send({ success: true });
+      return res.send({ success: true, id: result});
     //   pool.getConnection(async (err, connection) => {
     //     if (err) {
     //       console.log("Error: " + err);

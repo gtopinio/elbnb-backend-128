@@ -374,7 +374,6 @@ exports.filterAccommodations = (pool) => (req, res) => {
 // If there is no error and the accommodation ID is greater than 0, it establishes a connection to the database and uploads the image to Cloudinary using the cloudinary.uploader.upload method. 
 // It then inserts a new row in the accommodation_pictures table with the accommodation picture ID and accommodation ID using an SQL INSERT statement.
 // If there is an error, it logs the error and sends a response with a success value of false and a message indicating an error occurred.
-
 exports.uploadAccommodationPic = (pool) => async (req, res) => {
 
   // Extract the image data from the request body

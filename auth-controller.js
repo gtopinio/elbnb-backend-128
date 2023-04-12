@@ -1,10 +1,7 @@
 // Imports
 const jwt = require("jsonwebtoken");
 const cloudinary = require('cloudinary').v2;
-const Magic = require('mmmagic').Magic;
 const User = require('./models/user');
-
-const magic = new Magic();
 
 // Configuration 
 cloudinary.config({

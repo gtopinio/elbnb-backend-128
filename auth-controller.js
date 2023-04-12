@@ -282,41 +282,6 @@ function getAccommodationIdByName(pool, name, callback) {
   });
 }
 
-// exports.getAccommodationIdByName = (pool) => (req, res) => {
-//   const name = req.body.accommodationName;
-//   // print out name of listing
-//   console.log("Accommodation Name: "+ name);
-//   // get pool connection
-//   pool.getConnection((err, connection) => {
-//     if(err) {
-//       console.log("Get Connection Error: " + err);
-//       return res.send({success:false});
-//     }
-
-//     const query = `
-//       SELECT ACCOMMODATION_ID
-//       FROM accommodations
-//       WHERE ACCOMMODATION_NAME = ?
-//     `;
-
-//     connection.query(query, [name], (err, result) => {
-//       if (err) {
-//         console.log("Query Error: " + err);
-//         return res.send({ success: false });
-//       }
-
-//       if (result.length > 0) {
-//         const accommodationId = result[0].ACCOMMODATION_ID;
-//         return res.send({ success: true, accommodationId: accommodationId });
-//       } else {
-//         console.log("Accommodation not found.");
-//         return res.send({ success: false });
-//       }
-//     });
-//   });
-// };
-
-
 exports.filterAccommodations = (pool) => (req, res) => {
   const { minPrice, maxPrice, capacity, type } = req.query;
   
@@ -394,17 +359,6 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
   // Extract the image data from the request body
   const imageData = req.files.data[0].buffer;
 
-  // const file = imageData;
-  // magic.detectFile(file.path, (err, result) => {
-  //   if (err) {
-  //     console.error(err);
-  //     return res.status(500).send('Error detecting file type');
-  //   }
-  //   console.log(result); // this will print the detected file type
-  // });
-
-  console.log("Image data: " + imageData);
-
    // Convert the buffer to a base64 data URL
    const mimeType = req.files.data[0].mimetype;
    const imageDataUrl = `data:${mimeType};base64,${imageData.toString('base64')}`;
@@ -438,6 +392,7 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
           await connection.query(insertAccommodationPictureQuery);
           
           // Return success response
+          console.log("Successfully uploaded the image to cloudinary!");
           return res.send({ success: true });
         } catch (error) {
           console.error(error);
@@ -452,44 +407,3 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
 
   });
 }
-
-
-// exports.addAccommodationPictures = (pool) => (req, res) => {
-//   console.log(req.file);
-
-//   const picturePath = req.file.path;
-
-//   // Get the accommodation ID using the getAccommodationIdByName function
-//   const getAccommodationId = exports.getAccommodationIdByName(pool);
-//   getAccommodationId({ body: { accommodationName: req.body.accommodationName } }, (err, result) => {
-//     if (err) {
-//       console.error('Error getting accommodation ID:', err);
-//       return res.send({ uploadStatus: false });
-//     }
-
-//     const accommodationId = result.accommodationId;
-
-//     // get pool connection first
-//     pool.getConnection((err, connection) => {
-//       if (err) return res.send({ uploadStatus: false });
-
-//       // Insert the picture path and the corresponding accommodation ID into the `accommodation_pictures` table
-//       const query = `
-//         INSERT INTO accommodation_pictures
-//           (ACCOMMODATION_PICTURE_ID, ACCOMMODATION_ID)
-//         VALUES
-//           (?, ?)
-//       `;
-//       const pictureId = `${accommodationId}-${Date.now()}`;
-//       connection.query(query, [pictureId, accommodationId], (err) => {
-//         if (err) {
-//           console.error('Error inserting picture into accommodation_pictures table:', err);
-//           return res.send({ uploadStatus: false });
-//         } else {
-//           console.log(`Picture uploaded for accommodation ID ${accommodationId}: ${picturePath}`);
-//           return res.send({ uploadStatus: true });
-//         }
-//       });
-//     });
-//   });
-// };

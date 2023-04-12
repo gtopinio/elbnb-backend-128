@@ -1,6 +1,8 @@
 // Imports
 const jwt = require("jsonwebtoken");
 const cloudinary = require('cloudinary').v2;
+const Datauri = require('datauri');
+const path = require('path');
 const User = require('./models/user');
 
 // Configuration 
@@ -394,15 +396,6 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
   // Extract the image data from the request body
   const imageData = req.files.data[0].buffer;
 
-  // const file = imageData;
-  // magic.detectFile(file.path, (err, result) => {
-  //   if (err) {
-  //     console.error(err);
-  //     return res.status(500).send('Error detecting file type');
-  //   }
-  //   console.log(result); // this will print the detected file type
-  // });
-
   console.log("Image data: " + imageData);
     
   // Find the accommodation id from the request parameters
@@ -424,9 +417,13 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
           callback(err, null);
         } else {
   
+        // Convert the image data to a data URL
+        const dUri = new Datauri();
+        const dataUrl = dUri.format(path.extname(req.files.data[0].originalname).toString(), imageData).content;
+          
         // Upload the image to Cloudinary
         try {
-          const result = await cloudinary.uploader.upload(imageData, { upload_preset: 'mockup_setup' });
+          const result = await cloudinary.uploader.upload(dataUrl, { upload_preset: 'mockup_setup' });
           const accommodationPictureId = result.public_id;
           
           // Update the accommodation_pictures table

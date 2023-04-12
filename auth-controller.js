@@ -395,18 +395,18 @@ exports.filterAccommodations = (pool) => (req, res) => {
 exports.uploadAccommodationPic = (pool) => async (req, res) => {
 
   // Extract the image data from the request body
-  const imageData = req.files.data;
+  const imageData = req.files.data[0].buffer;
 
-  const file = imageData;
-  magic.detectFile(file.path, (err, result) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).send('Error detecting file type');
-    }
-    console.log(result); // this will print the detected file type
-  });
+  // const file = imageData;
+  // magic.detectFile(file.path, (err, result) => {
+  //   if (err) {
+  //     console.error(err);
+  //     return res.status(500).send('Error detecting file type');
+  //   }
+  //   console.log(result); // this will print the detected file type
+  // });
 
-  // console.log("Image data: " + imageData);
+  console.log("Image data: " + imageData);
     
   // Find the accommodation id from the request parameters
   const accommodationName = req.body.accommodationName;

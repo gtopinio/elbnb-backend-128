@@ -394,9 +394,8 @@ exports.filterAccommodations = (pool) => (req, res) => {
 
 exports.uploadAccommodationPic = (pool) => async (req, res) => {
 
-  console.log(req.files);
   // Extract the image data from the request body
-  const imageData = req.files.data[0].buffer;
+  const imageData = req.files.data;
 
   const file = imageData;
   magic.detectFile(file.path, (err, result) => {

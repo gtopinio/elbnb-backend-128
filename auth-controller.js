@@ -150,7 +150,12 @@ function checkAccommDup(pool, name, callback) {
 }
 
 
-
+// This function is used to add a new accommodation to the database. 
+// It takes in a pool object as input, which is used to establish a database connection. 
+// The function then reads the details of the new accommodation from the request body, including its name, type, description, location, price, capacity, and amenities (an array of strings). 
+// If an accommodation with the same name already exists in the database, the function returns a JSON object indicating failure. 
+// Otherwise, the function begins a transaction and inserts the new accommodation into the accommodations table, along with its amenities (if any). 
+// If everything is successful, the function returns a JSON object indicating success.
 exports.addAccommodation = (pool) => (req, res) => {
   const { name, type, description, location, price, capacity, amenities } = req.body; // assuming amenities is an array of strings
   // Printing the details of the accommodation query
@@ -262,6 +267,10 @@ exports.addAccommodation = (pool) => (req, res) => {
   }); // end of checkAccommDup
 };
 
+
+// This function takes a database connection pool, an accommodation name (unique), and a callback function as inputs. 
+// It queries the database to retrieve the accommodation ID for the provided name and passes the result to the callback function. 
+// If there is an error in the database query or connection, it logs the error and passes it to the callback function as the first parameter.
 function getAccommodationIdByName(pool, name, callback) {
   pool.getConnection((err, connection) => {
     if (err) {
@@ -282,6 +291,10 @@ function getAccommodationIdByName(pool, name, callback) {
   });
 }
 
+// The function takes in a database connection pool object and returns a callback function that filters accommodations based on the user's search criteria specified in the req.query object. 
+// The function constructs a SQL query using the search criteria and executes it against the database. 
+// The results are returned in a JSON object with a success property indicating whether the query was successful and an accommodations property containing the filtered results. 
+// The function also logs the filter details and SQL query for debugging purposes.
 exports.filterAccommodations = (pool) => (req, res) => {
   const { minPrice, maxPrice, capacity, type } = req.query;
   
@@ -353,6 +366,14 @@ exports.filterAccommodations = (pool) => (req, res) => {
     }
   });
 };
+
+// This is a function that uploads an image to Cloudinary and updates the accommodation_pictures table in 
+// a database with the accommodation picture ID and accommodation ID. It first extracts the image data from the request body, 
+// converts the buffer to a base64 data URL, and finds the accommodation ID from the request parameters. 
+// It then checks if there is an accommodation with the same name and gets the accommodation ID using the getAccommodationIdByName function.
+// If there is no error and the accommodation ID is greater than 0, it establishes a connection to the database and uploads the image to Cloudinary using the cloudinary.uploader.upload method. 
+// It then inserts a new row in the accommodation_pictures table with the accommodation picture ID and accommodation ID using an SQL INSERT statement.
+// If there is an error, it logs the error and sends a response with a success value of false and a message indicating an error occurred.
 
 exports.uploadAccommodationPic = (pool) => async (req, res) => {
 

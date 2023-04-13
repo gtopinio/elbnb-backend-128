@@ -35,36 +35,45 @@ exports.getUsers = (pool) => (req, res) => {
 
 // User Management Edpoitns
 exports.signUp = (pool) => async (req, res) => {
-  const connection = await pool.getConnection();
-  await connection.beginTransaction();
-
-  try {
-    const { email, password, username, firstName, lastName, contactNum, isBusinessAccount, isAdmin } = req.body;
-
-    // Create the appropriate user based on the isAdmin and isBusinessAccount flags
-    let user;
-    if (isAdmin) {
-      user = await Admin.create(connection, email, password, username, firstName, lastName);
-    } else if (isBusinessAccount) {
-      user = await Owner.create(connection, email, password, username, firstName, lastName, contactNum);
-    } else {
-      user = await Student.create(connection, email, password, username, firstName, lastName);
+  const connection = pool.getConnection((err, connection) => {
+    if(err){
+      console.log(err);
+    } else{
+      connection.beginTransaction((err) => {
+        if(err){
+          console.log(err);
+        } else {
+          try {
+            const { email, password, username, firstName, lastName, contactNum, isBusinessAccount, isAdmin } = req.body;
+        
+            // Create the appropriate user based on the isAdmin and isBusinessAccount flags
+            let user;
+            if (isAdmin) {
+              user = Admin.create(connection, email, password, username, firstName, lastName);
+            } else if (isBusinessAccount) {
+              user = Owner.create(connection, email, password, username, firstName, lastName, contactNum);
+            } else {
+              user = Student.create(connection, email, password, username, firstName, lastName);
+            }
+        
+            console.log(`User created with id ${user}`);
+        
+            // If everything is successful, commit the transaction
+            connection.commit();
+        
+            return res.send({ success: true });
+          } catch (err) {
+            // If there is an error, rollback the transaction
+            connection.rollback();
+        
+            console.log(err);
+        
+            return res.send({ success: false });
+          }
+        }
+      });
     }
-
-    console.log(`User created with id ${user}`);
-
-    // If everything is successful, commit the transaction
-    await connection.commit();
-
-    return res.send({ success: true });
-  } catch (error) {
-    // If there is an error, rollback the transaction
-    await connection.rollback();
-
-    console.log(error);
-
-    return res.send({ success: false });
-  }
+  });
 };
 
 exports.login = (pool) => (req, res) => {

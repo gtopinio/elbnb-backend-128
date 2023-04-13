@@ -13,14 +13,11 @@ const Admin = {
   },
   checkIfEmailExists: (connection, email, callback) => {
     const sql = 'SELECT COUNT(*) AS count FROM admin WHERE ADMIN_EMAIL = ?';
-    connection.query(sql, [email], (error, result) => {
+    connection.query(sql, [email], (error, results) => {
       if (error) {
         return callback(error);
       }
-      if (Array.isArray(result) && !result.length) {
-        return callback(null, { exists: false });
-      }
-      return callback(null, { exists: true, result: result });
+      return callback(null, results[0].count > 0);
     });
   },
   findBy: (connection, field, value, callback) => {
@@ -55,19 +52,11 @@ const Owner = {
   },
   checkIfEmailExists: (connection, email, callback) => {
     const sql = 'SELECT COUNT(*) AS count FROM owner WHERE OWNER_EMAIL = ?';
-    connection.query(sql, [email], (error, result) => {
+    connection.query(sql, [email], (error, results) => {
       if (error) {
-        console.log("Query error,");
         return callback(error);
       }
-      if (Array.isArray(result) && !result.length) {
-        console.log("Email is unique.");
-        return callback(null, { exists: false });
-      }
-        console.log("Email exists already!");
-        console.log("Email: " + email);
-        console.log(result);
-      return callback(null, { exists: true, result: result });
+      return callback(null, results[0].count > 0);
     });
   },
   findBy: (connection, field, value, callback) => {
@@ -103,14 +92,11 @@ const Student = {
 
   checkIfEmailExists: (connection, email, callback) => {
     const sql = 'SELECT COUNT(*) AS count FROM student WHERE STUDENT_EMAIL = ?';
-    connection.query(sql, [email], (error, result) => {
+    connection.query(sql, [email], (error, results) => {
       if (error) {
         return callback(error);
       }
-      if (Array.isArray(result) && !result.length) {
-        return callback(null, { exists: false });
-      }
-      return callback(null, { exists: true, result: result });
+      return callback(null, results[0].count > 0);
     });
   },
 

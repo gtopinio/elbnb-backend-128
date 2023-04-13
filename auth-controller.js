@@ -165,33 +165,34 @@ exports.login = (pool) => (req, res) => {
         } else {// user exists
           console.log("ID: " + result.ACCOMMODATION_ID);
           admin = result;
+          Admin.comparePassword(password, admin.password, (error, isMatch) => {
+            if (error) {
+              console.log(error);
+              return res.send({ success: false });
+            }
+            if (!isMatch) {
+              console.log("Incorrect password");
+              return res.send({ success: false });
+            }
+            const tokenPayload = {
+                user_id: admin.id,
+                user_type: "admin"
+            }
+            const token = jwt.sign(tokenPayload, "THIS_IS_A_SECRET_STRING");
+            console.log("Successfully logged in as admin");
+            return res.send({
+              success: true,
+              authToken: token,
+              userId: admin.id,
+              fname: admin.fname,
+              lname: admin.lname,
+              email: email
+            });
+          });
         }
       });
 
-      Admin.comparePassword(password, admin.password, (error, isMatch) => {
-        if (error) {
-          console.log(error);
-          return res.send({ success: false });
-        }
-        if (!isMatch) {
-          console.log("Incorrect password");
-          return res.send({ success: false });
-        }
-        const tokenPayload = {
-            user_id: admin.id,
-            user_type: "admin"
-        }
-        const token = jwt.sign(tokenPayload, "THIS_IS_A_SECRET_STRING");
-        console.log("Successfully logged in as admin");
-        return res.send({
-          success: true,
-          authToken: token,
-          userId: admin.id,
-          fname: admin.fname,
-          lname: admin.lname,
-          email: email
-        });
-      });
+
     } else {
       // Check if email exists in the owner table
       Owner.checkIfEmailExists(pool, email, (error, results) => {

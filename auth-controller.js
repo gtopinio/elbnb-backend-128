@@ -137,18 +137,22 @@ exports.login = (pool) => (req, res) => {
   const email = req.body.email.trim();
   const password = req.body.password;
 
+  console.log("Email: " + email);
+  console.log("Password: "+ password);
+
   pool.getConnection((err, connection) => {
     if(err){
       console.log(err);
       return res.send({success: false});
     } else{
        // Check if email exists in the admin table
-  Admin.checkIfEmailExists(connection, email, (error, results) => {
+      Admin.checkIfEmailExists(connection, email, (error, results) => {
     if (error) {
       console.log(error);
       return res.send({ success: false });
     }
     if (results) {
+      console.log("Found email!");
       // After finding out that the user exists, we find the user
       var admin;
       Admin.findBy(connection, "ADMIN_EMAIL", email, (err, result) => {

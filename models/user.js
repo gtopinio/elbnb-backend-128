@@ -1,59 +1,123 @@
 const bcrypt = require("bcrypt");
 
-// TODO: Needs input validation for empty strings
-// TODO: Is this client-side or server-side?
-const User = {
-  create: (connection, firstName, lastName, email, password, contactNum, is_registered, is_admin, callback) => {
-    const sql = 'INSERT INTO user (user_first_name, user_last_name, user_email, user_password, user_contact_num, is_business_account, is_admin) VALUES (?, ?, ?, ?, ?, ?, ?)';
-    const hash = bcrypt.hashSync(password, 10); // 10 is the number of rounds for salting
-    connection.query(sql, [firstName, lastName, email, hash, contactNum, is_registered, is_admin], (error, results) => {
+const Admin = {
+  create: (connection, email, password, username, firstName, lastName, callback) => {
+    const sql = 'INSERT INTO admin (ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_USERNAME, ADMIN_FNAME, ADMIN_LNAME) VALUES (?, ?, ?, ?, ?)';
+    const hash = bcrypt.hashSync(password, 10);
+    connection.query(sql, [email, hash, username, firstName, lastName], (error, results) => {
       if (error) {
         return callback(error);
       }
       return callback(null, results.insertId);
     });
   },
-
-  // TODO: Subject to change, adding custom functions for testing
-  // TODO: Will replace if better way of querying is found
-  // Check if User email exists
   checkIfEmailExists: (connection, email, callback) => {
-    const sql = 'SELECT * FROM user WHERE user_email = ? LIMIT 1';
-    connection.query(sql, [email], (error, result) => {
+    const sql = 'SELECT COUNT(*) AS count FROM admin WHERE ADMIN_EMAIL = ?';
+    connection.query(sql, [email], (error, results) => {
       if (error) {
         return callback(error);
       }
-      if (Array.isArray(result) && !result.length) {
-        return callback(null, { exists: false });
-      }
-      return callback(null, { exists: true, result: result });
+      return callback(null, results[0].count > 0);
     });
   },
-
-  // TODO: Subject to change, adding custom functions for testing
-  // TODO: Will replace if better way of querying is found
-  // Check if User ID exists
   findBy: (connection, field, value, callback) => {
-    const sql = 'SELECT * FROM user WHERE ? = ? LIMIT 1';
-    connection.query(sql, [field, value], (error, result) => {
+    const sql = `SELECT * FROM admin WHERE ${field} = ?`;
+    connection.query(sql, [value], (error, results) => {
       if (error) {
         return callback(error);
       }
-      if (Array.isArray(result) && !result.length) {
-        return callback(null, { exists: false });
-      }
-      return callback(null, { exists: true, result: result });
+      return callback(null, results[0]);
     });
   },
-
   comparePassword: (password, hash, callback) => {
-    bcrypt.compare(password, hash, (err, isMatch) => {
-      if (err) {
-        return callback(err);
+    bcrypt.compare(password, hash, (error, result) => {
+      if (error) {
+        return callback(error);
       }
-      return callback(null, isMatch);
+      return callback(null, result);
     });
   }
 }
 
-module.exports = User;
+const Owner = {
+  create: (connection, email, password, username, firstName, lastName, contactNum, callback) => {
+    const sql = 'INSERT INTO owner (OWNER_EMAIL, OWNER_PASSWORD, OWNER_USERNAME, OWNER_FNAME, OWNER_LNAME, OWNER_CONTACTNUM) VALUES (?, ?, ?, ?, ?, ?)';
+    const hash = bcrypt.hashSync(password, 10);
+    connection.query(sql, [email, hash, username, firstName, lastName, contactNum], (error, results) => {
+      if (error) {
+        return callback(error);
+      }
+      return callback(null, results.insertId);
+    });
+  },
+  checkIfEmailExists: (connection, email, callback) => {
+    const sql = 'SELECT COUNT(*) AS count FROM owner WHERE OWNER_EMAIL = ?';
+    connection.query(sql, [email], (error, results) => {
+      if (error) {
+        return callback(error);
+      }
+      return callback(null, results[0].count > 0);
+    });
+  },
+  findBy: (connection, field, value, callback) => {
+    const sql = `SELECT * FROM owner WHERE ${field} = ?`;
+    connection.query(sql, [value], (error, results) => {
+      if (error) {
+        return callback(error);
+      }
+      return callback(null, results[0]);
+    });
+  },
+  comparePassword: (password, hash, callback) => {
+    bcrypt.compare(password, hash, (error, result) => {
+      if (error) {
+        return callback(error);
+      }
+      return callback(null, result);
+    });
+  }
+}
+
+const Student = {
+  create: (connection, email, password, username, firstName, lastName, callback) => {
+    const sql = 'INSERT INTO student (STUDENT_EMAIL, STUDENT_PASSWORD, STUDENT_USERNAME, STUDENT_FNAME, STUDENT_LNAME) VALUES (?, ?, ?, ?, ?)';
+    const hash = bcrypt.hashSync(password, 10);
+    connection.query(sql, [email, hash, username, firstName, lastName], (error, results) => {
+    if (error) {
+        return callback(error);
+    }
+    return callback(null, results.insertId);
+      });
+    },
+
+  checkIfEmailExists: (connection, email, callback) => {
+    const sql = 'SELECT COUNT(*) AS count FROM student WHERE STUDENT_EMAIL = ?';
+    connection.query(sql, [email], (error, results) => {
+      if (error) {
+        return callback(error);
+      }
+      return callback(null, results[0].count > 0);
+    });
+  },
+
+  findBy: (connection, field, value, callback) => {
+    const sql = `SELECT * FROM student WHERE ${field} = ?`;
+    connection.query(sql, [value], (error, results) => {
+      if (error) {
+        return callback(error);
+      }
+      return callback(null, results[0]);
+    });
+  },
+
+  comparePassword: (password, hash, callback) => {
+    bcrypt.compare(password, hash, (error, result) => {
+      if (error) {
+        return callback(error);
+      }
+      return callback(null, result);
+    });
+  }
+};
+
+module.exports = { Admin, Owner, Student };

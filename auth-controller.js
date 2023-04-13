@@ -68,6 +68,9 @@ exports.signUp = (pool) => (req, res) => {
                     connection.commit();
                     return res.send({ success: true });
                   });
+                } else {
+                  console.log("Email is already registered!");
+                  return res.send({ success: false });
                 }});
               
             } else if (isBusinessAccount) {
@@ -90,6 +93,9 @@ exports.signUp = (pool) => (req, res) => {
                     connection.commit();
                     return res.send({ success: true });
                   });
+                } else {
+                  console.log("Email is already registered!");
+                  return res.send({ success: false });
                 }});
               
             } else {
@@ -113,6 +119,9 @@ exports.signUp = (pool) => (req, res) => {
                     connection.commit();
                     return res.send({ success: true });
                   });
+                } else {
+                  console.log("Email is already registered!");
+                  return res.send({ success: false });
                 }});
               
             }

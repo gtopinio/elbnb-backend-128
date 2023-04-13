@@ -55,11 +55,14 @@ const Owner = {
   },
   checkIfEmailExists: (connection, email, callback) => {
     const sql = 'SELECT COUNT(*) AS count FROM owner WHERE OWNER_EMAIL = ?';
-    connection.query(sql, [email], (error, results) => {
+    connection.query(sql, [email], (error, result) => {
       if (error) {
         return callback(error);
       }
-      return callback(null, results[0].count > 0);
+      if (Array.isArray(result) && !result.length) {
+        return callback(null, { exists: false });
+      }
+      return callback(null, { exists: true, result: result });
     });
   },
   findBy: (connection, field, value, callback) => {
@@ -95,11 +98,14 @@ const Student = {
 
   checkIfEmailExists: (connection, email, callback) => {
     const sql = 'SELECT COUNT(*) AS count FROM student WHERE STUDENT_EMAIL = ?';
-    connection.query(sql, [email], (error, results) => {
+    connection.query(sql, [email], (error, result) => {
       if (error) {
         return callback(error);
       }
-      return callback(null, results[0].count > 0);
+      if (Array.isArray(result) && !result.length) {
+        return callback(null, { exists: false });
+      }
+      return callback(null, { exists: true, result: result });
     });
   },
 

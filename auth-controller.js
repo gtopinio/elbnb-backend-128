@@ -2,7 +2,6 @@
 const jwt = require("jsonwebtoken");
 const cloudinary = require('cloudinary').v2;
 const { Admin, Owner, Student } = require('./models/user');
-const { Console } = require("console");
 
 // Configuration 
 cloudinary.config({

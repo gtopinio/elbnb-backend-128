@@ -320,13 +320,13 @@ exports.checkIfLoggedIn = (pool) => (req, res) => {
             console.log(error);
             return res.send({ isLoggedIn: false });
           }
-          if (!result.exists) {
+          if (result <= 0) {
             console.log("Admin not found");
             return res.send({ isLoggedIn: false });
+          } else {
+            console.log("Admin is currently logged in");
+            return res.send({ isLoggedIn: true });
           }
-
-          console.log("Admin is currently logged in");
-          return res.send({ isLoggedIn: true });
         });
       } else if (user_type === "student") {
         Student.findBy(pool, "student_id", user_id, (error, result) => {
@@ -335,13 +335,13 @@ exports.checkIfLoggedIn = (pool) => (req, res) => {
             console.log(error);
             return res.send({ isLoggedIn: false });
           }
-          if (!result.exists) {
+          if (result <= 0) {
             console.log("Student not found");
             return res.send({ isLoggedIn: false });
+          } else {
+            console.log("Student is currently logged in");
+            return res.send({ isLoggedIn: true });
           }
-
-          console.log("Student is currently logged in");
-          return res.send({ isLoggedIn: true });
         });
       } else if (user_type === "owner") {
         Owner.findBy(pool, "owner_id", user_id, (error, result) => {
@@ -350,13 +350,13 @@ exports.checkIfLoggedIn = (pool) => (req, res) => {
             console.log(error);
             return res.send({ isLoggedIn: false });
           }
-          if (!result.exists) {
+          if (result <= 0) {
             console.log("Owner not found");
             return res.send({ isLoggedIn: false });
+          } else {
+            console.log("Owner is currently logged in");
+            return res.send({ isLoggedIn: true });
           }
-
-          console.log("Owner is currently logged in");
-          return res.send({ isLoggedIn: true });
         });
       }
     });

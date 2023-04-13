@@ -35,8 +35,8 @@ exports.getUsers = (pool) => (req, res) => {
 }
 
 // User Management Edpoitns
-exports.signUp = (pool) => async (req, res) => {
-  await pool.getConnection((err, connection) => {
+exports.signUp = (pool) => (req, res) => {
+  pool.getConnection((err, connection) => {
     if(err){
       console.log(err);
     } else{

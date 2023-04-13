@@ -57,7 +57,7 @@ const Owner = {
     const sql = 'SELECT COUNT(*) AS count FROM owner WHERE OWNER_EMAIL = ?';
     connection.query(sql, [email], (error, result) => {
       if (error) {
-        console.log("Qury error,");
+        console.log("Query error,");
         return callback(error);
       }
       if (Array.isArray(result) && !result.length) {
@@ -65,6 +65,7 @@ const Owner = {
         return callback(null, { exists: false });
       }
         console.log("Email exists already!");
+        console.log(result);
       return callback(null, { exists: true, result: result });
     });
   },

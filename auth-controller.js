@@ -163,9 +163,8 @@ exports.login = (pool) => (req, res) => {
         if(typeof result === "undefined"){
           console.log("User does not exist.");
         } else {// user exists
-          console.log("ID: " + result.ACCOMMODATION_ID);
           admin = result;
-          Admin.comparePassword(password, admin.password, (error, isMatch) => {
+          Admin.comparePassword(password, admin.ADMIN_PASSWORD, (error, isMatch) => {
             if (error) {
               console.log(error);
               return res.send({ success: false });

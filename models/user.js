@@ -26,8 +26,6 @@ const Admin = {
       if (error) {
         return callback(error);
       }
-      console.log("Print result:");
-      console.log(results[0]);
       return callback(null, results[0]);
     });
   },

@@ -57,11 +57,14 @@ const Owner = {
     const sql = 'SELECT COUNT(*) AS count FROM owner WHERE OWNER_EMAIL = ?';
     connection.query(sql, [email], (error, result) => {
       if (error) {
+        console.log("Qury error,");
         return callback(error);
       }
       if (Array.isArray(result) && !result.length) {
+        console.log("Email is unique.");
         return callback(null, { exists: false });
       }
+        console.log("Email exists already!");
       return callback(null, { exists: true, result: result });
     });
   },

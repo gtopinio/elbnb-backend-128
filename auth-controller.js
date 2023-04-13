@@ -159,6 +159,7 @@ exports.login = (pool) => (req, res) => {
         if(typeof result === "undefined"){
           console.log("User does not exist.");
         } else {// user exists
+          console.log("ID: " + result.ACCOMMODATION_ID);
           admin = result;
         }
       });
@@ -251,7 +252,6 @@ exports.login = (pool) => (req, res) => {
                   console.log("User does not exist.");
                 } else {// user exists
                   student = result;
-                  console.log(student);
                 }
               });
               Student.comparePassword(password, student.password, (error, isMatch) => {

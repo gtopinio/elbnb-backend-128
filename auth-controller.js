@@ -173,7 +173,7 @@ exports.login = (pool) => (req, res) => {
                 user_id: admin.ADMIN_ID,
                 user_type: "admin"
             }
-            const token = jwt.sign(tokenPayload, "THIS_IS_A_SECRET_STRING");
+            const token = jwt.sign(tokenPayload, process.env.AUTH_SECRET_STRING);
             console.log("Successfully logged in as admin");
             return res.send({
               success: true,
@@ -218,7 +218,7 @@ exports.login = (pool) => (req, res) => {
                     user_id: owner.OWNER_ID,
                     user_type: "owner"
                 }
-                const token = jwt.sign(tokenPayload, "THIS_IS_A_SECRET_STRING");
+                const token = jwt.sign(tokenPayload, process.env.AUTH_SECRET_STRING);
                 console.log("Successfully logged in as owner");
                 return res.send({
                   success: true,
@@ -263,7 +263,7 @@ exports.login = (pool) => (req, res) => {
                         user_id: student.STUDENT_ID,
                         user_type: "student"
                     }
-                    const token = jwt.sign(tokenPayload, "THIS_IS_A_SECRET_STRING");
+                    const token = jwt.sign(tokenPayload, process.env.AUTH_SECRET_STRING);
                     console.log("Successfully logged in as student");
                     return res.send({
                       success: true,
@@ -297,7 +297,7 @@ exports.checkIfLoggedIn = (pool) => (req, res) => {
 
   jwt.verify(
     req.cookies.authToken,
-    "THIS_IS_A_SECRET_STRING",
+    process.env.AUTH_SECRET_STRING,
     (err, tokenPayload) => {
       if (err) {
         return res.send({ isLoggedIn: false });

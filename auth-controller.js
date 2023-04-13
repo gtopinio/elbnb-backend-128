@@ -136,7 +136,6 @@ exports.login = (pool) => (req, res) => {
   // Credentials
   const email = req.body.email.trim();
   const password = req.body.password;
-  console.log("Password: " + password);
 
   pool.getConnection((err, connection) => {
     if(err){
@@ -252,6 +251,7 @@ exports.login = (pool) => (req, res) => {
                   console.log("User does not exist.");
                 } else {// user exists
                   student = result;
+                  console.log(student);
                 }
               });
               Student.comparePassword(password, student.password, (error, isMatch) => {

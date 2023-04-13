@@ -59,7 +59,13 @@ exports.signUp = (pool) => async (req, res) => {
                 }
                 if (!result) {
                   console.log("Email is unique! Creating admin...");
-                  user = Admin.create(connection, email, password, username, firstName, lastName);
+                  user = Admin.create(connection, email, password, username, firstName, lastName, (error, userId) => {
+                    if (error) {
+                      console.log(error);
+                      return res.send({ success: false });
+                    }
+                    console.log(`Admin created with id ${userId}`);
+                  });
                 }});
               
             } else if (isBusinessAccount) {
@@ -72,7 +78,13 @@ exports.signUp = (pool) => async (req, res) => {
                 }
                 if (!result) {
                   console.log("Email is unique! Creating owner...");
-                  user = Owner.create(connection, email, password, username, firstName, lastName, contactNum);
+                  user = Owner.create(connection, email, password, username, firstName, lastName, contactNum, (error, userId) => {
+                    if (error) {
+                      console.log(error);
+                      return res.send({ success: false });
+                    }
+                    console.log(`Owner created with id ${userId}`);
+                  });
                 }});
               
             } else {
@@ -85,17 +97,21 @@ exports.signUp = (pool) => async (req, res) => {
                 }
                 if (!result) {
                   console.log("Email is unique! Creating student...");
-                  user = Student.create(connection, email, password, username, firstName, lastName);
+                  user = Student.create(connection, email, password, username, firstName, lastName, (error, userId) => {
+                    if (error) {
+                      console.log(error);
+                      return res.send({ success: false });
+                    }
+                    console.log(`Student created with id ${userId}`);
+                  });
                 }});
               
             }
             // If user is undefined, that means the email is already registered
             if(typeof user === "undefined"){
-              console.log("User email already exists! Unsuccessful signup.");
+              console.log("Unsuccessful signup. User instance is undefined.");
               return res.send({ success: false });
             }
-
-            console.log(`User created with id ${user}`);
         
             // If everything is successful, commit the transaction
             connection.commit();

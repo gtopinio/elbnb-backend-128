@@ -152,7 +152,6 @@ exports.login = (pool) => (req, res) => {
       return res.send({ success: false });
     }
     if (results) {
-      console.log("Found email!");
       // After finding out that the user exists, we find the user
       var admin;
       Admin.findBy(connection, "ADMIN_EMAIL", email, (err, result) => {
@@ -211,31 +210,31 @@ exports.login = (pool) => (req, res) => {
               console.log("User does not exist.");
             } else {// user exists
               owner = result;
+              Owner.comparePassword(password, owner.password, (error, isMatch) => {
+                if (error) {
+                  console.log(error);
+                  return res.send({ success: false });
+                }
+                if (!isMatch) {
+                  console.log("Incorrect password");
+                  return res.send({ success: false });
+                }
+                const tokenPayload = {
+                    user_id: owner.id,
+                    user_type: "owner"
+                }
+                const token = jwt.sign(tokenPayload, "THIS_IS_A_SECRET_STRING");
+                console.log("Successfully logged in as owner");
+                return res.send({
+                  success: true,
+                  authToken: token,
+                  userId: owner.id,
+                  fname: owner.fname,
+                  lname: owner.lname,
+                  email: email
+                });
+              });
             }
-          });
-          Owner.comparePassword(password, owner.password, (error, isMatch) => {
-            if (error) {
-              console.log(error);
-              return res.send({ success: false });
-            }
-            if (!isMatch) {
-              console.log("Incorrect password");
-              return res.send({ success: false });
-            }
-            const tokenPayload = {
-                user_id: owner.id,
-                user_type: "owner"
-            }
-            const token = jwt.sign(tokenPayload, "THIS_IS_A_SECRET_STRING");
-            console.log("Successfully logged in as owner");
-            return res.send({
-              success: true,
-              authToken: token,
-              userId: owner.id,
-              fname: owner.fname,
-              lname: owner.lname,
-              email: email
-            });
           });
         } else {
           // Check if email exists in the student table
@@ -256,31 +255,31 @@ exports.login = (pool) => (req, res) => {
                   console.log("User does not exist.");
                 } else {// user exists
                   student = result;
+                  Student.comparePassword(password, student.password, (error, isMatch) => {
+                    if (error) {
+                      console.log(error);
+                      return res.send({ success: false });
+                    }
+                    if (!isMatch) {
+                      console.log("Incorrect password");
+                      return res.send({ success: false });
+                    }
+                    const tokenPayload = {
+                        user_id: student.id,
+                        user_type: "student"
+                    }
+                    const token = jwt.sign(tokenPayload, "THIS_IS_A_SECRET_STRING");
+                    console.log("Successfully logged in as student");
+                    return res.send({
+                      success: true,
+                      authToken: token,
+                      userId: student.id,
+                      fname: student.fname,
+                      lname: student.lname,
+                      email: email
+                    });
+                  });
                 }
-              });
-              Student.comparePassword(password, student.password, (error, isMatch) => {
-                if (error) {
-                  console.log(error);
-                  return res.send({ success: false });
-                }
-                if (!isMatch) {
-                  console.log("Incorrect password");
-                  return res.send({ success: false });
-                }
-                const tokenPayload = {
-                    user_id: student.id,
-                    user_type: "student"
-                }
-                const token = jwt.sign(tokenPayload, "THIS_IS_A_SECRET_STRING");
-                console.log("Successfully logged in as student");
-                return res.send({
-                  success: true,
-                  authToken: token,
-                  userId: student.id,
-                  fname: student.fname,
-                  lname: student.lname,
-                  email: email
-                });
               });
             } else {
               console.log("User not found");
@@ -291,12 +290,7 @@ exports.login = (pool) => (req, res) => {
       });
     }
   });
-
-
-
-    }});
-
- 
+}});
 }
 
 exports.checkIfLoggedIn = (pool) => (req, res) => {

@@ -304,22 +304,64 @@ exports.checkIfLoggedIn = (pool) => (req, res) => {
       }
 
       const user_id = tokenPayload.user_id; // Use the id that has been sent
-      User.findBy(pool, "user_id", user_id, (error, result) => {
-        // If an error occured or user is not found
-        if (error) {
-          console.log(error);
-          return res.send({ isLoggedIn: false });
-        }
-        if (!result.exists) {
-          console.log("User not found");
-          return res.send({ isLoggedIn: false });
-        }
+      const user_type = tokenPayload.user_type; // Get the user type from the token
 
-        console.log("User is currently logged in");
-        return res.send({ isLoggedIn: true });
-      });
+      // Check if the user type is admin, student, or owner
+      if (user_type !== "admin" && user_type !== "student" && user_type !== "owner") {
+        console.log("Invalid user type");
+        return res.send({ isLoggedIn: false });
+      }
+
+      // Find the user based on the user type and id
+      if (user_type === "admin") {
+        Admin.findBy(pool, "admin_id", user_id, (error, result) => {
+          // If an error occured or user is not found
+          if (error) {
+            console.log(error);
+            return res.send({ isLoggedIn: false });
+          }
+          if (!result.exists) {
+            console.log("Admin not found");
+            return res.send({ isLoggedIn: false });
+          }
+
+          console.log("Admin is currently logged in");
+          return res.send({ isLoggedIn: true });
+        });
+      } else if (user_type === "student") {
+        Student.findBy(pool, "student_id", user_id, (error, result) => {
+          // If an error occured or user is not found
+          if (error) {
+            console.log(error);
+            return res.send({ isLoggedIn: false });
+          }
+          if (!result.exists) {
+            console.log("Student not found");
+            return res.send({ isLoggedIn: false });
+          }
+
+          console.log("Student is currently logged in");
+          return res.send({ isLoggedIn: true });
+        });
+      } else if (user_type === "owner") {
+        Owner.findBy(pool, "owner_id", user_id, (error, result) => {
+          // If an error occured or user is not found
+          if (error) {
+            console.log(error);
+            return res.send({ isLoggedIn: false });
+          }
+          if (!result.exists) {
+            console.log("Owner not found");
+            return res.send({ isLoggedIn: false });
+          }
+
+          console.log("Owner is currently logged in");
+          return res.send({ isLoggedIn: true });
+        });
+      }
     });
 }
+
 
 function checkAccommDup(pool, name, callback) {
   pool.getConnection((err, connection) => {

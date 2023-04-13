@@ -44,7 +44,6 @@ exports.signUp = (pool) => (req, res) => {
         if(err){
           console.log(err);
         } else {
-          try {
             const { email, password, username, firstName, lastName, contactNum, isBusinessAccount, isAdmin } = req.body;
         
             // Create the appropriate user based on the isAdmin and isBusinessAccount flags
@@ -62,9 +61,12 @@ exports.signUp = (pool) => (req, res) => {
                   user = Admin.create(connection, email, password, username, firstName, lastName, (error, userId) => {
                     if (error) {
                       console.log(error);
+                      connection.rollback();
                       return res.send({ success: false });
                     }
                     console.log(`Admin created with id ${userId}`);
+                    connection.commit();
+                    return res.send({ success: true });
                   });
                 }});
               
@@ -74,6 +76,7 @@ exports.signUp = (pool) => (req, res) => {
                 // If an error occured or user is not found
                 if (error) {
                   console.log(error);
+                  connection.rollback();
                   return res.send({ success: false });
                 }
                 if (!result) {
@@ -84,6 +87,8 @@ exports.signUp = (pool) => (req, res) => {
                       return res.send({ success: false });
                     }
                     console.log(`Owner created with id ${userId}`);
+                    connection.commit();
+                    return res.send({ success: true });
                   });
                 }});
               
@@ -93,6 +98,7 @@ exports.signUp = (pool) => (req, res) => {
                 // If an error occured or user is not found
                 if (error) {
                   console.log(error);
+                  connection.rollback();
                   return res.send({ success: false });
                 }
                 if (!result) {
@@ -103,28 +109,13 @@ exports.signUp = (pool) => (req, res) => {
                       return res.send({ success: false });
                     }
                     console.log(`Student created with id ${userId}`);
+                    // If everything is successful, commit the transaction
+                    connection.commit();
+                    return res.send({ success: true });
                   });
                 }});
               
             }
-            // If user is undefined, that means the email is already registered
-            if(typeof user === "undefined"){
-              console.log("Unsuccessful signup. User instance is undefined.");
-              return res.send({ success: false });
-            }
-        
-            // If everything is successful, commit the transaction
-            connection.commit();
-        
-            return res.send({ success: true });
-          } catch (err) {
-            // If there is an error, rollback the transaction
-            connection.rollback();
-        
-            console.log(err);
-        
-            return res.send({ success: false });
-          }
         }
       });
     }

@@ -13,11 +13,14 @@ const Admin = {
   },
   checkIfEmailExists: (connection, email, callback) => {
     const sql = 'SELECT COUNT(*) AS count FROM admin WHERE ADMIN_EMAIL = ?';
-    connection.query(sql, [email], (error, results) => {
+    connection.query(sql, [email], (error, result) => {
       if (error) {
         return callback(error);
       }
-      return callback(null, results[0].count > 0);
+      if (Array.isArray(result) && !result.length) {
+        return callback(null, { exists: false });
+      }
+      return callback(null, { exists: true, result: result });
     });
   },
   findBy: (connection, field, value, callback) => {

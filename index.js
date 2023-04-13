@@ -1,5 +1,6 @@
 const express = require("express");
 const mysql = require("mysql");
+const cookieParser = require("cookie-parser");
 const multer = require("multer");
 const upload = multer();
 const url = require("url");
@@ -38,6 +39,7 @@ pool.getConnection((err, connection) => {
 // The two lines below is to ensure that the server has parser to read the body of incoming requests
 app.use(express.urlencoded({extended: true}));
 app.use(express.json());
+app.use(cookieParser());
 
 // for parsing multipart/form-data
 app.use(upload.fields([{ name: 'accommodationName', maxCount: 1 }, { name: 'data', maxCount: 1 }]));

@@ -1,7 +1,7 @@
 // Imports
 const jwt = require("jsonwebtoken");
 const cloudinary = require('cloudinary').v2;
-const User = require('./models/user');
+const { Admin, Owner, Student } = require('./models');
 
 // Configuration 
 cloudinary.config({
@@ -34,16 +34,38 @@ exports.getUsers = (pool) => (req, res) => {
 }
 
 // User Management Edpoitns
-exports.signUp = (pool) => (req, res) => {
-  User.create(pool, req.body.first_name, req.body.last_name, req.body.email, req.body.password, req.body.contact_no, req.body.is_business_account, req.body.is_admin, (error, userId) => {
-    if (error) {
-      console.log(error);
-      return res.send({ success: false });
+exports.signUp = (pool) => async (req, res) => {
+  const connection = await pool.getConnection();
+  await connection.beginTransaction();
+
+  try {
+    const { email, password, username, firstName, lastName, contactNum, isBusinessAccount, isAdmin } = req.body;
+
+    // Create the appropriate user based on the isAdmin and isBusinessAccount flags
+    let user;
+    if (isAdmin) {
+      user = await Admin.create(connection, email, password, username, firstName, lastName);
+    } else if (isBusinessAccount) {
+      user = await Owner.create(connection, email, password, username, firstName, lastName, contactNum);
+    } else {
+      user = await Student.create(connection, email, password, username, firstName, lastName);
     }
-    console.log(`User created with id ${userId}`);
+
+    console.log(`User created with id ${user}`);
+
+    // If everything is successful, commit the transaction
+    await connection.commit();
+
     return res.send({ success: true });
-  });
-}
+  } catch (error) {
+    // If there is an error, rollback the transaction
+    await connection.rollback();
+
+    console.log(error);
+
+    return res.send({ success: false });
+  }
+};
 
 exports.login = (pool) => (req, res) => {
 

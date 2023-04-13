@@ -65,6 +65,7 @@ const Owner = {
         return callback(null, { exists: false });
       }
         console.log("Email exists already!");
+        console.log("Email: " + email);
         console.log(result);
       return callback(null, { exists: true, result: result });
     });

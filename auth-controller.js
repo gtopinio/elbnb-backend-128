@@ -49,11 +49,44 @@ exports.signUp = (pool) => async (req, res) => {
             // Create the appropriate user based on the isAdmin and isBusinessAccount flags
             let user;
             if (isAdmin) {
-              user = Admin.create(connection, email, password, username, firstName, lastName);
+              // Check first if email already exists
+              Admin.checkIfEmailExists(pool, email, (error, results) => {
+                // If an error occured or user is not found
+                if (error) {
+                  console.log(error);
+                  return res.send({ success: false });
+                }
+                if (!results.exists) {
+                  console.log("Email is unique! Creating admin...");
+                  user = Admin.create(connection, email, password, username, firstName, lastName);
+                }});
+              
             } else if (isBusinessAccount) {
-              user = Owner.create(connection, email, password, username, firstName, lastName, contactNum);
+              // Check first if email already exists
+              Owner.checkIfEmailExists(pool, email, (error, results) => {
+                // If an error occured or user is not found
+                if (error) {
+                  console.log(error);
+                  return res.send({ success: false });
+                }
+                if (!results.exists) {
+                  console.log("Email is unique! Creating owner...");
+                  user = Owner.create(connection, email, password, username, firstName, lastName, contactNum);
+                }});
+              
             } else {
-              user = Student.create(connection, email, password, username, firstName, lastName);
+              // Check first if email already exists
+              Student.checkIfEmailExists(pool, email, (error, results) => {
+                // If an error occured or user is not found
+                if (error) {
+                  console.log(error);
+                  return res.send({ success: false });
+                }
+                if (!results.exists) {
+                  console.log("Email is unique! Creating student...");
+                  user = Student.create(connection, email, password, username, firstName, lastName);
+                }});
+              
             }
         
             console.log(`User created with id ${user}`);

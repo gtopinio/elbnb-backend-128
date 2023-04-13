@@ -136,6 +136,7 @@ exports.login = (pool) => (req, res) => {
   // Credentials
   const email = req.body.email.trim();
   const password = req.body.password;
+  console.log("Password: " + password);
 
   pool.getConnection((err, connection) => {
     if(err){

@@ -196,7 +196,7 @@ exports.login = (pool) => (req, res) => {
         if (results) {
           // After finding out that the user exists, we find the user
           var owner;
-          Admin.findBy(connection, "OWNER_EMAIL", email, (err, result) => {
+          Owner.findBy(connection, "OWNER_EMAIL", email, (err, result) => {
             if(err){
               console.log(err);
               return res.send({success: false});
@@ -241,7 +241,7 @@ exports.login = (pool) => (req, res) => {
             if (results) {
               // After finding out that the user exists, we find the user
               var student;
-              Admin.findBy(connection, "STUDENT_EMAIL", email, (err, result) => {
+              Student.findBy(connection, "STUDENT_EMAIL", email, (err, result) => {
                 if(err){
                   console.log(err);
                   return res.send({success: false});

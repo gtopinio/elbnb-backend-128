@@ -137,9 +137,6 @@ exports.login = (pool) => (req, res) => {
   const email = req.body.email.trim();
   const password = req.body.password;
 
-  console.log("Email: " + email);
-  console.log("Password: "+ password);
-
   pool.getConnection((err, connection) => {
     if(err){
       console.log(err);
@@ -173,7 +170,7 @@ exports.login = (pool) => (req, res) => {
               return res.send({ success: false });
             }
             const tokenPayload = {
-                user_id: admin.id,
+                user_id: admin.ADMIN_ID,
                 user_type: "admin"
             }
             const token = jwt.sign(tokenPayload, "THIS_IS_A_SECRET_STRING");
@@ -181,16 +178,14 @@ exports.login = (pool) => (req, res) => {
             return res.send({
               success: true,
               authToken: token,
-              userId: admin.id,
-              fname: admin.fname,
-              lname: admin.lname,
+              userId: admin.ADMIN_ID,
+              fname: admin.ADMIN_FNAME,
+              lname: admin.ADMIN_LNAME,
               email: email
             });
           });
         }
       });
-
-
     } else {
       // Check if email exists in the owner table
       Owner.checkIfEmailExists(pool, email, (error, results) => {
@@ -210,7 +205,7 @@ exports.login = (pool) => (req, res) => {
               console.log("User does not exist.");
             } else {// user exists
               owner = result;
-              Owner.comparePassword(password, owner.password, (error, isMatch) => {
+              Owner.comparePassword(password, owner.OWNER_PASSWORD, (error, isMatch) => {
                 if (error) {
                   console.log(error);
                   return res.send({ success: false });
@@ -220,7 +215,7 @@ exports.login = (pool) => (req, res) => {
                   return res.send({ success: false });
                 }
                 const tokenPayload = {
-                    user_id: owner.id,
+                    user_id: owner.OWNER_ID,
                     user_type: "owner"
                 }
                 const token = jwt.sign(tokenPayload, "THIS_IS_A_SECRET_STRING");
@@ -228,9 +223,9 @@ exports.login = (pool) => (req, res) => {
                 return res.send({
                   success: true,
                   authToken: token,
-                  userId: owner.id,
-                  fname: owner.fname,
-                  lname: owner.lname,
+                  userId: owner.OWNER_ID,
+                  fname: owner.OWNER_FNAME,
+                  lname: owner.OWNER_LNAME,
                   email: email
                 });
               });
@@ -255,7 +250,7 @@ exports.login = (pool) => (req, res) => {
                   console.log("User does not exist.");
                 } else {// user exists
                   student = result;
-                  Student.comparePassword(password, student.password, (error, isMatch) => {
+                  Student.comparePassword(password, student.STUDENT_PASSWORD, (error, isMatch) => {
                     if (error) {
                       console.log(error);
                       return res.send({ success: false });
@@ -265,7 +260,7 @@ exports.login = (pool) => (req, res) => {
                       return res.send({ success: false });
                     }
                     const tokenPayload = {
-                        user_id: student.id,
+                        user_id: student.STUDENT_ID,
                         user_type: "student"
                     }
                     const token = jwt.sign(tokenPayload, "THIS_IS_A_SECRET_STRING");
@@ -273,9 +268,9 @@ exports.login = (pool) => (req, res) => {
                     return res.send({
                       success: true,
                       authToken: token,
-                      userId: student.id,
-                      fname: student.fname,
-                      lname: student.lname,
+                      userId: student.STUDENT_ID,
+                      fname: student.STUDENT_FNAME,
+                      lname: student.STUDENT_LNAME,
                       email: email
                     });
                   });

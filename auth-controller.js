@@ -137,50 +137,161 @@ exports.login = (pool) => (req, res) => {
   const email = req.body.email.trim();
   const password = req.body.password;
 
-  // Check if email exists in the database
-  User.checkIfEmailExists(pool, email, (error, results) => {
-    // If an error occured or user is not found
+  pool.getConnection((err, connection) => {
+    if(err){
+      console.log(err);
+      return res.send({success: false});
+    } else{
+       // Check if email exists in the admin table
+  Admin.checkIfEmailExists(connection, email, (error, results) => {
     if (error) {
       console.log(error);
       return res.send({ success: false });
     }
-    if (!results.exists) {
-      console.log("User not found");
-      return res.send({ success: false });
-    }
-
-    // If user is found, check if password is correct
-    const user = results.result[0]
-    User.comparePassword(password, user.user_password, (error, isMatch) => {
-      // If an error occured or incorrect password
-      if (error) {
-        console.log(error);
-        return res.send({ success: false });
-      }
-      if (!isMatch) {
-        console.log("Incorrect password");
-        return res.send({ success: false });
-      }
-
-      // Successful login
-      const tokenPayload = {
-          // TODO: Token payload subject to change
-          user_id: user.user_id
-      }
-      // TODO: JWT secretKey placeholder only
-      const token = jwt.sign(tokenPayload, "THIS_IS_A_SECRET_STRING");
-      console.log("Successfully logged in");
-
-      // Return response with token
-      // res.cookie('authToken', token, { maxAge: 900000, httpOnly: true });
-      return res.send({
-        success: true,
-        authToken: token,
-        fname: user.user_first_name,
-        lname: user.user_last_name
+    if (results) {
+      // After finding out that the user exists, we find the user
+      var admin;
+      Admin.findBy(connection, "ADMIN_EMAIL", email, (err, result) => {
+        if(err){
+          console.log(err);
+          return res.send({success: false});
+        }
+        if(typeof result === "undefined"){
+          console.log("User does not exist.");
+        } else {// user exists
+          admin = result;
+        }
       });
-    })
+
+      Admin.comparePassword(password, admin.password, (error, isMatch) => {
+        if (error) {
+          console.log(error);
+          return res.send({ success: false });
+        }
+        if (!isMatch) {
+          console.log("Incorrect password");
+          return res.send({ success: false });
+        }
+        const tokenPayload = {
+            user_id: admin.id,
+            user_type: "admin"
+        }
+        const token = jwt.sign(tokenPayload, "THIS_IS_A_SECRET_STRING");
+        console.log("Successfully logged in as admin");
+        return res.send({
+          success: true,
+          authToken: token,
+          userId: admin.id,
+          fname: admin.fname,
+          lname: admin.lname,
+          email: email
+        });
+      });
+    } else {
+      // Check if email exists in the owner table
+      Owner.checkIfEmailExists(pool, email, (error, results) => {
+        if (error) {
+          console.log(error);
+          return res.send({ success: false });
+        }
+        if (results) {
+          // After finding out that the user exists, we find the user
+          var owner;
+          Admin.findBy(connection, "OWNER_EMAIL", email, (err, result) => {
+            if(err){
+              console.log(err);
+              return res.send({success: false});
+            }
+            if(typeof result === "undefined"){
+              console.log("User does not exist.");
+            } else {// user exists
+              owner = result;
+            }
+          });
+          Owner.comparePassword(password, owner.password, (error, isMatch) => {
+            if (error) {
+              console.log(error);
+              return res.send({ success: false });
+            }
+            if (!isMatch) {
+              console.log("Incorrect password");
+              return res.send({ success: false });
+            }
+            const tokenPayload = {
+                user_id: owner.id,
+                user_type: "owner"
+            }
+            const token = jwt.sign(tokenPayload, "THIS_IS_A_SECRET_STRING");
+            console.log("Successfully logged in as owner");
+            return res.send({
+              success: true,
+              authToken: token,
+              userId: owner.id,
+              fname: owner.fname,
+              lname: owner.lname,
+              email: email
+            });
+          });
+        } else {
+          // Check if email exists in the student table
+          Student.checkIfEmailExists(pool, email, (error, results) => {
+            if (error) {
+              console.log(error);
+              return res.send({ success: false });
+            }
+            if (results) {
+              // After finding out that the user exists, we find the user
+              var student;
+              Admin.findBy(connection, "STUDENT_EMAIL", email, (err, result) => {
+                if(err){
+                  console.log(err);
+                  return res.send({success: false});
+                }
+                if(typeof result === "undefined"){
+                  console.log("User does not exist.");
+                } else {// user exists
+                  student = result;
+                }
+              });
+              Student.comparePassword(password, student.password, (error, isMatch) => {
+                if (error) {
+                  console.log(error);
+                  return res.send({ success: false });
+                }
+                if (!isMatch) {
+                  console.log("Incorrect password");
+                  return res.send({ success: false });
+                }
+                const tokenPayload = {
+                    user_id: student.id,
+                    user_type: "student"
+                }
+                const token = jwt.sign(tokenPayload, "THIS_IS_A_SECRET_STRING");
+                console.log("Successfully logged in as student");
+                return res.send({
+                  success: true,
+                  authToken: token,
+                  userId: student.id,
+                  fname: student.fname,
+                  lname: student.lname,
+                  email: email
+                });
+              });
+            } else {
+              console.log("User not found");
+              return res.send({ success: false });
+            }
+          });
+        }
+      });
+    }
   });
+
+
+
+    }});
+
+ 
 }
 
 exports.checkIfLoggedIn = (pool) => (req, res) => {

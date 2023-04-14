@@ -473,30 +473,29 @@ exports.viewProfile = (pool) => (req, res) => {
   let userType = null;
   
   // Check if the user exists in any of the tables
-try {
-    Student.findBy(pool, 'STUDENT_EMAIL', email, (error, user) => {
-      if (user) {
-        userType = 'Student';
-      } else {
-        Admin.findBy(pool, 'ADMIN_EMAIL', email, (error, user) => {
-          if (user) {
-            userType = 'Admin';
-          } else {
-            Owner.findBy(pool, 'OWNER_EMAIL', email, (error, user) => {
-              if (user) {
-                userType = 'Owner';
-              } else {
-                return res.send({ success: false, message: 'User not found' });
-              }
-            });
-          }
-        });
-      }
-    });
-  }catch (error) {
-    console.error(error);
-    return res.send({ success: false, message: 'Error finding user' });
-  }
+  Student.findBy(pool, 'STUDENT_EMAIL', email, (error, user) => {
+    if(error) {console.error(error); return res.send({ success: false, message: 'Error finding user' });}
+    if (user) {
+      userType = 'Student';
+    } else {
+      Admin.findBy(pool, 'ADMIN_EMAIL', email, (error, user) => {
+        if(error) {console.error(error); return res.send({ success: false, message: 'Error finding user' });}
+        if (user) {
+          userType = 'Admin';
+        } else {
+          Owner.findBy(pool, 'OWNER_EMAIL', email, (error, user) => {
+            if(error) {console.error(error); return res.send({ success: false, message: 'Error finding user' });}
+            if (user) {
+              userType = 'Owner';
+            } else {
+              return res.send({ success: false, message: 'User not found' });
+            }
+          });
+        }
+      });
+    }
+  });
+  
   
   // Return the user data based on the user type
   let userData = null;

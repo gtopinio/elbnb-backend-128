@@ -521,7 +521,7 @@ exports.viewProfile = (pool) => (req, res) => {
                     });
                   } else {
                     console.log(`User with email ${email} does not exist.`);
-                    return res.send({success:false});
+                    return res.send({success:false, message: "User not found"});
                   }
                 });
               }

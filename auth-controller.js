@@ -496,6 +496,8 @@ exports.viewProfile = (pool) => (req, res) => {
     }
   });
   
+  // Print which type of user is found
+  console.log("User found! Its type is: " + userType);
   
   // Return the user data based on the user type
   let userData = null;

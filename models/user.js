@@ -46,6 +46,15 @@ const Admin = {
 
       return callback(null);
     });
+  },
+  edit: (connection, adminId, newPassword, newUsername, newFirstName, newLastName, callback) => {
+    const sql = 'UPDATE admin SET ADMIN_PASSWORD=?, ADMIN_USERNAME=?, ADMIN_FNAME=?, ADMIN_LNAME=? WHERE ADIMN_ID=?';
+    connection.query(sql, [newPassword, newUsername, newFirstName, newLastName, adminId], (error) => {
+      if (error) {
+        return callback(error);
+      }
+      return callback(null);
+    });
   }
 }
 
@@ -95,7 +104,17 @@ const Owner = {
 
       return callback(null);
     });
-  }
+  },
+  edit: (connection, ownerId, newPassword, newUsername, newFirstName, newLastName, newContactNum, callback) => {
+    const sql = 'UPDATE owner SET OWNER_PASSWORD=?, OWNER_USERNAME=?, OWNER_FNAME=?, OWNER_LNAME=?, OWNER_CONTACTNUM=? WHERE OWNER_ID=?';
+    connection.query(sql, [newPassword, newUsername, newFirstName, newLastName, newContactNum, ownerId], (error) => {
+        if (error) {
+            return callback(error);
+        }
+        return callback(null);
+    });
+}
+
 }
 
 const Student = {
@@ -138,7 +157,7 @@ const Student = {
       return callback(null, result);
     });
   },
-  
+
   delete: (connection, studentId, callback) => {
     const sql = 'DELETE FROM student WHERE STUDENT_ID = ?';
     connection.query(sql, [studentId], (error) => {
@@ -148,7 +167,17 @@ const Student = {
 
       return callback(null);
     });
-  }
+  },
+
+  edit: (connection, studentId, newPassword, newUsername, newFirstName, newLastName, callback) => {
+    const sql = 'UPDATE student SET STUDENT_PASSWORD=?, STUDENT_USERNAME=?, STUDENT_FNAME=?, STUDENT_LNAME=? WHERE STUDENT_ID=?';
+    connection.query(sql, [newPassword, newUsername, newFirstName, newLastName, studentId], (error) => {
+        if (error) {
+            return callback(error);
+        }
+        return callback(null);
+    });
+}
 };
 
 module.exports = { Admin, Owner, Student };

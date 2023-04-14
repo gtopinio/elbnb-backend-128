@@ -516,7 +516,7 @@ exports.viewProfile = (pool) => (req, res) => {
     };
   }
   
-  return res.send(userData);
+  return res.send({profileData: userData});
 };
 
 

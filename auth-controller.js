@@ -381,7 +381,7 @@ exports.checkIfLoggedIn = (pool) => (req, res) => {
 }
 
 
-exports.deleteUser = (pool, email) => {
+exports.deleteUserByEmail = (pool, email) => {
   pool.getConnection((err, connection) => {
     if (err) {
       console.log(err);

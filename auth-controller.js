@@ -476,10 +476,12 @@ exports.editUserByEmail = (pool) => (req, res) => {
   pool.getConnection((err, connection) => {
     if (err) {
       console.log(err);
+      return res.send({success:false});
     } else {
       connection.beginTransaction((err) => {
         if (err) {
           console.log(err);
+          return res.send({success:false});
         } else {
           // Check if email exists in any of the tables
           Admin.findBy(connection, "ADMIN_EMAIL", email, (error, admin) => {

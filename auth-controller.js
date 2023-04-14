@@ -385,7 +385,7 @@ exports.deleteUserByEmail = (pool) => (req, res) => {
   const email = req.body.email;
 
   // Console log the email to be deleted
-  console.log("=== DELETING USER EMAIL ===");
+  console.log("=== DELETING USER BY EMAIL ===");
   console.log(email);
 
   pool.getConnection((err, connection) => {
@@ -469,62 +469,67 @@ exports.deleteUserByEmail = (pool) => (req, res) => {
 
 exports.viewProfile = (pool) => (req, res) => {
   const email = req.body.email;
-  let user = null;
-  let userType = null;
-  
-  // Check if the user exists in any of the tables
-  Student.findBy(pool, 'STUDENT_EMAIL', email, (error, user) => {
-    console.log("Exec 1");
-    if(error) {console.error(error); return res.send({ success: false, message: 'Error finding user' });}
-    if (user) {
-      console.log("Came here 1");
-      userType = 'Student';
+
+  // Console log the email to be deleted
+  console.log("=== VIEWING USER BY EMAIL ===");
+  console.log(email);
+
+  pool.getConnection((err, connection) => {
+    if (err) {
+      console.log(err);
     } else {
-      Admin.findBy(pool, 'ADMIN_EMAIL', email, (error, user) => {
-        console.log("Exec 2");
-        if(error) {console.error(error); return res.send({ success: false, message: 'Error finding user' });}
-        if (user) {
-          console.log("Came here 2");
-          userType = 'Admin';
-        } else {
-          Owner.findBy(pool, 'OWNER_EMAIL', email, (error, user) => {
-            console.log("Exec 3");
-            if(error) {console.error(error); return res.send({ success: false, message: 'Error finding user' });}
-            if (user) {
-              console.log("Came here 3");
-              userType = 'Owner';
-            } else {
-              return res.send({ success: false, message: 'User not found' });
-            }
-          });
-        }
-      });
+        // Check if email exists in any of the tables
+        Admin.findBy(connection, "ADMIN_EMAIL", email, (error, admin) => {
+          if (error) {
+            console.log(error);
+            return res.send({success:false, message: "Error finding user"});
+          }
+          if (admin) {
+              console.log("Admin found! Sending profile data...");
+              return res.send({
+                first_name: user.ADMIN_FNAME,
+                last_name: user.ADMIN_LNAME,
+                email: user.ADMIN_EMAIL,
+                user_id: user.ADMIN_ID
+              });
+          } else {
+            Owner.findBy(connection, "OWNER_EMAIL", email, (error, owner) => {
+              if (error) {
+                console.log(error);
+                return res.send({success:false, message: "Error finding user"});
+              }
+              if (owner) {
+                return res.send({
+                  first_name: user.OWNER_FNAME,
+                  last_name: user.OWNER_LNAME,
+                  email: user.OWNER_EMAIL,
+                  contact_no: user.OWNER_CONTACTNUM,
+                  user_id: user.OWNER_ID
+                });
+              } else {
+                Student.findBy(connection, "STUDENT_EMAIL", email, (error, student) => {
+                  if (error) {
+                    console.log(error);
+                    return res.send({success:false, message: "Error finding user"});
+                  }
+                  if (student) {
+                    return res.send({
+                      first_name: user.STUDENT_FNAME,
+                      last_name: user.STUDENT_LNAME,
+                      email: user.STUDENT_EMAIL,
+                      user_id: user.STUDENT_ID
+                    });
+                  } else {
+                    console.log(`User with email ${email} does not exist.`);
+                    return res.send({success:false});
+                  }
+                });
+              }
+            });
+          }
+        });
     }
   });
-  
-  // Print which type of user is found
-  console.log("User found! Its type is: " + userType);
-  
-  // Return the user data based on the user type
-  let userData = null;
-  if (userType === 'Student' || userType === 'Admin') {
-    userData = {
-      first_name: user[`${userType}_FNAME`],
-      last_name: user[`${userType}_LNAME`],
-      email: user[`${userType}_EMAIL`],
-      user_id: user[`${userType}_ID`]
-    };
-  } else if (userType === 'Owner') {
-    userData = {
-      first_name: user.OWNER_FNAME,
-      last_name: user.OWNER_LNAME,
-      email: user.OWNER_EMAIL,
-      contact_no: user.OWNER_CONTACTNUM,
-      user_id: user.OWNER_ID
-    };
-  }
-  
-  return res.send({profileData: userData});
 };
 
 

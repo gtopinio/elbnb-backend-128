@@ -54,7 +54,6 @@ exports.signUp = (pool) => (req, res) => {
             const { email, password, username, firstName, lastName, contactNum, isBusinessAccount, isAdmin } = req.body;
         
             // Create the appropriate user based on the isAdmin and isBusinessAccount flags
-            let user;
             if (isAdmin) {
               // Check first if email already exists
               Admin.checkIfEmailExists(pool, email, (error, result) => {

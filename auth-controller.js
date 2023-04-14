@@ -487,10 +487,10 @@ exports.viewProfile = (pool) => (req, res) => {
           if (admin) {
               console.log("Admin found! Sending profile data...");
               return res.send({
-                first_name: user.ADMIN_FNAME,
-                last_name: user.ADMIN_LNAME,
-                email: user.ADMIN_EMAIL,
-                user_id: user.ADMIN_ID
+                first_name: admin.ADMIN_FNAME,
+                last_name: admin.ADMIN_LNAME,
+                email: admin.ADMIN_EMAIL,
+                user_id: admin.ADMIN_ID
               });
           } else {
             Owner.findBy(connection, "OWNER_EMAIL", email, (error, owner) => {
@@ -500,11 +500,11 @@ exports.viewProfile = (pool) => (req, res) => {
               }
               if (owner) {
                 return res.send({
-                  first_name: user.OWNER_FNAME,
-                  last_name: user.OWNER_LNAME,
-                  email: user.OWNER_EMAIL,
-                  contact_no: user.OWNER_CONTACTNUM,
-                  user_id: user.OWNER_ID
+                  first_name: owner.OWNER_FNAME,
+                  last_name: owner.OWNER_LNAME,
+                  email: owner.OWNER_EMAIL,
+                  contact_no: owner.OWNER_CONTACTNUM,
+                  user_id: owner.OWNER_ID
                 });
               } else {
                 Student.findBy(connection, "STUDENT_EMAIL", email, (error, student) => {
@@ -514,10 +514,10 @@ exports.viewProfile = (pool) => (req, res) => {
                   }
                   if (student) {
                     return res.send({
-                      first_name: user.STUDENT_FNAME,
-                      last_name: user.STUDENT_LNAME,
-                      email: user.STUDENT_EMAIL,
-                      user_id: user.STUDENT_ID
+                      first_name: student.STUDENT_FNAME,
+                      last_name: student.STUDENT_LNAME,
+                      email: student.STUDENT_EMAIL,
+                      user_id: student.STUDENT_ID
                     });
                   } else {
                     console.log(`User with email ${email} does not exist.`);

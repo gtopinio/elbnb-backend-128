@@ -473,24 +473,27 @@ exports.viewProfile = (pool) => (req, res) => {
   let userType = null;
   
   // Check if the user exists in any of the tables
-  try {
-    user = Student.findBy(pool, 'STUDENT_EMAIL', email);
-    if (user) {
-      userType = 'Student';
-    } else {
-      user = Admin.findBy(pool, 'ADMIN_EMAIL', email);
+try {
+    Student.findBy(pool, 'STUDENT_EMAIL', email, (error, user) => {
       if (user) {
-        userType = 'Admin';
+        userType = 'Student';
       } else {
-        user = Owner.findBy(pool, 'OWNER_EMAIL', email);
-        if (user) {
-          userType = 'Owner';
-        } else {
-          return res.send({ success: false, message: 'User not found' });
-        }
+        Admin.findBy(pool, 'ADMIN_EMAIL', email, (error, user) => {
+          if (user) {
+            userType = 'Admin';
+          } else {
+            Owner.findBy(pool, 'OWNER_EMAIL', email, (error, user) => {
+              if (user) {
+                userType = 'Owner';
+              } else {
+                return res.send({ success: false, message: 'User not found' });
+              }
+            });
+          }
+        });
       }
-    }
-  } catch (error) {
+    });
+  }catch (error) {
     console.error(error);
     return res.send({ success: false, message: 'Error finding user' });
   }

@@ -382,7 +382,7 @@ exports.checkIfLoggedIn = (pool) => (req, res) => {
 
 
 exports.deleteUserByEmail = (pool) => (req, res) => {
-  const email = req.params.email;
+  const email = req.body.email;
 
   pool.getConnection((err, connection) => {
     if (err) {

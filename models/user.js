@@ -36,6 +36,16 @@ const Admin = {
       }
       return callback(null, result);
     });
+  },
+  delete: (connection, adminId, callback) => {
+    const sql = 'DELETE FROM admin WHERE ADMIN_ID = ?';
+    connection.query(sql, [adminId], (error) => {
+      if (error) {
+        return callback(error);
+      }
+
+      return callback(null);
+    });
   }
 }
 
@@ -74,6 +84,16 @@ const Owner = {
         return callback(error);
       }
       return callback(null, result);
+    });
+  },
+  delete: (connection, ownerId, callback) => {
+    const sql = 'DELETE FROM owner WHERE OWNER_ID = ?';
+    connection.query(sql, [ownerId], (error) => {
+      if (error) {
+        return callback(error);
+      }
+
+      return callback(null);
     });
   }
 }
@@ -116,6 +136,17 @@ const Student = {
         return callback(error);
       }
       return callback(null, result);
+    });
+  },
+  
+  delete: (connection, studentId, callback) => {
+    const sql = 'DELETE FROM student WHERE STUDENT_ID = ?';
+    connection.query(sql, [studentId], (error) => {
+      if (error) {
+        return callback(error);
+      }
+
+      return callback(null);
     });
   }
 };

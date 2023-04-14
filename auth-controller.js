@@ -380,6 +380,96 @@ exports.checkIfLoggedIn = (pool) => (req, res) => {
     });
 }
 
+
+exports.deleteUserByEmail = (pool) => (req, res) => {
+  const email = req.params.email;
+
+  pool.getConnection((err, connection) => {
+    if (err) {
+      console.log(err);
+      return res.send({ success: false });
+    }
+
+    connection.beginTransaction((err) => {
+      if (err) {
+        console.log(err);
+        connection.rollback();
+        return res.send({ success: false });
+      }
+
+      // Check if user exists
+      User.findBy(connection, 'USER_EMAIL', email, (error, user) => {
+        if (error) {
+          console.log(error);
+          connection.rollback();
+          return res.send({ success: false });
+        }
+
+        if (!user) {
+          console.log('User not found!');
+          connection.rollback();
+          return res.send({ success: false });
+        }
+
+        const userId = user.USER_ID;
+
+        // Delete user from appropriate table
+        if (user.isAdmin) {
+          Admin.delete(connection, userId, (error) => {
+            if (error) {
+              console.log(error);
+              connection.rollback();
+              return res.send({ success: false });
+            }
+
+            console.log('Admin deleted!');
+            connection.commit();
+            return res.send({ success: true });
+          });
+        } else if (user.isBusinessAccount) {
+          Owner.delete(connection, userId, (error) => {
+            if (error) {
+              console.log(error);
+              connection.rollback();
+              return res.send({ success: false });
+            }
+
+            console.log('Owner deleted!');
+            connection.commit();
+            return res.send({ success: true });
+          });
+        } else {
+          Student.delete(connection, userId, (error) => {
+            if (error) {
+              console.log(error);
+              connection.rollback();
+              return res.send({ success: false });
+            }
+
+            console.log('Student deleted!');
+            connection.commit();
+            return res.send({ success: true });
+          });
+        }
+      });
+    });
+  });
+};
+
+const User = {
+  findBy: (connection, field, value, callback) => {
+    const sql = `SELECT * FROM users WHERE ${field} = ?`;
+    connection.query(sql, [value], (error, results) => {
+      if (error) {
+        return callback(error);
+      }
+
+      return callback(null, results[0]);
+    });
+  }
+};
+
+
 // The checkAccommDup function checks if an accommodation with the given name already exists in the database by querying the accommodations table. 
 function checkAccommDup(pool, name, callback) {
   pool.getConnection((err, connection) => {

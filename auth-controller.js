@@ -466,6 +466,58 @@ exports.deleteUserByEmail = (pool) => (req, res) => {
   });
 };
 
+
+exports.viewProfile = (pool) => (req, res) => {
+  const email = req.body.email;
+  let user = null;
+  let userType = null;
+  
+  // Check if the user exists in any of the tables
+  try {
+    user = Student.findBy(pool, 'STUDENT_EMAIL', email);
+    if (user) {
+      userType = 'Student';
+    } else {
+      user = Admin.findBy(pool, 'ADMIN_EMAIL', email);
+      if (user) {
+        userType = 'Admin';
+      } else {
+        user = Owner.findBy(pool, 'OWNER_EMAIL', email);
+        if (user) {
+          userType = 'Owner';
+        } else {
+          return res.send({ success: false, message: 'User not found' });
+        }
+      }
+    }
+  } catch (error) {
+    console.error(error);
+    return res.send({ success: false, message: 'Error finding user' });
+  }
+  
+  // Return the user data based on the user type
+  let userData = null;
+  if (userType === 'Student' || userType === 'Admin') {
+    userData = {
+      first_name: user[`${userType}_FNAME`],
+      last_name: user[`${userType}_LNAME`],
+      email: user[`${userType}_EMAIL`],
+      user_id: user[`${userType}_ID`]
+    };
+  } else if (userType === 'Owner') {
+    userData = {
+      first_name: user.OWNER_FNAME,
+      last_name: user.OWNER_LNAME,
+      email: user.OWNER_EMAIL,
+      contact_no: user.OWNER_CONTACTNUM,
+      user_id: user.OWNER_ID
+    };
+  }
+  
+  return res.send(userData);
+};
+
+
 // The checkAccommDup function checks if an accommodation with the given name already exists in the database by querying the accommodations table. 
 function checkAccommDup(pool, name, callback) {
   pool.getConnection((err, connection) => {

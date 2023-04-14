@@ -8,6 +8,7 @@ module.exports = (app, pool) => {
     app.post("/login", authController.login(pool));
     app.post("/checkIfLoggedIn", authController.checkIfLoggedIn(pool));
     app.post("/delete-user", authController.deleteUserByEmail(pool));
+    app.post("/view-user", authController.viewProfile(pool));
     app.post("/add-accommodation", authController.addAccommodation(pool));
     app.post("/filter-accommodation", authController.filterAccommodations(pool));
     app.post("/accommodations/upload-pic", authController.uploadAccommodationPic(pool));

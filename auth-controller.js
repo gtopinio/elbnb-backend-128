@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 const cloudinary = require('cloudinary').v2;
 const { Admin, Owner, Student } = require('./models/user');
 
-// Configuration 
+// Configuration for cloudinary (cloud for uploading unstructured files) 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_API_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -33,7 +33,15 @@ exports.getUsers = (pool) => (req, res) => {
   });
 }
 
-// User Management Edpoitns
+// MOCKUP-BACKEND-128 ENDPOINTS
+
+// This function exports a route handler for signing up a user. 
+// It takes a MySQL connection pool as a parameter and returns a function that handles HTTP requests and responses. 
+// The function first gets a database connection from the pool, and then begins a transaction. 
+// It then extracts the necessary data from the HTTP request body, such as email, password, username, first name, last name, contact number, and account type. 
+// Based on the account type, it checks if the email already exists in the database using the appropriate user class (Admin, Owner, or Student), and creates a new user if the email is unique. 
+// If an error occurs during any of these steps, the function logs the error and rolls back the transaction. 
+// If everything is successful, the function commits the transaction and sends a response indicating success or failure.
 exports.signUp = (pool) => (req, res) => {
   pool.getConnection((err, connection) => {
     if(err){
@@ -130,6 +138,12 @@ exports.signUp = (pool) => (req, res) => {
   });
 };
 
+
+// This login function takes a connection pool as a parameter and handles login requests for admins, owners, and students. 
+// It extracts the email and password from the request body, checks if the email exists in the admin table, owner table, or student table, and finds the corresponding user in the table. 
+// It then compares the provided password with the hashed password in the table and generates a JSON Web Token (JWT) with a user payload containing user information, including the user type. 
+// Finally, it returns the JWT and user information as a response if the login is successful. 
+// If the login fails or an error occurs, it returns a response with success false.
 exports.login = (pool) => (req, res) => {
 
   // Credentials
@@ -287,6 +301,11 @@ exports.login = (pool) => (req, res) => {
 }});
 }
 
+
+
+// The checkIfLoggedIn function checks if the user is logged in by verifying the presence and validity of a JWT token stored in a cookie. 
+// It also verifies the user type and checks if the user exists in the database for that user type. It returns a JSON object containing 'isLoggedIn',
+// which could either be true or false depending if the user is really logged in or not.
 exports.checkIfLoggedIn = (pool) => (req, res) => {
   // Checking if cookies/authToken cookie exists
   if (!req.cookies.authToken) {
@@ -361,7 +380,7 @@ exports.checkIfLoggedIn = (pool) => (req, res) => {
     });
 }
 
-
+// The checkAccommDup function checks if an accommodation with the given name already exists in the database by querying the accommodations table. 
 function checkAccommDup(pool, name, callback) {
   pool.getConnection((err, connection) => {
     if (err) {
@@ -656,6 +675,5 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
     console.log("Full upload error");
     return res.send({ success: false });
   }
-
   });
 }

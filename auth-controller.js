@@ -466,21 +466,6 @@ exports.deleteUserByEmail = (pool) => (req, res) => {
   });
 };
 
-
-const User = {
-  findBy: (connection, field, value, callback) => {
-    const sql = `SELECT * FROM users WHERE ${field} = ?`;
-    connection.query(sql, [value], (error, results) => {
-      if (error) {
-        return callback(error);
-      }
-
-      return callback(null, results[0]);
-    });
-  }
-};
-
-
 // The checkAccommDup function checks if an accommodation with the given name already exists in the database by querying the accommodations table. 
 function checkAccommDup(pool, name, callback) {
   pool.getConnection((err, connection) => {

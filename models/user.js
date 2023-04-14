@@ -48,7 +48,7 @@ const Admin = {
     });
   },
   edit: (connection, adminId, newPassword, newUsername, newFirstName, newLastName, callback) => {
-    const sql = 'UPDATE admin SET ADMIN_PASSWORD=?, ADMIN_USERNAME=?, ADMIN_FNAME=?, ADMIN_LNAME=? WHERE ADIMN_ID=?';
+    const sql = 'UPDATE admin SET ADMIN_PASSWORD=?, ADMIN_USERNAME=?, ADMIN_FNAME=?, ADMIN_LNAME=? WHERE ADMIN_ID=?';
     connection.query(sql, [newPassword, newUsername, newFirstName, newLastName, adminId], (error) => {
       if (error) {
         return callback(error);

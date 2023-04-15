@@ -852,6 +852,7 @@ exports.editAccommodation = (pool) => (req, res) => {
               console.log("Duplicate accommodation name.");
               return res.send({ success: false });
             } else {
+              console.log(result[0].ACCOMMODATION_ID);
               // update the accommodation details
               const updateQuery = `
                 UPDATE accommodations

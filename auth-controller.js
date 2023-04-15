@@ -646,7 +646,7 @@ function checkAccommDup(pool, name, callback) {
       const checkQuery = `SELECT ACCOMMODATION_ID FROM accommodations WHERE ACCOMMODATION_NAME = ?`;
       connection.query(checkQuery, [name], (err, result) => {
         if (err) {
-          console.log("Error: " + err);
+          console.log("Check Accom Dup Error: " + err);
           callback(err, null);
         } else {
           callback(null, result.length > 0);
@@ -787,7 +787,7 @@ function getAccommodationIdByName(pool, name, callback) {
       const checkQuery = `SELECT ACCOMMODATION_ID FROM accommodations WHERE ACCOMMODATION_NAME = ?`;
       connection.query(checkQuery, [name], (err, result) => {
         if (err) {
-          console.log("Error: " + err);
+          console.log("Get Accomm Id Error: " + err);
           callback(err, null);
         } else {
           try{

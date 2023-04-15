@@ -790,7 +790,6 @@ function getAccommodationIdByName(pool, name, callback) {
           console.log("Error: " + err);
           callback(err, null);
         } else {
-          console.log("Result from get accomm id: " + result);
           callback(null, result[0].ACCOMMODATION_ID);
         }
       });
@@ -848,6 +847,7 @@ exports.editAccommodation = (pool) => (req, res) => {
           console.log("Error updating accommodation: " + err);
           return res.send({ success: false });
         } else {
+          console.log("Successfully updated accommodation: " + name);
           return res.send({ success: true });
         }
       });

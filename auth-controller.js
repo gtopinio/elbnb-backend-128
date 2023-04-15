@@ -852,7 +852,6 @@ exports.editAccommodation = (pool) => (req, res) => {
               console.log("Duplicate accommodation name.");
               return res.send({ success: false });
             } else {
-              console.log(result[0].ACCOMMODATION_ID);
               // update the accommodation details
               const updateQuery = `
                 UPDATE accommodations
@@ -872,8 +871,17 @@ exports.editAccommodation = (pool) => (req, res) => {
                     res.send({success:false});
                   });
                 } else {
-                  console.log("Successfully updated accommodation: " + name);
-                  return res.send({ success: true });
+                  connection.commit((err) => {
+                    if(err){
+                      connection.rollback(() => {
+                        console.log("Commit Error: " + err);
+                        res.send({success:false});
+                      });
+                    } else {
+                      console.log("Successfully updated accommodation: " + name);
+                      return res.send({ success: true });
+                    }
+                  });
                 }
               });
             }

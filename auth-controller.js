@@ -860,7 +860,7 @@ exports.editAccommodation = (pool) => (req, res) => {
                   ACCOMMODATION_DESCRIPTION = ?,
                   ACCOMMODATION_LOCATION = ?,
                   ACCOMMODATION_PRICE = ?,
-                  ACCOMMODATION_CAPACITY = ?,
+                  ACCOMMODATION_CAPACITY = ?
                 WHERE ACCOMMODATION_ID = ?
               `;
               pool.query(updateQuery, [newName, newType, newDescription, newLocation, newPrice, newCapacity, id], (err) => {

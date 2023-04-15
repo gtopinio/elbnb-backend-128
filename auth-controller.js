@@ -844,7 +844,7 @@ exports.editAccommodation = (pool) => (req, res) => {
         }
 
         else{
-          pool.query(checkNameDupQuery, [name, id], (err, result) => {
+          connection.query(checkNameDupQuery, [newName, id], (err, result) => {
             if (err) {
               console.log("Error: " + err);
               return res.send({ success: false });
@@ -864,7 +864,7 @@ exports.editAccommodation = (pool) => (req, res) => {
                   ACCOMMODATION_CAPACITY = ?
                 WHERE ACCOMMODATION_ID = ?
               `;
-              pool.query(updateQuery, [newName, newType, newDescription, newLocation, newPrice, newCapacity, id], (err) => {
+              connection.query(updateQuery, [newName, newType, newDescription, newLocation, newPrice, newCapacity, id], (err) => {
                 if (err) {
                   connection.rollback(() => {
                     console.log("Error updating accommodation: " + err);
@@ -898,8 +898,8 @@ exports.archiveAccommodation = (pool) => (req, res) => {
       return res.send({ success: false });
     } else if (accommodationId > 0) {
       id = accommodationId;
-        // check if the updated name already exists for another accommodation
-        const checkNameDupQuery = `
+        // check if the name already exists
+        const checkNameExistQuery = `
         SELECT COUNT(*) AS count
         FROM accommodations
         WHERE ACCOMMODATION_NAME = ? AND ACCOMMODATION_ID != ?
@@ -919,19 +919,19 @@ exports.archiveAccommodation = (pool) => (req, res) => {
         }
 
         else{
-          pool.query(checkNameDupQuery, [name, id], (err, result) => {
+          connection.query(checkNameExistQuery, [name, id], (err, result) => {
             if (err) {
               console.log("Error: " + err);
               return res.send({ success: false });
             } else {
-              // update the accommodation details
-              const updateQuery = `
+              // archive the accommodation details
+              const archiveQuery = `
                 UPDATE accommodations
                 SET
                   ACCOMMODATION_ISARCHIVED = ?
                 WHERE ACCOMMODATION_ID = ?
               `;
-              pool.query(updateQuery, [isArchived, id], (err) => {
+              connection.query(archiveQuery, [isArchived, id], (err) => {
                 if (err) {
                   connection.rollback(() => {
                     console.log("Error archiving accommodation: " + err);

@@ -805,7 +805,7 @@ function getAccommodationIdByName(pool, name, callback) {
 
 
 exports.editAccommodation = (pool) => (req, res) => {
-  const {name, newName, newType, newDescription, newLocation, newPrice, newCapacity, isArchived } = req.body;
+  const {name, newName, newType, newDescription, newLocation, newPrice, newCapacity} = req.body;
 
   // Try to get the id first if accommodation exists
   // check if there's an accommodation that has the same name
@@ -855,10 +855,9 @@ exports.editAccommodation = (pool) => (req, res) => {
                   ACCOMMODATION_LOCATION = ?,
                   ACCOMMODATION_PRICE = ?,
                   ACCOMMODATION_CAPACITY = ?,
-                  ACCOMMODATION_ISARCHIVED = ?
                 WHERE ACCOMMODATION_ID = ?
               `;
-              pool.query(updateQuery, [newName, newType, newDescription, newLocation, newPrice, newCapacity, isArchived, id], (err) => {
+              pool.query(updateQuery, [newName, newType, newDescription, newLocation, newPrice, newCapacity, id], (err) => {
                 if (err) {
                   connection.rollback(() => {
                     console.log("Error updating accommodation: " + err);
@@ -878,6 +877,74 @@ exports.editAccommodation = (pool) => (req, res) => {
       return res.send({success: false});
     }});
 };
+
+
+exports.archiveAccommodation = (pool) => (req, res) => {
+  const {name, isArchived } = req.body;
+
+  // Try to get the id first if accommodation exists
+  // check if there's an accommodation that has the same name
+  var id = null;
+  getAccommodationIdByName(pool, name, (err, accommodationId) => {
+    if (err) {
+      console.log("Error: " + err);
+      return res.send({ success: false });
+    } else if (accommodationId > 0) {
+      id = accommodationId;
+        // check if the updated name already exists for another accommodation
+        const checkNameDupQuery = `
+        SELECT COUNT(*) AS count
+        FROM accommodations
+        WHERE ACCOMMODATION_NAME = ? AND ACCOMMODATION_ID != ?
+      `;
+
+      // get pool connection
+      pool.getConnection((err, connection) => {
+        if(err) {
+          console.log("Get Connection Error: " + err);
+          return res.send({success:false});
+        }
+          // begin transaction
+      connection.beginTransaction((err) => {
+        if(err){
+          console.log("Begin Transaction Error: " + err);
+          return res.send({success:false});
+        }
+
+        else{
+          pool.query(checkNameDupQuery, [name, id], (err, result) => {
+            if (err) {
+              console.log("Error: " + err);
+              return res.send({ success: false });
+            } else {
+              // update the accommodation details
+              const updateQuery = `
+                UPDATE accommodations
+                SET
+                  ACCOMMODATION_ISARCHIVED = ?
+                WHERE ACCOMMODATION_ID = ?
+              `;
+              pool.query(updateQuery, [isArchived, id], (err) => {
+                if (err) {
+                  connection.rollback(() => {
+                    console.log("Error archiving accommodation: " + err);
+                    res.send({success:false});
+                  });
+                } else {
+                  console.log("Successfully archived accommodation: " + name);
+                  return res.send({ success: true });
+                }
+              });
+            }
+          });
+        }});
+      });
+    } else {
+      console.log("Accommodation not found! Cannot proceed to archiving...");
+      return res.send({success: false});
+    }});
+};
+
 
 
 // The function takes in a database connection pool object and returns a callback function that filters accommodations based on the user's search criteria specified in the req.query object. 

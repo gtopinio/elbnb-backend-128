@@ -844,7 +844,7 @@ exports.editAccommodation = (pool) => (req, res) => {
         }
 
         else{
-          connection.query(checkNameDupQuery, [name, id], (err, result) => {
+          connection.query(checkNameDupQuery, [newName, id], (err, result) => {
             if (err) {
               console.log("Error: " + err);
               return res.send({ success: false });

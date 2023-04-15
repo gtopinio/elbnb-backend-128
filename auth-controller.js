@@ -800,6 +800,7 @@ function getAccommodationIdByName(pool, name, callback) {
               callback(null, result[0].ACCOMMODATION_ID);
             }
           } catch (err) {
+            console.log("Get Accom Id: Undefined Object");
             callback(err, null);
           }
           

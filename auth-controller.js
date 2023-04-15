@@ -791,8 +791,14 @@ function getAccommodationIdByName(pool, name, callback) {
           callback(err, null);
         } else {
           try{
-            if(typeof result[0].ACCOMMODATION_ID === "undefined") callback(null, 0);
-            else callback(null, result[0].ACCOMMODATION_ID);
+            if(typeof result[0].ACCOMMODATION_ID === "undefined") {
+              console.log("Get Accom Id: Undefined Object");
+              callback(null, 0);
+            }
+            else {
+              console.log("Get Accom Id: Defined Object");
+              callback(null, result[0].ACCOMMODATION_ID);
+            }
           } catch (err) {
             callback(err, null);
           }

@@ -790,8 +790,13 @@ function getAccommodationIdByName(pool, name, callback) {
           console.log("Error: " + err);
           callback(err, null);
         } else {
-          if(typeof result[0].ACCOMMODATION_ID === "undefined") callback(null, 0);
-          else callback(null, result[0].ACCOMMODATION_ID);
+          try{
+            if(typeof result[0].ACCOMMODATION_ID === "undefined") callback(null, 0);
+            else callback(null, result[0].ACCOMMODATION_ID);
+          } catch (err) {
+            callback(err, null);
+          }
+          
         }
       });
     }

@@ -800,7 +800,7 @@ function getAccommodationIdByName(pool, name, callback) {
 
 
 exports.editAccommodation = (pool) => (req, res) => {
-  const {name, newName, type, description, location, price, capacity } = req.body;
+  const {name, newName, newType, newDescription, newLocation, newPrice, newCapacity } = req.body;
 
   // Try to get the id first if accommodation exists
   // check if there's an accommodation that has the same name
@@ -842,7 +842,7 @@ exports.editAccommodation = (pool) => (req, res) => {
           ACCOMMODATION_CAPACITY = ?
         WHERE ACCOMMODATION_ID = ?
       `;
-      pool.query(updateQuery, [newName, type, description, location, price, capacity, id], (err) => {
+      pool.query(updateQuery, [newName, newType, newDescription, newLocation, newPrice, newCapacity, id], (err) => {
         if (err) {
           console.log("Error updating accommodation: " + err);
           return res.send({ success: false });

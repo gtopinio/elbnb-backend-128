@@ -379,7 +379,13 @@ exports.checkIfLoggedIn = (pool) => (req, res) => {
     });
 }
 
-
+// The deleteUserByEmail function takes a MySQL pool as its input and also receives a POST request object.
+// The req object is expected to have a body property containing an email field representing the email address of the user to be deleted. 
+// This function deletes the user with the specified email address from the database. 
+// It first begins a transaction and checks whether the email exists in any of the three tables (Admin, Owner, Student). 
+// If the email exists in any table, it deletes the user and logs a message to the console with the email address of the deleted user. 
+// If the email does not exist in any table, it rolls back the transaction and returns a response with a success property set to false. 
+// Finally, if the deletion is successful, it commits the transaction and returns a response with a success property set to true.
 exports.deleteUserByEmail = (pool) => (req, res) => {
   const email = req.body.email;
 
@@ -466,6 +472,13 @@ exports.deleteUserByEmail = (pool) => (req, res) => {
 };
 
 
+// The editUserByEmail takes in a pool object and returns a function that handles editing user information by email. 
+// The function expects a POST request that contains the user email to be edited, as well as the new password, username, first name, last name, and contact number (if applicable) to be updated. 
+// The function begins by logging the email to be edited, then attempts to establish a connection to the database. 
+// If successful, the function checks if the email exists in any of the three user tables (Admin, Owner, Student), and if 
+// found, updates the corresponding user's information in the database with the new data provided in the request body. 
+// If the email is not found, the function returns a response indicating that the user does not exist. If any errors occur during the process, the function logs the error and returns a response indicating that the operation was unsuccessful. 
+// The function returns a response indicating whether the operation was successful or not.
 exports.editUserByEmail = (pool) => (req, res) => {
   const { email, newPassword, newUsername, newFirstName, newLastName, newContactNum} = req.body;
 
@@ -554,7 +567,9 @@ exports.editUserByEmail = (pool) => (req, res) => {
 };
 
 
-
+// The viewProfile function retrieves the user profile information for the user identified by the provided email address. 
+// It checks if the email exists in any of the tables for admins, owners, or students. 
+// If it finds a match, it returns the corresponding profile information in JSON format.
 exports.viewProfile = (pool) => (req, res) => {
   const email = req.body.email;
 

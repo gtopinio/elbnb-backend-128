@@ -810,68 +810,67 @@ exports.editAccommodation = (pool) => (req, res) => {
       return res.send({ success: false });
     } else if (accommodationId > 0) {
       id = accommodationId;
+        // check if the updated name already exists for another accommodation
+        const checkNameDupQuery = `
+        SELECT COUNT(*) AS count
+        FROM accommodations
+        WHERE ACCOMMODATION_NAME = ? AND ACCOMMODATION_ID != ?
+      `;
+
+      // get pool connection
+      pool.getConnection((err, connection) => {
+        if(err) {
+          console.log("Get Connection Error: " + err);
+          return res.send({success:false});
+        }
+          // begin transaction
+      connection.beginTransaction((err) => {
+        if(err){
+          console.log("Begin Transaction Error: " + err);
+          return res.send({success:false});
+        }
+
+        else{
+          pool.query(checkNameDupQuery, [name, id], (err, result) => {
+            if (err) {
+              console.log("Error: " + err);
+              return res.send({ success: false });
+            } else if (result[0].count > 0) {
+              console.log("Duplicate accommodation name.");
+              return res.send({ success: false });
+            } else {
+              // update the accommodation details
+              const updateQuery = `
+                UPDATE accommodations
+                SET
+                  ACCOMMODATION_NAME = ?,
+                  ACCOMMODATION_TYPE = ?,
+                  ACCOMMODATION_DESCRIPTION = ?,
+                  ACCOMMODATION_LOCATION = ?,
+                  ACCOMMODATION_PRICE = ?,
+                  ACCOMMODATION_CAPACITY = ?,
+                  ACCOMMODATION_ISARCHIVED = ?
+                WHERE ACCOMMODATION_ID = ?
+              `;
+              pool.query(updateQuery, [newName, newType, newDescription, newLocation, newPrice, newCapacity, isArchived, id], (err) => {
+                if (err) {
+                  connection.rollback(() => {
+                    console.log("Error updating accommodation: " + err);
+                    res.send({success:false});
+                  });
+                } else {
+                  console.log("Successfully updated accommodation: " + name);
+                  return res.send({ success: true });
+                }
+              });
+            }
+          });
+        }});
+      });
     } else {
       console.log("Accommodation not found! Cannot proceed to editing...");
       return res.send({success: false});
     }});
-
-  // check if the updated name already exists for another accommodation
-  const checkNameDupQuery = `
-    SELECT COUNT(*) AS count
-    FROM accommodations
-    WHERE ACCOMMODATION_NAME = ? AND ACCOMMODATION_ID != ?
-  `;
-
-  // get pool connection
-  pool.getConnection((err, connection) => {
-    if(err) {
-      console.log("Get Connection Error: " + err);
-      return res.send({success:false});
-    }
-      // begin transaction
-  connection.beginTransaction((err) => {
-    if(err){
-      console.log("Begin Transaction Error: " + err);
-      return res.send({success:false});
-    }
-
-    else{
-      pool.query(checkNameDupQuery, [name, id], (err, result) => {
-        if (err) {
-          console.log("Error: " + err);
-          return res.send({ success: false });
-        } else if (result[0].count > 0) {
-          console.log("Duplicate accommodation name.");
-          return res.send({ success: false });
-        } else {
-          // update the accommodation details
-          const updateQuery = `
-            UPDATE accommodations
-            SET
-              ACCOMMODATION_NAME = ?,
-              ACCOMMODATION_TYPE = ?,
-              ACCOMMODATION_DESCRIPTION = ?,
-              ACCOMMODATION_LOCATION = ?,
-              ACCOMMODATION_PRICE = ?,
-              ACCOMMODATION_CAPACITY = ?,
-              ACCOMMODATION_ISARCHIVED = ?
-            WHERE ACCOMMODATION_ID = ?
-          `;
-          pool.query(updateQuery, [newName, newType, newDescription, newLocation, newPrice, newCapacity, isArchived, id], (err) => {
-            if (err) {
-              connection.rollback(() => {
-                console.log("Error updating accommodation: " + err);
-                res.send({success:false});
-              });
-            } else {
-              console.log("Successfully updated accommodation: " + name);
-              return res.send({ success: true });
-            }
-          });
-        }
-      });
-    }});
-  });
 };
 
 

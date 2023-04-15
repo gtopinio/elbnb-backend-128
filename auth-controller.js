@@ -798,6 +798,63 @@ function getAccommodationIdByName(pool, name, callback) {
   });
 }
 
+
+exports.editAccommodation = (pool) => (req, res) => {
+  const {name, type, description, location, price, capacity } = req.body;
+
+  // Try to get the id first if accommodation exists
+  // check if there's an accommodation that has the same name
+  var id = null;
+  getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+    if (err) {
+      console.log("Error: " + err);
+      return res.send({ success: false });
+    } else if (accommodationId > 0) {
+      id = accommodationId;
+    } else {
+      console.log("Accommodation not found! Cannot proceed to editing...");
+      return res.send({success: false});
+    }});
+
+  // check if the updated name already exists for another accommodation
+  const checkNameDupQuery = `
+    SELECT COUNT(*) AS count
+    FROM accommodations
+    WHERE ACCOMMODATION_NAME = ? AND ACCOMMODATION_ID != ?
+  `;
+  pool.query(checkNameDupQuery, [name, id], (err, result) => {
+    if (err) {
+      console.log("Error: " + err);
+      return res.send({ success: false });
+    } else if (result[0].count > 0) {
+      console.log("Duplicate accommodation name.");
+      return res.send({ success: false });
+    } else {
+      // update the accommodation details
+      const updateQuery = `
+        UPDATE accommodations
+        SET
+          ACCOMMODATION_NAME = ?,
+          ACCOMMODATION_TYPE = ?,
+          ACCOMMODATION_DESCRIPTION = ?,
+          ACCOMMODATION_LOCATION = ?,
+          ACCOMMODATION_PRICE = ?,
+          ACCOMMODATION_CAPACITY = ?
+        WHERE ACCOMMODATION_ID = ?
+      `;
+      pool.query(updateQuery, [name, type, description, location, price, capacity, id], (err) => {
+        if (err) {
+          console.log("Error updating accommodation: " + err);
+          return res.send({ success: false });
+        } else {
+          return res.send({ success: true });
+        }
+      });
+    }
+  });
+};
+
+
 // The function takes in a database connection pool object and returns a callback function that filters accommodations based on the user's search criteria specified in the req.query object. 
 // The function constructs a SQL query using the search criteria and executes it against the database. 
 // The results are returned in a JSON object with a success property indicating whether the query was successful and an accommodations property containing the filtered results. 

@@ -956,6 +956,93 @@ exports.archiveAccommodation = (pool) => (req, res) => {
     }});
 };
 
+exports.deleteAccommodation = (pool) => (req, res) => {
+  const {name} = req.body;
+
+  // Try to get the id first if accommodation exists
+  // check if there's an accommodation that has the same name
+  var id = null;
+  getAccommodationIdByName(pool, name, (err, accommodationId) => {
+    if (err) {
+      console.log("Error: " + err);
+      return res.send({ success: false });
+    } else if (accommodationId > 0) {
+      id = accommodationId;
+        // check if the accommodation has amenities
+        const deleteAmenitiesQuery = `
+        DELETE FROM accommodation_amenities
+        WHERE ACCOMMODATION_ID = ?;
+      `;
+
+      // TODO: Delete also the other affected tables: favorites, review, pictures
+
+      // get pool connection
+      pool.getConnection((err, connection) => {
+        if(err) {
+          console.log("Get Connection Error: " + err);
+          return res.send({success:false});
+        }
+          // begin transaction
+      connection.beginTransaction((err) => {
+        if(err){
+          console.log("Begin Transaction Error: " + err);
+          return res.send({success:false});
+        }
+
+        else{
+          // Delete the accommodation's amenities first
+          connection.query(deleteAmenitiesQuery, [id], (err, result) => {
+            if (err) {
+              connection.rollback(() => {
+                console.log("Error deleting accommodation amenities: " + err);
+                res.send({success:false});
+              });
+            } else if (result.affectedRows > 0 || result.affectedRows == 0) {
+
+              connection.commit((err) => {
+                if(err){
+                  connection.rollback(() => {
+                    console.log("Commit Error: " + err);
+                    res.send({success:false});
+                  });
+                } else {
+                  // delete the accommodation
+                  const deleteQuery = `
+                  DELETE FROM accommodations
+                  WHERE ACCOMMODATION_ID = ?;
+                  `;
+                  connection.query(deleteQuery, [id], (err) => {
+                    if (err) {
+                      connection.rollback(() => {
+                        console.log("Error deleting accommodation: " + err);
+                        res.send({success:false});
+                      });
+                    } else {
+                      connection.commit((err) => {
+                        if(err){
+                          connection.rollback(() => {
+                            console.log("Commit Error: " + err);
+                            res.send({success:false});
+                          });
+                        } else {
+                          console.log("Successfully deleted accommodation: " + name);
+                          return res.send({ success: true });
+                        }
+                      });
+                    }
+                  });
+
+                }});
+            }
+          });
+        }});
+      });
+    } else {
+      console.log("Accommodation not found! Cannot proceed to deleting...");
+      return res.send({success: false});
+    }});
+};
+
 
 
 // The function takes in a database connection pool object and returns a callback function that filters accommodations based on the user's search criteria specified in the req.query object. 

@@ -13,6 +13,7 @@ module.exports = (app, pool) => {
     app.post("/add-accommodation", authController.addAccommodation(pool));
     app.post("/edit-accommodation", authController.editAccommodation(pool));
     app.post("/archive-accommodation", authController.archiveAccommodation(pool));
+    app.post("/delete-accommodation", authController.deleteAccommodation(pool));
     app.post("/filter-accommodation", authController.filterAccommodations(pool));
     app.post("/accommodations/upload-pic", authController.uploadAccommodationPic(pool));
 }

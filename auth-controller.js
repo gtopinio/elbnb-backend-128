@@ -935,8 +935,16 @@ exports.archiveAccommodation = (pool) => (req, res) => {
                     res.send({success:false});
                   });
                 } else {
-                  console.log("Successfully archived accommodation: " + name);
-                  return res.send({ success: true });
+                  connection.commit((err) => {
+                    if(err){
+                      connection.rollback(() => {
+                        console.log("Commit Error: " + err);
+                        res.send({success:false});
+                      });
+                    } else {
+                      console.log("Successfully archived accommodation: " + name);
+                      return res.send({ success: true });
+                    }});
                 }
               });
             }

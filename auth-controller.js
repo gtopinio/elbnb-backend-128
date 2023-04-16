@@ -898,21 +898,14 @@ exports.editAccommodation = (pool) => (req, res) => {
 exports.archiveAccommodation = (pool) => (req, res) => {
   const {name, isArchived } = req.body;
 
-  // Try to get the id first if accommodation exists
-  // check if there's an accommodation that has the same name
+  // Try to get the id first if accommodation exists using the name
   var id = null;
   getAccommodationIdByName(pool, name, (err, accommodationId) => {
     if (err) {
       console.log("Error: " + err);
       return res.send({ success: false });
-    } else if (accommodationId > 0) {
+    } else if (accommodationId > 0 && typeof accommodationId !== "undefined") {
       id = accommodationId;
-        // check if the name already exists
-        const checkNameExistQuery = `
-        SELECT COUNT(*) AS count
-        FROM accommodations
-        WHERE ACCOMMODATION_NAME = ? AND ACCOMMODATION_ID != ?
-      `;
 
       // get pool connection
       pool.getConnection((err, connection) => {
@@ -928,11 +921,6 @@ exports.archiveAccommodation = (pool) => (req, res) => {
         }
 
         else{
-          connection.query(checkNameExistQuery, [name, id], (err, result) => {
-            if (err) {
-              console.log("Error: " + err);
-              return res.send({ success: false });
-            } else {
               // archive the accommodation details
               const archiveQuery = `
                 UPDATE accommodations
@@ -953,7 +941,6 @@ exports.archiveAccommodation = (pool) => (req, res) => {
               });
             }
           });
-        }});
       });
     } else {
       console.log("Accommodation not found! Cannot proceed to archiving...");

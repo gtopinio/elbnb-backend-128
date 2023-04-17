@@ -810,7 +810,11 @@ function getAccommodationIdByName(pool, name, callback) {
   });
 }
 
-
+// The editAccommodation function takes a MySQL connection pool as input and returns a callback function that handles an POST request for editing an accommodation. 
+// The function first extracts the updated accommodation details from the request body. It then tries to retrieve the ID of the accommodation to be updated by its name. 
+// If the accommodation exists, it checks if the updated name already exists for another accommodation. 
+// If the updated name is unique, the function updates the accommodation details in the database using a transaction to ensure data consistency. 
+// The output of the function is a response object sent back to the client indicating whether the update was successful or not.
 exports.editAccommodation = (pool) => (req, res) => {
   const {name, newName, newType, newDescription, newLocation, newPrice, newCapacity} = req.body;
 
@@ -895,6 +899,11 @@ exports.editAccommodation = (pool) => (req, res) => {
 };
 
 
+// This function, archiveAccommodation, takes in a MySQL connection pool object as input and returns an Express request handler function. 
+// This function handles a POST request that receives the name of an accommodation and a boolean value that represents whether it should be archived or unarchived. 
+// It uses the getAccommodationIdByName helper function to get the ID of the specified accommodation, and then archives or unarchives it using a SQL UPDATE query. 
+// If the query is successful, it sends a response with a boolean value of true, indicating that the accommodation has been successfully archived or unarchived. 
+// If any errors occur during the process, it sends a response with a boolean value of false, and logs the error to the console.
 exports.archiveAccommodation = (pool) => (req, res) => {
   const {name, isArchived } = req.body;
 
@@ -956,6 +965,9 @@ exports.archiveAccommodation = (pool) => (req, res) => {
     }});
 };
 
+// The deleteAccommodation function takes in a pool object and processes the request object containing the name of the accommodation to be deleted. 
+// The function tries to get the ID of the accommodation by its name, and if found, it will first delete the accommodation's amenities before deleting the accommodation itself. 
+// The function returns a JSON response indicating whether the operation was successful or not.
 exports.deleteAccommodation = (pool) => (req, res) => {
   const {name} = req.body;
 

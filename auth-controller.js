@@ -1,7 +1,7 @@
 // Imports
 const jwt = require("jsonwebtoken");
 const cloudinary = require('cloudinary').v2;
-const { Admin, Owner, Student } = require('./models/user');
+const { User } = require('./models/user');
 
 // Configuration for cloudinary (cloud for uploading unstructured files) 
 cloudinary.config({
@@ -28,86 +28,41 @@ exports.signUp = (pool) => (req, res) => {
         if(err){
           console.log(err);
         } else {
-            const { email, password, username, firstName, lastName, contactNum, isBusinessAccount, isAdmin } = req.body;
-        
-            // Create the appropriate user based on the isAdmin and isBusinessAccount flags
-            if (isAdmin) {
-              // Check first if email already exists
-              Admin.checkIfEmailExists(pool, email, (error, result) => {
-                // If an error occured or user is not found
-                if (error) {
-                  console.log(error);
-                  return res.send({ success: false });
-                }
-                if (!result) {
-                  console.log("Email is unique! Creating admin...");
-                  user = Admin.create(connection, email, password, username, firstName, lastName, (error, userId) => {
-                    if (error) {
-                      console.log(error);
-                      connection.rollback();
-                      return res.send({ success: false });
-                    }
-                    console.log(`Admin created with id ${userId}`);
-                    connection.commit();
-                    return res.send({ success: true });
-                  });
-                } else {
-                  console.log("Email is already registered!");
-                  return res.send({ success: false });
-                }});
-              
-            } else if (isBusinessAccount) {
-              // Check first if email already exists
-              Owner.checkIfEmailExists(pool, email, (error, result) => {
-                // If an error occured or user is not found
-                if (error) {
-                  console.log(error);
-                  connection.rollback();
-                  return res.send({ success: false });
-                }
-                if (!result) {
-                  console.log("Email is unique! Creating owner...");
-                  user = Owner.create(connection, email, password, username, firstName, lastName, contactNum, (error, userId) => {
-                    if (error) {
-                      console.log(error);
-                      return res.send({ success: false });
-                    }
-                    console.log(`Owner created with id ${userId}`);
-                    connection.commit();
-                    return res.send({ success: true });
-                  });
-                } else {
-                  console.log("Email is already registered!");
-                  return res.send({ success: false });
-                }});
-              
-            } else {
-              // Check first if email already exists
-              Student.checkIfEmailExists(pool, email, (error, result) => {
-                // If an error occured or user is not found
-                if (error) {
-                  console.log(error);
-                  connection.rollback();
-                  return res.send({ success: false });
-                }
-                if (!result) {
-                  console.log("Email is unique! Creating student...");
-                  user = Student.create(connection, email, password, username, firstName, lastName, (error, userId) => {
-                    if (error) {
-                      console.log(error);
-                      return res.send({ success: false });
-                    }
-                    console.log(`Student created with id ${userId}`);
-                    // If everything is successful, commit the transaction
-                    connection.commit();
-                    return res.send({ success: true });
-                  });
-                } else {
-                  console.log("Email is already registered!");
-                  return res.send({ success: false });
-                }});
-              
+            const { email, password, username, firstName, lastName, contactNum, isBusinessAccount, isPersonalAccount } = req.body;
+
+            // Check which user type to create
+            var userType = null;
+            if(!isBusinessAccount && !isPersonalAccount){
+              userType = "Admin";
+            } else if(isBusinessAccount && !isPersonalAccount){
+              userType = "Owner";
+            } else if(!isBusinessAccount && isPersonalAccount){
+              userType = "Student";
             }
+        
+            // Check first if email already exists
+            User.checkIfEmailExists(pool, email, (error, result) => {
+              // If an error occured or user is not found
+              if (error) {
+                console.log(error);
+                return res.send({ success: false });
+              }
+              if (!result) {
+                console.log("Email is unique! Creating user...");
+                user = User.create(connection, email, password, username, firstName, lastName, contactNum, userType, (error, userId) => {
+                  if (error) {
+                    console.log(error);
+                    connection.rollback();
+                    return res.send({ success: false });
+                  }
+                  console.log(`User created with id ${userId}`);
+                  connection.commit();
+                  return res.send({ success: true });
+                });
+              } else {
+                console.log("Email is already registered!");
+                return res.send({ success: false });
+              }});
         }
       });
     }

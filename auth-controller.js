@@ -162,7 +162,7 @@ exports.checkIfLoggedIn = (pool) => (req, res) => {
       const user_type = tokenPayload.user_type; // Get the user type from the token
 
       // Check if the user type is admin, student, or owner
-      if (user_type !== "Admin" || user_type !== "Student" || user_type !== "Owner") {
+      if (user_type !== "Admin" && user_type !== "Student" && user_type !== "Owner") {
         console.log("Invalid user type");
         return res.send({ isLoggedIn: false });
       }

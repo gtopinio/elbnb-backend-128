@@ -333,68 +333,28 @@ exports.deleteUserByEmail = (pool) => (req, res) => {
         if (err) {
           console.log(err);
         } else {
-          // Check if email exists in any of the tables
-          Admin.findBy(connection, "ADMIN_EMAIL", email, (error, admin) => {
+          // Check if email exists in the user table
+          User.findBy(connection, "USER_EMAIL", email, (error, user) => {
             if (error) {
               console.log(error);
               connection.rollback();
               return res.send({success:false});
             }
-            if (admin) {
-              Admin.delete(connection, admin.ADMIN_ID, (error) => {
+            if (user) {
+              User.delete(connection, user.USER_ID, (error) => {
                 if (error) {
                   console.log(error);
                   connection.rollback();
                   return res.send({success:false});
                 }
-                console.log(`Admin with email ${email} has been deleted.`);
+                console.log(`User with email ${email} has been deleted.`);
                 connection.commit();
                 return res.send({success:true});
               });
             } else {
-              Owner.findBy(connection, "OWNER_EMAIL", email, (error, owner) => {
-                if (error) {
-                  console.log(error);
-                  connection.rollback();
-                  return res.send({success:false});
-                }
-                if (owner) {
-                  Owner.delete(connection, owner.OWNER_ID, (error) => {
-                    if (error) {
-                      console.log(error);
-                      connection.rollback();
-                      return res.send({success:false});
-                    }
-                    console.log(`Owner with email ${email} has been deleted.`);
-                    connection.commit();
-                    return res.send({success:true});
-                  });
-                } else {
-                  Student.findBy(connection, "STUDENT_EMAIL", email, (error, student) => {
-                    if (error) {
-                      console.log(error);
-                      connection.rollback();
-                      return res.send({success:false});
-                    }
-                    if (student) {
-                      Student.delete(connection, student.STUDENT_ID, (error) => {
-                        if (error) {
-                          console.log(error);
-                          connection.rollback();
-                          return res.send({success:false});
-                        }
-                        console.log(`Student with email ${email} has been deleted.`);
-                        connection.commit();
-                        return res.send({success:true});
-                      });
-                    } else {
-                      console.log(`User with email ${email} does not exist.`);
-                      connection.rollback();
-                      return res.send({success:false});
-                    }
-                  });
-                }
-              });
+                console.log(`User with email ${email} does not exist.`);
+                connection.rollback();
+                return res.send({success:false});
             }
           });
         }

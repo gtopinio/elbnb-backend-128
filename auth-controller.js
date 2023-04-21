@@ -10,29 +10,6 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-
-// Test Endpoints 
-exports.helloWorld = (req, res) => {
-  req.cookies.title = 'cookie';
-  console.log(req.cookies);
-  res.send("Hello World!");
-}
-
-exports.getUsers = (pool) => (req, res) => {
-  pool.getConnection((err, connection) => {
-    if (err) console.log(err);
-
-    connection.query('SELECT * FROM USER', (err, results, fields) => {
-      if (err) console.log("Query Error:\n" + err);
-      console.log(results);
-
-      connection.release();
-
-      res.send(results);
-    });
-  });
-}
-
 // MOCKUP-BACKEND-128 ENDPOINTS
 
 // This function exports a route handler for signing up a user. 

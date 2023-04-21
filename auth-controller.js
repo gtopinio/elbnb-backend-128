@@ -162,54 +162,24 @@ exports.checkIfLoggedIn = (pool) => (req, res) => {
       const user_type = tokenPayload.user_type; // Get the user type from the token
 
       // Check if the user type is admin, student, or owner
-      if (user_type !== "admin" && user_type !== "student" && user_type !== "owner") {
+      if (user_type !== "Admin" || user_type !== "Student" || user_type !== "Owner") {
         console.log("Invalid user type");
         return res.send({ isLoggedIn: false });
       }
 
       // Find the user based on the user type and id
-      if (user_type === "admin") {
-        Admin.findBy(pool, "admin_id", user_id, (error, result) => {
+      else {
+        User.findBy(pool, "user_id", user_id, (error, result) => {
           // If an error occured or user is not found
           if (error) {
             console.log(error);
             return res.send({ isLoggedIn: false });
           }
           if (result <= 0) {
-            console.log("Admin not found");
+            console.log(user_type + " not found");
             return res.send({ isLoggedIn: false });
           } else {
-            console.log("Admin is currently logged in");
-            return res.send({ isLoggedIn: true });
-          }
-        });
-      } else if (user_type === "student") {
-        Student.findBy(pool, "student_id", user_id, (error, result) => {
-          // If an error occured or user is not found
-          if (error) {
-            console.log(error);
-            return res.send({ isLoggedIn: false });
-          }
-          if (result <= 0) {
-            console.log("Student not found");
-            return res.send({ isLoggedIn: false });
-          } else {
-            console.log("Student is currently logged in");
-            return res.send({ isLoggedIn: true });
-          }
-        });
-      } else if (user_type === "owner") {
-        Owner.findBy(pool, "owner_id", user_id, (error, result) => {
-          // If an error occured or user is not found
-          if (error) {
-            console.log(error);
-            return res.send({ isLoggedIn: false });
-          }
-          if (result <= 0) {
-            console.log("Owner not found");
-            return res.send({ isLoggedIn: false });
-          } else {
-            console.log("Owner is currently logged in");
+            console.log(user_type + " is currently logged in");
             return res.send({ isLoggedIn: true });
           }
         });

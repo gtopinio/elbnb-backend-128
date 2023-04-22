@@ -1325,3 +1325,60 @@ exports.editRoom = (pool) => (req, res) => {
       return res.send({success: false});
     }});
 };
+
+exports.deleteRoom = (pool) => (req, res) => {
+  const {name} = req.body;
+
+  // Get the ID of the room if the name exists.
+  var id = null;
+  getRoomIDbyName(pool, name, (err, roomID) => {
+    if (err) {
+      console.log("Error: " + err);
+      return res.send({ success: false });
+    } else if (roomID > 0) {
+      id = roomID;
+        // Query to delete the Room.
+        const deleteRoomQuery = `
+        DELETE FROM room
+        WHERE ROOM_ID = ?;
+      `;
+
+      // Get Pool Connection.
+      pool.getConnection((err, connection) => {
+        if(err) {
+          console.log("Get Connection Error: " + err);
+          return res.send({success:false});
+        }
+      // Begin Transaction.
+      connection.beginTransaction((err) => {
+        if(err){
+          console.log("Begin Transaction Error: " + err);
+          return res.send({success:false});
+        }
+        connection.query(deleteRoomQuery, [id], (err) => {
+          if (err) {
+            connection.rollback(() => {
+              console.log("Error deleting room: " + err);
+              res.send({success:false});
+            });
+          } else {
+            connection.commit((err) => {
+              if(err){
+                connection.rollback(() => {
+                  console.log("Commit Error: " + err);
+                  res.send({success:false});
+                });
+              } else {
+                console.log("Successfully deleted room: " + name);
+                return res.send({ success: true });
+              }
+            });
+          }
+        });
+        });
+      });
+    } else {
+      console.log("Room not found! Cannot proceed to deleting...");
+      return res.send({success: false});
+    }});
+};

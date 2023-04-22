@@ -1178,12 +1178,11 @@ exports.getRoomsByAccommodationName = (pool) => (req, res) => {
   });
 }
 
-// Function to fetch an accommodation's picture from Cloudinary using the accommodation name and accessing it using the getAccommodationIdByName function. 
-// After getting the id, we look through the picture table for the picture with the same accommodation id and get the picture id and use it to access the image from Cloudinary.
+// Function to fetch an accommodation's picture url from Cloudinary using the accommodation name and accessing it using the getAccommodationIdByName function. 
+// After getting the id, we look through the picture table for the picture with the same accommodation id and get the picture id and use it to access the image url from Cloudinary.
 // If there is an error, it logs the error and sends a response with a success value of false and a message indicating an error occurred.
-// If there is no error, it sends a response with a success value of true and the image data.
-exports.getAccommodationPic = (pool) => async (req, res) => {
-  // Get the id of the accommodation name
+// If there is no error, it sends a response with a success value of true and the image url
+exports.getAccommodationPic = (pool) => (req, res) => {
   const accommodationName = req.body.accommodationName;
 
   var id = null;
@@ -1194,23 +1193,16 @@ exports.getAccommodationPic = (pool) => async (req, res) => {
     } else if (accommodationId > 0) {
       id = accommodationId;
       // Get the picture id of the accommodation
-      const query = `SELECT * FROM picture WHERE ACCOMMODATION_ID = ${id}`;
+      const query = `SELECT PICTURE_ID FROM picture WHERE ACCOMMODATION_ID = ${id}`;
       pool.query(query, (err, results) => {
         if (err) {
           console.log("Error: " + err);
           return res.send({ success: false });
         } else {
-          // Get the image from Cloudinary
+          // Get the image url from Cloudinary
           const pictureId = results[0].PICTURE_ID;
-          cloudinary.v2.api.resource(pictureId, (error, result) => {
-            if (error) {
-              console.log("Error: " + error);
-              return res.send({ success: false });
-            } else {
-              // Return the image data
-              return res.send({ success: true, imageData: result });
-            }
-          });
+          const imageUrl = cloudinary.url(pictureId, { secure: true });
+          return res.send({ success: true, imageUrl: imageUrl });
         }
       });
     } else {

@@ -454,22 +454,22 @@ exports.addAccommodation = (pool) => (req, res) => {
                             console.log("Insert Room Error: " + err);
                             res.send({ success:false });
                           });
+                        } else {
+                                // commit the transaction if all queries were successful
+                                connection.commit((err) => {
+                                  if (err) {
+                                    connection.rollback(() => {
+                                      console.log("Commit Error: " + err);
+                                      res.send({ success:false });
+                                    });
+                                  } else {
+                                    console.log("Accommodation and Rooms successfully inserted!");
+                                    res.send({ success:true });
+                                  }
+                                });
                         }
                       });
                     }
-    
-                    // commit the transaction if all queries were successful
-                    connection.commit((err) => {
-                      if (err) {
-                        connection.rollback(() => {
-                          console.log("Commit Error: " + err);
-                          res.send({ success:false });
-                        });
-                      } else {
-                        console.log("Accommodation and Rooms successfully inserted!");
-                        res.send({ success:true });
-                      }
-                    });
                   }
                 });
           } // else when no errors in beginning transaction

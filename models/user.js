@@ -1,10 +1,10 @@
 const bcrypt = require("bcrypt");
 
 const User = {
-  create: (connection, email, password, username, firstName, lastName, constactNum, userType, callback) => {
+  create: (connection, email, password, username, firstName, lastName, contactNum, userType, callback) => {
     const sql = 'INSERT INTO user (USER_EMAIL, USER_PASSWORD, USER_USERNAME, USER_FNAME, USER_LNAME, USER_CONTACTNUM, USER_TYPE) VALUES (?, ?, ?, ?, ?, ?, ?)';
     const hash = bcrypt.hashSync(password, 10);
-    connection.query(sql, [email, hash, username, firstName, lastName, constactNum, userType], (error, results) => {
+    connection.query(sql, [email, hash, username, firstName, lastName, contactNum, userType], (error, results) => {
       if (error) {
         return callback(error);
       }

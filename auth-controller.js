@@ -843,7 +843,33 @@ exports.filterAccommodations = (pool) => (req, res) => {
       console.log("Error: " + err);
       return res.send({ message: "No accommodations found..." });
     } else {
-      return res.send({ message: "Accommodation ids found!", ids: ids });
+      // Now that we caught the ids, we can filter the accommodations by their ids and the other filters, namely name, address, location, and/or type
+
+      let query = 'SELECT * FROM accommodation';
+
+      if (name || address || location || type || ids.length > 0) {
+
+        query += ' WHERE';
+
+        if (name) {
+          query += ` ACCOMMODATION_NAME LIKE '%${name}%' AND`;
+        }
+
+        if (address) {
+          query += ` ACCOMMODATION_ADDRESS LIKE '%${address}%' AND`;
+        }
+    
+        if (location) {
+          query += ` ACCOMMODATION_LOCATION = '${location}' AND`;
+        }
+    
+        if (type) {
+          query += ` ACCOMMODATION_TYPE = '${type}' AND`;
+        }
+
+        query += ` WHERE ACCOMMODATION_ID IN (${ids.join(',')})`;
+        query += 'ORDER BY ACCOMMODATION_NAME';
+      }
     }});
   
   } else {

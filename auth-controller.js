@@ -813,9 +813,26 @@ exports.filterAccommodations = (pool) => (req, res) => {
   console.log("Price To: " + priceTo);
   console.log("Capacity: " + capacity);
 
-  // If the priceFrom, priceTo, or capacity are not empty, we should find the accommodations that match the criteria
+   // If all filters are undefined, we should return all accommodations
+  if (!name && !address && !location && !type && !priceFrom && !priceTo && !capacity) {
+    pool.getConnection((err, connection) => {
+      if (err) {
+        console.log("Error: " + err);
+        return res.send({ message: "No accommodations found..." });
+      } else {
+        connection.query('SELECT * FROM accommodation ORDER BY ACCOMMODATION_NAME', (err, results) => {
+          if (err) {
+            console.log("Error: " + err);
+            return res.send({ message: "No accommodations found..." });
+          } else {
+            return res.send({ message: "Accommodations found!", accommodations: results });
+          }
+        });
+      }
+    });
 
-  if(priceFrom || priceTo || capacity){
+  }    // If the priceFrom, priceTo, or capacity are not empty, we should find the accommodations that match the criteria
+  else if(priceFrom || priceTo || capacity){
 
   // check if there's an accommodation that already has the same name
   filterRooms(pool, priceTo, priceFrom, capacity, (err, ids) => {

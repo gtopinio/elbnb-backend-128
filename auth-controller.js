@@ -353,31 +353,21 @@ function checkAccommDup(pool, name, callback) {
 }
 
 function addRooms(pool, accommodationId, rooms, callback) {
-  pool.getConnection((err, connection) => {
-    if (err) {
-      console.log("Error: " + err);
-      callback(err, null);
-    } else {
-      // if there are rooms, insert them into the room table
-      const roomQueries = rooms.map((room) => {
-        return [`${accommodationId}-${room.name}`, room.price, room.capacity, accommodationId];
-      });
-      const roomQuery = `
-        INSERT INTO room
-          (ROOM_NAME, ROOM_PRICE, ROOM_CAPACITY, ACCOMMODATION_ID)
-        VALUES
-        (?, ?, ?, ?)
-      `;
-      connection.query(roomQuery, [roomQueries], (err) => {
-        if (err) {
-            console.log("Query Rooms Error: " + err);
-            callback(err, null);
-        }
-
-        callback(null, true);
+  const roomQueries = rooms.map((room) => {
+    return [room.ROOM_NAME, room.ROOM_PRICE, room.ROOM_CAPACITY, accommodationId];
   });
-  
-}});
+  const roomQuery = `
+    INSERT INTO room
+      (ROOM_NAME, ROOM_PRICE, ROOM_CAPACITY, ACCOMMODATION_ID)
+    VALUES
+    ?
+  `;
+  pool.query(roomQuery, [roomQueries], (error, results, fields) => {
+    if (error) {
+      return callback(error);
+    }
+    return callback(null, results);
+  });
 }
       
 

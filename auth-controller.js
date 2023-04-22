@@ -656,7 +656,6 @@ function checkAccommDup(pool, name, callback) {
   });
 }
 
-
 // This function is used to add a new accommodation to the database. 
 // It takes in a pool object as input, which is used to establish a database connection. 
 // The function then reads the details of the new accommodation from the request body, including its name, type, description, location, price, capacity, and amenities (an array of strings). 
@@ -1190,5 +1189,41 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
     console.log("Full upload error");
     return res.send({ success: false });
   }
+  });
+}
+
+// Helper function to retrieve a Room's ID by Room name.
+function getRoomIDbyName(pool, name, callback) {
+  // Start Connection.
+  pool.getConnection((err, connection) => {
+    if (err) {
+      console.log("Error: " + err);
+      callback(err, null);
+    } else {
+      const checkQuery = `SELECT ROOM_ID FROM room WHERE ROOM_NAME = ?`;
+      connection.query(checkQuery, [name], (err, result) => {
+        if (err) {
+          console.log("Get Room ID Error: " + err);
+          callback(err, null);
+        } else {
+          // Room ID error.
+          try{
+            if(typeof result[0].ROOM_ID === "undefined") {
+              console.log("Get Room ID: Undefined Object");
+              callback(null, 0);
+            }
+          // Room ID success.
+            else {
+              console.log("Get Room ID: Defined Object");
+              callback(null, result[0].ROOM_ID);
+            }
+          // Room does not exist.
+          } catch (err) {
+            console.log("Room Not Found...");
+            callback(err, null);
+          }
+        }
+      });
+    }
   });
 }

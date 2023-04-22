@@ -1250,7 +1250,8 @@ function getRoomIDbyName(pool, name, callback) {
 
 exports.editRoom = (pool) => (req, res) => {
   const {name, newName, newCapacity, newPrice} = req.body;
-  // Check if Room Exists
+
+  // Get the ID of the room if the name exists.
   var id = null;
   getRoomIDbyName(pool, name, (err, roomID) => {
     if (err) {
@@ -1379,6 +1380,67 @@ exports.deleteRoom = (pool) => (req, res) => {
       });
     } else {
       console.log("Room not found! Cannot proceed to deleting...");
+      return res.send({success: false});
+    }});
+};
+
+exports.archiveRoom = (pool) => (req, res) => {
+  const {name, isArchived } = req.body;
+
+  //Get the ID of the room if the name exists.
+  var id = null;
+  getAccommodationIdByName(pool, name, (err, roomID) => {
+    if (err) {
+      console.log("Error: " + err);
+      return res.send({ success: false });
+    } else if (roomID > 0 && typeof roomID !== "undefined") {
+      id = roomID;
+
+      // Get Pool connection.
+      pool.getConnection((err, connection) => {
+        if(err) {
+          console.log("Get Connection Error: " + err);
+          return res.send({success:false});
+        }
+          // Begin Transaction.
+      connection.beginTransaction((err) => {
+        if(err){
+          console.log("Begin Transaction Error: " + err);
+          return res.send({success:false});
+        }
+
+        else{
+              // Query for archiving room.
+              const archiveQuery = `
+                UPDATE room
+                SET
+                  ROOM_ISARCHIVED = ?
+                WHERE ROOM_ID = ?
+              `;
+              connection.query(archiveQuery, [isArchived, id], (err) => {
+                if (err) {
+                  connection.rollback(() => {
+                    console.log("Error archiving room: " + err);
+                    res.send({success:false});
+                  });
+                } else {
+                  connection.commit((err) => {
+                    if(err){
+                      connection.rollback(() => {
+                        console.log("Commit Error: " + err);
+                        res.send({success:false});
+                      });
+                    } else {
+                      console.log("Successfully archived room: " + name);
+                      return res.send({ success: true });
+                    }});
+                }
+              });
+            }
+          });
+      });
+    } else {
+      console.log("Room not found! Cannot proceed to archiving...");
       return res.send({success: false});
     }});
 };

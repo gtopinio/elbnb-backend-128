@@ -352,6 +352,35 @@ function checkAccommDup(pool, name, callback) {
   });
 }
 
+function addRooms(pool, accommodationId, rooms, callback) {
+  pool.getConnection((err, connection) => {
+    if (err) {
+      console.log("Error: " + err);
+      callback(err, null);
+    } else {
+      // if there are rooms, insert them into the room table
+      const roomQueries = rooms.map((room) => {
+        return [`${accommodationId}-${room}`, accommodationId];
+      });
+      const roomQuery = `
+        INSERT INTO room
+          (ROOM_NAME, ROOM_PRICE, ROOM_CAPACITY, ACCOMMODATION_ID)
+        VALUES
+        (?, ?, ?, ?)
+      `;
+      connection.query(roomQuery, [roomQueries], (err) => {
+        if (err) {
+            console.log("Query Rooms Error: " + err);
+            callback(err, null);
+        }
+
+        callback(null, true);
+  });
+  
+}});
+}
+      
+
 
 // This function is used to add a new accommodation to the database. 
 // It takes in a pool object as input, which is used to establish a database connection. 
@@ -360,15 +389,52 @@ function checkAccommDup(pool, name, callback) {
 // Otherwise, the function begins a transaction and inserts the new accommodation into the accommodations table, along with its amenities (if any). 
 // If everything is successful, the function returns a JSON object indicating success.
 exports.addAccommodation = (pool) => (req, res) => {
-  const { name, type, description, location, price, capacity, amenities } = req.body; // assuming amenities is an array of strings
+
+  // Adding accommodation details first
+  // name, type, address, location, description, amenities, user (owner) id, (array of json objects for rooms)
+
+  // Must know if there is a room first (from JSON)
+      // If there is at least one, add accommodation to db
+      // Else return success = false
+  
+  // Example JSON
+  // {
+  //   "accommodationName": "Sample Accommodation",
+  //   "accommodationType": "Hotel",
+  //   "accommodationAddress": "123 Main St.",
+  //   "accommodationLocation": "New York",
+  //   "accommodationDescription": "A sample description",
+  //   "accommodationAmenities": "Free Wi-Fi, Swimming Pool",
+  //   "rooms": [
+  //     {
+  //       "roomName": "Single Room",
+  //       "roomPrice": 100,
+  //       "roomCapacity": 1
+  //     },
+  //     {
+  //       "roomName": "Double Room",
+  //       "roomPrice": 200,
+  //       "roomCapacity": 2
+  //     }
+  //   ]
+  // }
+
+  const { name, type, address, location, description, amenities, userId, rooms} = req.body; // assuming amenities is an array of strings
+
+  // Check if there are rooms first
+  if (rooms.length == 0) {
+    console.log("No rooms.");
+    return res.send({ success: false });
+  }
+
+  // Otherwise, we add the accommodation first before adding the rooms
+
   // Printing the details of the accommodation query
   console.log("========== ACCOMMODATION DETAILS ==========")
   console.log("Name: " + name);
   console.log("Type: " + type);
-  console.log("Price: " + price);
   console.log("Description: " + description);
   console.log("Location: " + location);
-  console.log("Capacity: " + capacity);
 
   // check if there's an accommodation that already has the same name
   checkAccommDup(pool, name, (err, hasDup) => {
@@ -396,11 +462,11 @@ exports.addAccommodation = (pool) => (req, res) => {
         // accommodation name doesn't exist, proceed with inserting the new accommodation
         const accommodationQuery = `
         INSERT INTO accommodations
-          (ACCOMMODATION_NAME, ACCOMMODATION_TYPE, ACCOMMODATION_DESCRIPTION, ACCOMMODATION_PRICE, ACCOMMODATION_LOCATION, ACCOMMODATION_CAPACITY)
+          (ACCOMMODATION_NAME, ACCOMMODATION_TYPE, ACCOMMODATION_ADDRESS, ACCOMMODATION_LOCATION, ACCOMMODATION_DESCRIPTION, ACCOMMODATION_AMENITIES, USER_ID)
         VALUES
-          (?, ?, ?, ?, ?, ?)
+          (?, ?, ?, ?, ?, ?, ?)
       `;
-      connection.query(accommodationQuery, [name, type, description, price, location, capacity], (err, resultQuery) => {
+      connection.query(accommodationQuery, [name, type, address, location, description, amenities, userId], (err, resultQuery) => {
                   if (err) {
                     connection.rollback(() => {
                       console.log("Insert Accommodation Error: " + err);
@@ -410,41 +476,16 @@ exports.addAccommodation = (pool) => (req, res) => {
                   else { // Successful insertion
                     const accommodationId = resultQuery.insertId; // get the auto-generated id of the newly inserted accommodation
 
-                      if (amenities.length > 0) {
-                        // if there are amenities, insert them into the accommodation_amenities table
-                        const amenityQueries = amenities.map((amenity) => {
-                          return [`${accommodationId}-${amenity}`, accommodationId];
+                        
+                    // Check callback if true
+                    addRooms(pool, accommodationId, rooms, (err, success) => {
+                      if (err) {
+                        connection.rollback(() => {
+                          console.log("Insert Rooms Error: " + err);
+                          res.send({success:false});
                         });
-                        const amenityQuery = `
-                          INSERT INTO accommodation_amenities
-                            (ACCOMMODATION_AMENITIES_ID, ACCOMMODATION_ID)
-                          VALUES
-                            ?
-                        `;
-                        connection.query(amenityQuery, [amenityQueries], (err) => {
-                          if (err) {
-                            connection.rollback(() => {
-                              console.log("Query Amenities Error: " + err);
-                              res.send({success:false});
-                            });
-                          }
-
-                          // commit the transaction if everything is successful
-                          else connection.commit((err) => {
-                            if (err) {
-                              connection.rollback(() => {
-                                console.log("Insert Amenities Error: " + err);
-                              });
-                            }
-
-                            // return a JSON object indicating success
-                            else{
-                              return res.send({ success: true });
-                            }  
-                          });
-                        });
-                      } else {
-                        // commit the transaction if there are no amenities
+                      }
+                      else {
                         connection.commit((err) => {
                           if (err) {
                             connection.rollback(() => {
@@ -452,15 +493,13 @@ exports.addAccommodation = (pool) => (req, res) => {
                               res.send({success:false});
                             });
                           }
-
-                          // return a JSON object indicating success
-                          else{
-                            return res.send({ success: true });
-                          } 
-
+                          else {
+                            console.log("Accommodation added.");
+                            res.send({success:true});
+                          }
                         });
                       }
-            
+                    });
                   }
           });
         }   // else when no errors in beginning transaction

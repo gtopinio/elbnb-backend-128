@@ -1212,3 +1212,32 @@ exports.getAccommodationPic = (pool) => (req, res) => {
     }
   });
 }
+
+// Function to fetch a user's picture url from Cloudinary using the username and accessing it using the User.findBy function.
+// After getting the id, we look through the picture table for the picture with the same user id and get the picture id and use it to access the image url from Cloudinary.
+// If there is an error, it logs the error and sends a response with a success value of false and a message indicating an error occurred.
+// If there is no error, it sends a response with a success value of true and the image url
+exports.getUserPic = (pool) => (req, res) => {
+  const username = req.body.username;
+
+  User.findBy(pool, "USER_USERNAME", username, (err, user) => {
+    if(err){
+      console.log("Error: " + err);
+      return res.send({ success: false });
+    } else if(user){
+      // Get the picture id of the user
+      const query = `SELECT PICTURE_ID FROM picture WHERE USER_ID = ${user.USER_ID}`;
+      pool.query(query, (err, results) => {
+        if (err) {
+          console.log("Error: " + err);
+          return res.send({ success: false });
+        } else {
+          // Get the image url from Cloudinary
+          const pictureId = results[0].PICTURE_ID;
+          const imageUrl = cloudinary.url(pictureId, { secure: true });
+          return res.send({ success: true, imageUrl: imageUrl });
+        }
+      });
+    }
+  });
+}

@@ -868,7 +868,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
         }
 
         query += ` WHERE ACCOMMODATION_ID IN (${ids.join(',')})`;
-        query += 'ORDER BY ACCOMMODATION_NAME';
+        query += ' ORDER BY ACCOMMODATION_NAME';
 
         pool.getConnection((err, connection) => {
           if (err) {

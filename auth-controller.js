@@ -795,13 +795,16 @@ function filterRooms(pool, priceTo, priceFrom, capacity, callback) {
 // The results are returned in a JSON object with a success property indicating whether the query was successful and an accommodation property containing the filtered results. 
 // The function also logs the filter details and SQL query for debugging purposes.
 exports.filterAccommodations = (pool) => (req, res) => {
-  const name = req.body.name;
-  const address = req.body.address;
-  const location = req.body.location;
-  const type = req.body.type;
-  const priceFrom = req.body.priceFrom;
-  const priceTo = req.body.priceTo;
-  const capacity = req.body.capacity;
+
+  const filters = req.body.filters;
+
+  const name = filters.name;
+  const address = filters.address;
+  const location = filters.location;
+  const type = filters.type;
+  const priceFrom = filters.priceFrom;
+  const priceTo = filters.priceTo;
+  const capacity = filters.capacity;
 
   // Print the filters
   console.log("========== FILTER DETAILS ==========");

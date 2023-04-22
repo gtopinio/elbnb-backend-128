@@ -2,6 +2,7 @@
 const jwt = require("jsonwebtoken");
 const cloudinary = require('cloudinary').v2;
 const { User } = require('./models/user');
+const { errorMonitor } = require("events");
 
 // Configuration for cloudinary (cloud for uploading unstructured files) 
 cloudinary.config({
@@ -841,7 +842,8 @@ exports.filterAccommodations = (pool) => (req, res) => {
   filterRooms(pool, priceTo, priceFrom, capacity, (err, ids) => {
     if (err) {
       console.log("Error: " + err);
-      return res.send({ message: "No accommodations found..." });
+      const empty = []
+      return res.send({ message: "No accommodations found...", accommodations: empty });
     } else {
       // Now that we caught the ids, we can filter the accommodations by their ids and the other filters, namely name, address, location, and/or type
 
@@ -888,6 +890,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
                 console.log("Error: " + err);
                 return res.send({ message: "No accommodations found..." });
               } else {
+                console.log("Accommodations found: " + results);
                 return res.send({ message: "Accommodations found!", accommodations: results });
               }
             });
@@ -927,13 +930,16 @@ exports.filterAccommodations = (pool) => (req, res) => {
         pool.getConnection((err, connection) => {
           if (err) {
             console.log("Error: " + err);
-            return res.send({ message: "No accommodations found..." });
+                const empty = []
+                return res.send({ message: "No accommodations found...", accommodations: empty });
           } else {
             connection.query(query, (err, results) => {
               if (err) {
                 console.log("Error: " + err);
-                return res.send({ message: "No accommodations found..." });
+                const empty = []
+                return res.send({ message: "No accommodations found...", accommodations: empty });
               } else {
+                console.log("Accommodations found: " + results);
                 return res.send({ message: "Accommodations found!", accommodations: results });
               }
             });

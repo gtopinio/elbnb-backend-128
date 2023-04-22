@@ -930,6 +930,8 @@ exports.uploadUserPic = (pool) => async (req, res) => {
       return res.send({ success: false });
     } else if (user > 0) {
 
+      console.log("User: " + user);
+
       pool.getConnection(async (err, connection) => {
         if (err) {
           console.log("Error: " + err);

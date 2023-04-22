@@ -470,7 +470,7 @@ exports.addAccommodation = (pool) => (req, res) => {
         // accommodation name doesn't exist, proceed with inserting the new accommodation
         const accommodationQuery = `
         INSERT INTO accommodation
-          (ACCOMMODATION_NAME, ACCOMMODATION_TYPE, ACCOMMODATION_ADDRESS, ACCOMMODATION_LOCATION, ACCOMMODATION_DESCRIPTION, ACCOMMODATION_AMENITIES, USER_ID)
+          (ACCOMMODATION_NAME, ACCOMMODATION_TYPE, ACCOMMODATION_ADDRESS, ACCOMMODATION_LOCATION, ACCOMMODATION_DESCRIPTION, ACCOMMODATION_AMENITIES, ACCOMMODATION_OWNER_ID)
         VALUES
           (?, ?, ?, ?, ?, ?, ?)
       `;

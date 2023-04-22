@@ -1252,6 +1252,11 @@ function getRoomIDbyName(pool, name, callback) {
   });
 }
 
+// The editRoom function takes a database connection pool as input and returns a callback function that handles a POST request for editing a room.
+// The function takes the information in the request body which it will use to identify the Room ID associated with the current room name provided through the getRoomIDbyName helper function.
+// If the room exists, it checks if the updated name already exists within the database.
+// If the updated name doesn't exist, the function updates the room's details according to the request body and returns a response indicating the successful update to the client.
+// Otherwise, it returns a response indicating the unsuccessful update to the client.
 exports.editRoom = (pool) => (req, res) => {
   const {name, newName, newCapacity, newPrice} = req.body;
 
@@ -1331,6 +1336,11 @@ exports.editRoom = (pool) => (req, res) => {
     }});
 };
 
+
+// The deleteRoom function takes a database connection pool as input and returns a callback function that handles a POST request for deleting a room.
+// The function takes the information in the request body which it will use to identify the Room ID associated with the current room name provided through the getRoomIDbyName helper function.
+// If the room exists, it removes the room from the database and returns a response indicating the successful deletion to the client.
+// Otherwise, it returns a response indicating the unsuccessful deletion to the client.
 exports.deleteRoom = (pool) => (req, res) => {
   const {name} = req.body;
 
@@ -1388,6 +1398,10 @@ exports.deleteRoom = (pool) => (req, res) => {
     }});
 };
 
+// The archiveRoom function takes a database connection pool as input and returns a callback function that handles a POST request for archiving a room.
+// The function takes the information in the request body which it will use to identify the Room ID associated with the current room name provided through the getRoomIDbyName helper function.
+// If the room exists, it updates a detail of the room in the database to classify it as archived and returns a response indicating a successful operation to the client.
+// Otherwise, it returns a response indicating the unsuccessful operation to the client.
 exports.archiveRoom = (pool) => (req, res) => {
   const {name, isArchived } = req.body;
 

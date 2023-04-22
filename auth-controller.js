@@ -402,7 +402,7 @@ exports.addAccommodation = (pool) => (req, res) => {
     return res.send({ success: false });
   }
 
-  var roomCount = 0
+  var flag = false;
 
   // check if there's an accommodation that already has the same name
   checkAccommDup(pool, name, (err, hasDup) => {
@@ -454,8 +454,6 @@ exports.addAccommodation = (pool) => (req, res) => {
                         if (err) {
                           connection.rollback(() => {
                             console.log("Insert Room Error: " + err);
-                            // res.send({ success:false });
-                            roomCount--;
                           });
                         } else {
                                 // commit the transaction if all queries were successful
@@ -463,11 +461,10 @@ exports.addAccommodation = (pool) => (req, res) => {
                                   if (err) {
                                     connection.rollback(() => {
                                       console.log("Commit Error: " + err);
-                                      roomCount--;
                                     });
                                   } else {
                                     console.log("Room successfully inserted!");
-                                    roomCount++;
+                                    flag = true;
                                   }
                                 });
                         }
@@ -478,16 +475,14 @@ exports.addAccommodation = (pool) => (req, res) => {
           } // else when no errors in beginning transaction
         });
       });
-      // Check if roomCount is the same as the number of rooms inserted
-      if (roomCount == rooms.length) {
-        console.log("Accommodation and Rooms successfully inserted!");
-        res.send({ success:true });
-      } else {
-        console.log("Rooms not inserted.");
-        res.send({ success:false });
-      }
     } // else when there's no duplicate
   }); // end of checkAcc
+
+  if(flag) {
+    return res.send({ success: true });
+  } else {
+    return res.send({ success: false });
+  }
 }; // end of addAccommodation
 
 // This function takes a database connection pool, an accommodation name (unique), and a callback function as inputs. 

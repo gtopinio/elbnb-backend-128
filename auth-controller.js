@@ -265,69 +265,28 @@ exports.editUserByEmail = (pool) => (req, res) => {
           return res.send({success:false});
         } else {
           // Check if email exists in any of the tables
-          Admin.findBy(connection, "ADMIN_EMAIL", email, (error, admin) => {
+          User.findBy(connection, "USER_EMAIL", email, (error, user) => {
             if (error) {
               console.log(error);
               connection.rollback();
               return res.send({success:false});
             }
-            if (admin) {
-              Admin.edit(connection, admin.ADMIN_ID, newPassword, newUsername, newFirstName, newLastName, (error) => {
+            if (user) {
+              User.edit(connection, user.USER_ID, newPassword, newUsername, newFirstName, newLastName, newContactNum, (error) => {
                 if (error) {
                   console.log(error);
                   connection.rollback();
                   return res.send({success:false});
                 }
-                console.log(`Admin with email ${email} has been edited.`);
+                console.log(`User with email ${email} has been edited.`);
                 connection.commit();
                 return res.send({success:true});
               });
             } else {
-              Owner.findBy(connection, "OWNER_EMAIL", email, (error, owner) => {
-                if (error) {
-                  console.log(error);
-                  connection.rollback();
-                  return res.send({success:false});
-                }
-                if (owner) {
-                  Owner.edit(connection, owner.OWNER_ID, newPassword, newUsername, newFirstName, newLastName, newContactNum, (error) => {
-                    if (error) {
-                      console.log(error);
-                      connection.rollback();
-                      return res.send({success:false});
-                    }
-                    console.log(`Owner with email ${email} has been edited.`);
-                    connection.commit();
-                    return res.send({success:true});
-                  });
-                } else {
-                  Student.findBy(connection, "STUDENT_EMAIL", email, (error, student) => {
-                    if (error) {
-                      console.log(error);
-                      connection.rollback();
-                      return res.send({success:false});
-                    }
-                    if (student) {
-                      Student.edit(connection, student.STUDENT_ID, newPassword, newUsername, newFirstName, newLastName, (error) => {
-                        if (error) {
-                          console.log(error);
-                          connection.rollback();
-                          return res.send({success:false});
-                        }
-                        console.log(`Student with email ${email} has been edited.`);
-                        connection.commit();
-                        return res.send({success:true});
-                      });
-                    } else {
-                      console.log(`User with email ${email} does not exist.`);
-                      connection.rollback();
-                      return res.send({success:false});
-                    }
-                  });
-                }
-              });
-            }
-          });
+              console.log(`User with email ${email} does not exist.`);
+              connection.rollback();
+              return res.send({success:false});
+            }});
         }
       });
     }

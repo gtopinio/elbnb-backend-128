@@ -887,12 +887,66 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
           const result = await cloudinary.uploader.upload(imageDataUrl, { upload_preset: 'mockup_setup' });
           const accommodationPictureId = result.public_id;
           
-          // Update the accommodation_pictures table
-          const insertAccommodationPictureQuery = `INSERT INTO accommodation_pictures (ACCOMMODATION_PICTURE_ID, ACCOMMODATION_ID) VALUES ('${accommodationPictureId}', ${accommodationId})`;
+          // Update the picture table
+          const insertAccommodationPictureQuery = `INSERT INTO picture (ACCOMMODATION_PICTURE_ID, ACCOMMODATION_ID) VALUES ('${accommodationPictureId}', ${accommodationId})`;
           await connection.query(insertAccommodationPictureQuery);
           
           // Return success response
-          console.log("Successfully uploaded the image to cloudinary!");
+          console.log("Successfully uploaded the accommodation image to cloudinary!");
+          return res.send({ success: true });
+        } catch (error) {
+          console.error(error);
+          return res.send({ success: false, message: 'Error uploading image' });
+        }
+      }
+    });
+  } else {
+    console.log("Full upload error");
+    return res.send({ success: false });
+  }
+  });
+}
+
+exports.uploadUserPic = (pool) => async (req, res) => {
+
+  // Extract the image data from the request body
+  const imageData = req.files.data[0].buffer;
+
+   // Convert the buffer to a base64 data URL
+   const mimeType = req.files.data[0].mimetype;
+   const imageDataUrl = `data:${mimeType};base64,${imageData.toString('base64')}`;
+    
+  // Find the accommodation id from the request parameters
+  const username = req.body.username;
+
+  // console.log("Data: " + base64Data);
+  console.log("Username: " + username);
+  
+  // get the user id
+
+  User.findBy(pool, "USER_USERNAME", username, (err, user) => {
+    if (err) {
+      console.log("Error: " + err);
+      return res.send({ success: false });
+    } else if (user > 0) {
+
+      pool.getConnection(async (err, connection) => {
+        if (err) {
+          console.log("Error: " + err);
+          callback(err, null);
+        } else {
+  
+        // Upload the image to Cloudinary
+        try {
+          const result = await cloudinary.uploader.upload(imageDataUrl, { upload_preset: 'mockup_setup' });
+          const userPictureId = result.public_id;
+          
+          // Update the picture table
+          const insertUserPictureQuery = `INSERT INTO picture (ACCOMMODATION_PICTURE_ID, USER_ID) VALUES ('${userPictureId}', ${user.USER_ID})`;
+          await connection.query(insertUserPictureQuery);
+          
+          // Return success response
+          console.log("Successfully uploaded the user image to cloudinary!");
           return res.send({ success: true });
         } catch (error) {
           console.error(error);

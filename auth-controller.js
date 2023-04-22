@@ -359,7 +359,7 @@ function addRooms(pool, accommodationId, rooms, callback) {
     return [room.roomName, room.roomPrice, room.roomCapacity, accommodationId];
   });
 
-  console.log(roomQueries);
+  console.log("Query"  +roomQueries);
   const roomQuery = `
     INSERT INTO room
       (ROOM_NAME, ROOM_PRICE, ROOM_CAPACITY, ACCOMMODATION_ID)
@@ -371,7 +371,7 @@ function addRooms(pool, accommodationId, rooms, callback) {
       console.log("Error: " + error);
       return callback(error);
     }
-    console.log(results);
+    console.log("Results" + results);
     return callback(null, results);
   });
 }
@@ -456,7 +456,7 @@ exports.addAccommodation = (pool) => (req, res) => {
                       console.log("Insert Rooms Error: " + err);
                       res.send({ success:false });
                     });
-                  } else {
+                  } else if(success){
                     connection.commit((err) => {
                       if (err) {
                         connection.rollback(() => {
@@ -467,6 +467,11 @@ exports.addAccommodation = (pool) => (req, res) => {
                         console.log("Accommodation added.");
                         res.send({ success:true });
                       }
+                    });
+                  } else{
+                    connection.rollback(() => {
+                      console.log("Insert Rooms Error: " + err);
+                      res.send({ success:false });
                     });
                   }
                 });

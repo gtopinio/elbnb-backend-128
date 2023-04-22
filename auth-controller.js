@@ -339,7 +339,7 @@ function checkAccommDup(pool, name, callback) {
       console.log("Error: " + err);
       callback(err, null);
     } else {
-      const checkQuery = `SELECT ACCOMMODATION_ID FROM accommodations WHERE ACCOMMODATION_NAME = ?`;
+      const checkQuery = `SELECT ACCOMMODATION_ID FROM accommodation WHERE ACCOMMODATION_NAME = ?`;
       connection.query(checkQuery, [name], (err, result) => {
         if (err) {
           console.log("Check Accom Dup Error: " + err);

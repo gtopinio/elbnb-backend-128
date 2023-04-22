@@ -825,7 +825,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
         const empty = []
         return res.send({ message: "No accommodations found...", accommodations: empty });
       } else {
-        connection.query('SELECT * FROM accommodation ORDER BY ACCOMMODATION_NAME', (err, results) => {
+        connection.query('SELECT * FROM accommodation WHERE ACCOMMODATION_ISARCHIVED = false ORDER BY ACCOMMODATION_NAME', (err, results) => {
           if (err) {
             console.log("Error: " + err);
             const empty = []
@@ -854,7 +854,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
       let whereClause = '';
 
       if (name || address || location || type || ids.length > 0) {
-        whereClause += ' WHERE';
+        whereClause += ' WHERE ACCOMMODATION_ISARCHIVED = false AND';
 
       if (name) {
         whereClause += ` ACCOMMODATION_NAME LIKE '%${name}%' AND`;
@@ -907,7 +907,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
     let query = 'SELECT * FROM accommodation';
 
       if (name || address || location || type ) {
-        query += ' WHERE';
+        query += ' WHERE ACCOMMODATION_ISARCHIVED = false AND';
 
         if (name) {
           query += ` ACCOMMODATION_NAME LIKE '%${name}%' AND`;

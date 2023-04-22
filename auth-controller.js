@@ -869,6 +869,22 @@ exports.filterAccommodations = (pool) => (req, res) => {
 
         query += ` WHERE ACCOMMODATION_ID IN (${ids.join(',')})`;
         query += 'ORDER BY ACCOMMODATION_NAME';
+
+        pool.getConnection((err, connection) => {
+          if (err) {
+            console.log("Error: " + err);
+            return res.send({ message: "No accommodations found..." });
+          } else {
+            connection.query(query, (err, results) => {
+              if (err) {
+                console.log("Error: " + err);
+                return res.send({ message: "No accommodations found..." });
+              } else {
+                return res.send({ message: "Accommodations found!", accommodations: results });
+              }
+            });
+          }
+        });
       }
     }});
   

@@ -1192,3 +1192,121 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
   }
   });
 }
+
+/*
+This function takes a database connection pool, an accommodation name (unique), and a callback function as inputs. 
+It queries the database to retrieve the user ID for the provided name and passes the result to the callback function. 
+If there is an error in the database query or connection, it logs the error and passes it to the callback function as the first parameter.
+*/
+function getUserIdByUsername(pool, name, callback) {
+  pool.getConnection((err, connection) => {
+    if (err) {
+      console.log("Error: " + err);
+      callback(err, null);
+    } else {
+      const checkQuery = `SELECT USER_ID FROM user WHERE USER_USERNAME = ?`;
+      connection.query(checkQuery, [name], (err, result) => {
+        if (err) {
+          console.log("Get User Id Error: " + err);
+          callback(err, null);
+        } else {
+          try{
+            if(typeof result[0].USER_ID === "undefined") {
+              console.log("Get User Id: Undefined Object");
+              callback(null, 0);
+            }
+            else {
+              console.log("Get User Id: Defined Object");
+              callback(null, result[0].USER_ID);
+            }
+          } catch (err) {
+            console.log("User Not Found...");
+            callback(err, null);
+          }
+          
+        }
+      });
+    }
+  });
+}
+
+/*
+This is a function that allows the user to leave a rating and review to an accomodation
+*/
+exports.addReview = (pool) => (req, res) => {
+  const{rating, review, userName, accommName} = req.body;
+
+  console.log("----------Rating and Review----------");
+  console.log("Rating: " + rating);
+  console.log("Review: " + review);
+
+  var uid = null;
+  var accomid = null;
+
+  getUserIdByUsername(pool, userName, (err, userId) => {
+    if(err){
+      console.log("Error: " + err);
+      return res.send({ success: false });
+    }
+    else if(userId>0){
+      uid = userId;
+      getAccommodationIdByName(pool, accommName, (err, accommodationId) => {
+        if(err){
+          console.log("Error: " + err);
+          return res.send({ success: false });
+        }
+        else if(accommodationId>0){
+          accomid = accommodationId;
+
+          pool.getConnection((err, connection) => {
+            if(err){
+              console.log("Get Connection Error" + err);
+              return res.send({ success: false });
+            }
+
+            connection.beginTransaction((err) => {
+              if(err){
+                console.log("Error: " + err);
+                return res.send({ success: false });
+              }
+              else{
+                const insertQuery = `INSERT INTO review (REVIEW_RATING, REVIEW_COMMENT, USER_ID, ACCOMMODATION_ID) VALUES (?, ?, ?, ?)`;
+
+                connection.query(insertQuery, [rating, review, uid, accomid], (err, result) => {
+                  if(err){
+                    connection.rollback(() => {
+                      console.log("Insert review error: " + err);
+                      return res.send({ success: false });
+                    })
+                  }
+                  else{
+                    connection.commit((err) => {
+                      if(err){
+                        connection.rollback(() => {
+                          console.log("Commit error: " + err);
+                          return res.send({ success: false });
+                        })
+                      }
+                      else{
+                        console.log("Review has been inserted!");
+                        return res.send({ success: true });
+                      }
+                    })
+                  }
+                })
+              }
+            })
+          });
+        }
+        else{
+          console.log("User not found! Cannot add review");
+          return res.send({ success: false });
+        }
+      })
+    }
+    else{
+      console.log("User not found! Cannot add review");
+      return res.send({ success: false });
+    }
+  })
+}

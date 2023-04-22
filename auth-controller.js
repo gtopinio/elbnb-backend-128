@@ -770,6 +770,26 @@ exports.deleteAccommodation = (pool) => (req, res) => {
 };
 
 
+// The function takes in a database connection pool object and returns a callback function that filters accommodation based on the user's search criteria specified in the req.query object.
+function filterRooms(pool, priceTo, priceFrom, capacity, callback) {
+  const query = `
+    SELECT DISTINCT ACCOMMODATION_ID FROM room
+    WHERE 
+      (ROOM_PRICE <= ? OR ? IS NULL)
+      AND (ROOM_PRICE >= ? OR ? IS NULL)
+      AND (ROOM_CAPACITY = ? OR ? IS NULL)
+  `;
+  
+  pool.query(query, [priceTo, priceTo, priceFrom, priceFrom, capacity, capacity], (err, results) => {
+    if (err) {
+      callback(err, null);
+    } else {
+      const ids = results.map(result => result.ACCOMMODATION_ID);
+      callback(null, ids);
+    }
+  });
+}
+
 
 // The function takes in a database connection pool object and returns a callback function that filters accommodation based on the user's search criteria specified in the req.query object. 
 // The function constructs a SQL query using the search criteria and executes it against the database. 
@@ -784,49 +804,40 @@ exports.filterAccommodations = (pool) => (req, res) => {
   const priceTo = req.query.priceTo;
   const capacity = req.query.capacity;
 
-  let query = 'SELECT * FROM accommodation';
+  // Print the filters
+  console.log("========== FILTER DETAILS ==========");
+  console.log("Name: " + name);
+  console.log("Address: " + address);
+  console.log("Location: " + location);
+  console.log("Type: " + type);
+  console.log("Price From: " + priceFrom);
+  console.log("Price To: " + priceTo);
+  console.log("Capacity: " + capacity);
 
-  if (name || address || location || type || priceFrom || priceTo || capacity) {
-    query += ' WHERE';
+  // If the priceFrom, priceTo, or capacity are not empty, we should find the accommodations that match the criteria
 
-    if (name) {
-      query += ` ACCOMMODATION_NAME LIKE '%${name}%' AND`;
-    }
-
-    if (address) {
-      query += ` ACCOMMODATION_ADDRESS LIKE '%${address}%' AND`;
-    }
-
-    if (location) {
-      query += ` ACCOMMODATION_LOCATION = '${location}' AND`;
-    }
-
-    if (type) {
-      query += ` ACCOMMODATION_TYPE = '${type}' AND`;
-    }
-
-    if (priceFrom && priceTo) {
-      query += ` EXISTS (SELECT * FROM room WHERE room.ACCOMMODATION_ID = accommodation.ACCOMMODATION_ID AND room.ROOM_PRICE BETWEEN ${priceFrom} AND ${priceTo}) AND`;
-    }
-
-    if (capacity) {
-      query += ` EXISTS (SELECT * FROM room WHERE room.ACCOMMODATION_ID = accommodation.ACCOMMODATION_ID AND room.ROOM_CAPACITY >= ${capacity}) AND`;
-    }
-
-    // remove the last 'AND' if present
-    query = query.replace(/AND\s*$/, '');
-  }
-
-  query += ' ORDER BY ACCOMMODATION_NAME';
-
-  pool.query(query, (err, result) => {
+  // check if there's an accommodation that already has the same name
+  filterRooms(pool, priceTo, priceFrom, capacity, (err, ids) => {
     if (err) {
-      console.log('Error: ' + err);
-      return res.send({ success: false });
+      console.log("Error: " + err);
+      return res.send({ message: "No accommodations found..." });
     } else {
-      return res.send({ success: true, accommodations: result });
-    }
-  });
+      return res.send({ message: "Accommodation ids found!", ids: ids });
+    }});
+
+
+
+
+
+  // let query = 'SELECT * FROM accommodation';
+
+  // if (name || address || location || type || priceFrom || priceTo || capacity) {
+  //   query += ' WHERE';
+
+  //   if (name) {
+  //     query += ` ACCOMMODATION_NAME LIKE '%${name}%' AND`;
+  //   }
+  // }
 };
 
 // This is a function that uploads an image to Cloudinary and updates the accommodation_pictures table in 

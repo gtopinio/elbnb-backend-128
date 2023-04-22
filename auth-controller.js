@@ -402,7 +402,7 @@ exports.addAccommodation = (pool) => (req, res) => {
     return res.send({ success: false });
   }
 
-  var roomCount = rooms.length;
+  var roomCount = 0
 
   // check if there's an accommodation that already has the same name
   checkAccommDup(pool, name, (err, hasDup) => {
@@ -455,6 +455,7 @@ exports.addAccommodation = (pool) => (req, res) => {
                           connection.rollback(() => {
                             console.log("Insert Room Error: " + err);
                             // res.send({ success:false });
+                            roomCount--;
                           });
                         } else {
                                 // commit the transaction if all queries were successful

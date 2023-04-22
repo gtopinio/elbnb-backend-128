@@ -815,6 +815,8 @@ exports.filterAccommodations = (pool) => (req, res) => {
 
   // If the priceFrom, priceTo, or capacity are not empty, we should find the accommodations that match the criteria
 
+  if(priceFrom || priceTo || capacity){
+
   // check if there's an accommodation that already has the same name
   filterRooms(pool, priceTo, priceFrom, capacity, (err, ids) => {
     if (err) {
@@ -823,20 +825,52 @@ exports.filterAccommodations = (pool) => (req, res) => {
     } else {
       return res.send({ message: "Accommodation ids found!", ids: ids });
     }});
+  
+  } else {
 
+    let query = 'SELECT * FROM accommodation';
 
+      if (name || address || location || type ) {
+        query += ' WHERE';
 
+        if (name) {
+          query += ` ACCOMMODATION_NAME LIKE '%${name}%' AND`;
+        }
 
+        if (address) {
+          query += ` ACCOMMODATION_ADDRESS LIKE '%${address}%' AND`;
+        }
+    
+        if (location) {
+          query += ` ACCOMMODATION_LOCATION = '${location}' AND`;
+        }
+    
+        if (type) {
+          query += ` ACCOMMODATION_TYPE = '${type}' AND`;
+        }
 
-  // let query = 'SELECT * FROM accommodation';
+        // remove the last 'AND' if present
+        query = query.replace(/AND\s*$/, '');
 
-  // if (name || address || location || type || priceFrom || priceTo || capacity) {
-  //   query += ' WHERE';
+        query += ' ORDER BY ACCOMMODATION_NAME';
 
-  //   if (name) {
-  //     query += ` ACCOMMODATION_NAME LIKE '%${name}%' AND`;
-  //   }
-  // }
+        pool.getConnection((err, connection) => {
+          if (err) {
+            console.log("Error: " + err);
+            return res.send({ message: "No accommodations found..." });
+          } else {
+            connection.query(query, (err, results) => {
+              if (err) {
+                console.log("Error: " + err);
+                return res.send({ message: "No accommodations found..." });
+              } else {
+                return res.send({ message: "Accommodations found!", accommodations: results });
+              }
+            });
+          }
+        });
+      }
+  }
 };
 
 // This is a function that uploads an image to Cloudinary and updates the accommodation_pictures table in 

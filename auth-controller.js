@@ -776,73 +776,55 @@ exports.deleteAccommodation = (pool) => (req, res) => {
 // The results are returned in a JSON object with a success property indicating whether the query was successful and an accommodation property containing the filtered results. 
 // The function also logs the filter details and SQL query for debugging purposes.
 exports.filterAccommodations = (pool) => (req, res) => {
-  const { minPrice, maxPrice, capacity, type } = req.query;
-  
-  let whereClause = "";
-  let orderByClause = "ORDER BY ACCOMMODATION_NAME ASC";
-  let filterValues = [];
+  const name = req.query.name;
+  const address = req.query.address;
+  const location = req.query.location;
+  const type = req.query.type;
+  const priceFrom = req.query.priceFrom;
+  const priceTo = req.query.priceTo;
+  const capacity = req.query.capacity;
 
-  if (minPrice || maxPrice || capacity || type) {
+  let query = 'SELECT * FROM accommodation';
 
-    // Print the filters
-    console.log("========== FILTER DETAILS ==========")
-    console.log("Type: " + type);
-    console.log("Min Price: " + minPrice);
-    console.log("Max Price: " + maxPrice);
-    console.log("Capacity: " + capacity);
+  if (name || address || location || type || priceFrom || priceTo || capacity) {
+    query += ' WHERE';
 
-    if (minPrice && maxPrice) {
-      whereClause += "WHERE ACCOMMODATION_PRICE BETWEEN ? AND ? ";
-      filterValues.push(minPrice, maxPrice);
-    } else if (minPrice) {
-      whereClause += "WHERE ACCOMMODATION_PRICE >= ? ";
-      filterValues.push(minPrice);
-    } else if (maxPrice) {
-      whereClause += "WHERE ACCOMMODATION_PRICE <= ? ";
-      filterValues.push(maxPrice);
+    if (name) {
+      query += ` ACCOMMODATION_NAME LIKE '%${name}%' AND`;
+    }
+
+    if (address) {
+      query += ` ACCOMMODATION_ADDRESS LIKE '%${address}%' AND`;
+    }
+
+    if (location) {
+      query += ` ACCOMMODATION_LOCATION = '${location}' AND`;
+    }
+
+    if (type) {
+      query += ` ACCOMMODATION_TYPE = '${type}' AND`;
+    }
+
+    if (priceFrom && priceTo) {
+      query += ` EXISTS (SELECT * FROM room WHERE room.ACCOMMODATION_ID = accommodation.ACCOMMODATION_ID AND room.ROOM_PRICE BETWEEN ${priceFrom} AND ${priceTo}) AND`;
     }
 
     if (capacity) {
-      if (whereClause) whereClause += "AND ";
-      else whereClause += "WHERE ";
-      whereClause += "ACCOMMODATION_CAPACITY >= ? ";
-      filterValues.push(capacity);
+      query += ` EXISTS (SELECT * FROM room WHERE room.ACCOMMODATION_ID = accommodation.ACCOMMODATION_ID AND room.ROOM_CAPACITY >= ${capacity}) AND`;
     }
 
-    if (type && type.length > 0) {
-      if (whereClause) whereClause += "AND ";
-      else whereClause += "WHERE ";
-      whereClause += "ACCOMMODATION_TYPE IN (?) ";
-      filterValues.push(type);
-    }
-
-    if (minPrice || maxPrice || capacity || (type && type.length > 0)) {
-      orderByClause = "ORDER BY ";
-      if (minPrice) orderByClause += "ACCOMMODATION_PRICE ASC, ";
-      if (capacity) orderByClause += "ACCOMMODATION_CAPACITY DESC, ";
-      orderByClause += "ACCOMMODATION_NAME ASC";
-    }
+    // remove the last 'AND' if present
+    query = query.replace(/AND\s*$/, '');
   }
 
-  const query = `
-    SELECT *
-    FROM accommodation
-    ${whereClause}
-    ${orderByClause}
-  `;
+  query += ' ORDER BY ACCOMMODATION_NAME';
 
-  // Printing the query
-  console.log("Query: " + query);
-  console.log("\nWhere Clause: " + whereClause);
-  console.log("Order By Clause: " + orderByClause);
-  console.log("Filter Values: " + filterValues);
-  
-  pool.query(query, filterValues, (err, results) => {
+  pool.query(query, (err, result) => {
     if (err) {
-      console.log("Filter Accommodations Error: " + err);
+      console.log('Error: ' + err);
       return res.send({ success: false });
     } else {
-      return res.send({ success: true, accommodation: results });
+      return res.send({ success: true, accommodations: result });
     }
   });
 };

@@ -530,7 +530,7 @@ function getAccommodationIdByName(pool, name, callback) {
 // If the updated name is unique, the function updates the accommodation details in the database using a transaction to ensure data consistency. 
 // The output of the function is a response object sent back to the client indicating whether the update was successful or not.
 exports.editAccommodation = (pool) => (req, res) => {
-  const {name, newName, newType, newDescription, newLocation, newPrice, newCapacity} = req.body;
+  const {name, newName, newType, newDescription, newAddress, newLocation, newAmenities} = req.body;
 
   // Try to get the id first if accommodation exists
   // check if there's an accommodation that has the same name
@@ -577,12 +577,12 @@ exports.editAccommodation = (pool) => (req, res) => {
                   ACCOMMODATION_NAME = ?,
                   ACCOMMODATION_TYPE = ?,
                   ACCOMMODATION_DESCRIPTION = ?,
+                  ACCOMMODATION_ADDRESS = ?,
                   ACCOMMODATION_LOCATION = ?,
-                  ACCOMMODATION_PRICE = ?,
-                  ACCOMMODATION_CAPACITY = ?
+                  ACCOMMODATION_AMENITIES = ?
                 WHERE ACCOMMODATION_ID = ?
               `;
-              connection.query(updateQuery, [newName, newType, newDescription, newLocation, newPrice, newCapacity, id], (err) => {
+              connection.query(updateQuery, [newName, newType, newDescription, newAddress, newLocation, newAmenities, id], (err) => {
                 if (err) {
                   connection.rollback(() => {
                     console.log("Error updating accommodation: " + err);

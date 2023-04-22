@@ -846,29 +846,37 @@ exports.filterAccommodations = (pool) => (req, res) => {
       // Now that we caught the ids, we can filter the accommodations by their ids and the other filters, namely name, address, location, and/or type
 
       let query = 'SELECT * FROM accommodation';
+      let whereClause = '';
 
       if (name || address || location || type || ids.length > 0) {
+        whereClause += ' WHERE';
 
-        query += ' WHERE';
+      if (name) {
+        whereClause += ` ACCOMMODATION_NAME LIKE '%${name}%' AND`;
+      }
 
-        if (name) {
-          query += ` ACCOMMODATION_NAME LIKE '%${name}%' AND`;
-        }
+      if (address) {
+        whereClause += ` ACCOMMODATION_ADDRESS LIKE '%${address}%' AND`;
+      }
 
-        if (address) {
-          query += ` ACCOMMODATION_ADDRESS LIKE '%${address}%' AND`;
-        }
-    
-        if (location) {
-          query += ` ACCOMMODATION_LOCATION = '${location}' AND`;
-        }
-    
-        if (type) {
-          query += ` ACCOMMODATION_TYPE = '${type}' AND`;
-        }
+      if (location) {
+        whereClause += ` ACCOMMODATION_LOCATION = '${location}' AND`;
+      }
 
-        query += ` WHERE ACCOMMODATION_ID IN (${ids.join(',')})`;
-        query += ' ORDER BY ACCOMMODATION_NAME';
+      if (type) {
+        whereClause += ` ACCOMMODATION_TYPE = '${type}' AND`;
+      }
+
+      if (ids.length > 0) {
+        whereClause += ` ACCOMMODATION_ID IN (${ids.join(',')}) AND`;
+      }
+
+      // Remove the extra 'AND' at the end of the WHERE clause
+      whereClause = whereClause.slice(0, -4);
+
+      query += whereClause;
+      
+      query += ' ORDER BY ACCOMMODATION_NAME';
 
         pool.getConnection((err, connection) => {
           if (err) {

@@ -1473,3 +1473,87 @@ exports.removeFavorite = (pool) => (req, res) => {
   })
 }
 
+/*
+This function lets the user edit the review that they gave to an accommodation. It uses the username, the accomodation name, and the
+date timestamp to find the correct review to edit.
+*/
+exports.editReview = (pool) => (req, res) => {
+  const {rating, review, date, userName, accommName} = req.body;
+
+  console.log("----------Edit Review----------");
+  console.log("Rating: " + rating);
+  console.log("Review: " + review);
+  console.log("Old Timestamp: " + date);
+  console.log("Username: " + userName);
+  console.log("Accommodation Name: " + accommName);
+
+  var uId = null;
+  var aId = null;
+
+  getUserIdByUsername(pool, userName, (err, userId) => {
+    if(err){
+      console.log("Error: " + err);
+      return res.send({ success: false });
+    }
+    else if(userId>0){
+      uId = userId;
+      getAccommodationIdByName(pool, accommName, (err, accommodationId) => {
+        if(err){
+          console.log("Error: " + err);
+          return res.send({ success: false });
+        }
+        else if(accommodationId>0){
+          aId = accommodationId;
+
+          pool.getConnection((err, connection) => {
+            if(err){
+              console.log("Get Connection Error" + err);
+              return res.send({ success: false });
+            }
+
+            connection.beginTransaction((err) => {
+              if(err){
+                console.log("Error: " + err);
+                return res.send({ success: false });
+              }
+              else{
+                const editQuery = `UPDATE review SET REVIEW_RATING = ?, REVIEW_DATE=CURRENT_TIMESTAMP, REVIEW_COMMENT=? WHERE REVIEW_DATE=? AND USER_ID=? AND ACCOMMODATION_ID=?`;
+
+                connection.query(editQuery, [rating, review, date, uId, aId], (err, result) => {
+                  if(err){
+                    connection.rollback(() => {
+                      console.log("Edit review error: " + err);
+                      return res.send({ success: false });
+                    })
+                  }
+                  else{
+                    connection.commit((err) => {
+                      if(err){
+                        connection.rollback(() => {
+                          console.log("Commit error: " + err);
+                          return res.send({ success: false });
+                        })
+                      }
+                      else{
+                        console.log("Review has been edited");
+                        return res.send({ success: true });
+                      }
+                    })
+                  }
+                })
+              }
+            })
+          });
+        }
+        else{
+          console.log("Accommodation not found! Cannot edit  SET REVIEW_RATING = ?, REVIEW_COMMENT=? ");
+          return res.send({ success: false });
+        }
+      })
+    }
+    else{
+      console.log("User not found! Cannot edit  SET REVIEW_RATING = ?, REVIEW_COMMENT=? ");
+      return res.send({ success: false });
+    }
+  })
+}

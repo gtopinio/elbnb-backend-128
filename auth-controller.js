@@ -446,7 +446,7 @@ exports.addAccommodation = (pool) => (req, res) => {
                         INSERT INTO room
                           (ROOM_NAME, ROOM_PRICE, ROOM_CAPACITY, ACCOMMODATION_ID)
                         VALUES
-                          (?, ?, ?, ?, ?)
+                          (?, ?, ?, ?)
                       `;
                       connection.query(roomQuery, [room.roomName, room.roomPrice, room.capacity, accommodationId], (err, resultQuery) => {
                         if (err) {

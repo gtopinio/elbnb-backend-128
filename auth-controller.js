@@ -1192,6 +1192,26 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
   });
 }
 
+// Function to check if a Room Name already exists.
+function checkRoomIfExists(pool, name, callback) {
+  pool.getConnection((err, connection) => {
+    if (err) {
+      console.log("Error: " + err);
+      callback(err, null);
+    } else {
+      const checkQuery = `SELECT ROOM_ID FROM room WHERE ROOM_NAME = ?`;
+      connection.query(checkQuery, [name], (err, result) => {
+        if (err) {
+          console.log("Check Room if Exists error: " + err);
+          callback(err, null);
+        } else {
+          callback(null, result.length > 0);
+        }
+      });
+    }
+  });
+}
+
 // Helper function to retrieve a Room's ID by Room name.
 function getRoomIDbyName(pool, name, callback) {
   // Start Connection.

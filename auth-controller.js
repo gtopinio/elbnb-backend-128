@@ -402,6 +402,8 @@ exports.addAccommodation = (pool) => (req, res) => {
     return res.send({ success: false });
   }
 
+  var roomCount = rooms.length;
+
   // check if there's an accommodation that already has the same name
   checkAccommDup(pool, name, (err, hasDup) => {
     if (err) {
@@ -460,11 +462,11 @@ exports.addAccommodation = (pool) => (req, res) => {
                                   if (err) {
                                     connection.rollback(() => {
                                       console.log("Commit Error: " + err);
-                                      res.send({ success:false });
+                                      roomCount--;
                                     });
                                   } else {
-                                    console.log("Accommodation and Rooms successfully inserted!");
-                                    res.send({ success:true });
+                                    console.log("Room successfully inserted!");
+                                    roomCount++;
                                   }
                                 });
                         }
@@ -475,6 +477,14 @@ exports.addAccommodation = (pool) => (req, res) => {
           } // else when no errors in beginning transaction
         });
       });
+      // Check if roomCount is the same as the number of rooms inserted
+      if (roomCount == rooms.length) {
+        console.log("Accommodation and Rooms successfully inserted!");
+        res.send({ success:true });
+      } else {
+        console.log("Rooms not inserted.");
+        res.send({ success:false });
+      }
     } // else when there's no duplicate
   }); // end of checkAcc
 }; // end of addAccommodation

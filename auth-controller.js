@@ -963,3 +963,32 @@ exports.uploadUserPic = (pool) => async (req, res) => {
   }
   });
 }
+
+exports.getRoomsByAccommodationName = (pool) => (req, res) => {
+  // Get the id of the accommodation name
+  const accommodationName = req.body.accommodationName;
+
+  var id = null;
+  getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+    if (err) {
+      console.log("Error: " + err);
+      return res.send({ success: false });
+    } else if (accommodationId > 0) {
+      id = accommodationId;
+      // Get the rooms by the accommodation id
+      const query = `SELECT * FROM room WHERE ACCOMMODATION_ID = ${id}`;
+      pool.query(query, (err, results) => {
+        if (err) {
+          console.log("Error: " + err);
+          return res.send({ success: false });
+        } else {
+          return res.send({ success: true, rooms: results });
+        }
+      });
+    } else {
+      // No accommodation found with the accommodationName
+      console.log("No accommodation found with the name: " + accommodationName);
+      return res.send({ success: false });
+    }
+  });
+}

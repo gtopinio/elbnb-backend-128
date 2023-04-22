@@ -427,6 +427,7 @@ exports.addAccommodation = (pool) => (req, res) => {
     console.log("Type: " + type);
     console.log("Description: " + description);
     console.log("Location: " + location);
+    console.log("Owner ID: " + userId);
 
   // Check if there are rooms first
   if (rooms.length == 0) {

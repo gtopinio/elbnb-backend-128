@@ -123,9 +123,9 @@ exports.login = (pool) => (req, res) => {
             return res.send({
               success: true,
               authToken: token,
-              userId: user.ADMIN_ID,
-              fname: user.ADMIN_FNAME,
-              lname: user.ADMIN_LNAME,
+              userId: user.USER_ID,
+              fname: user.USER_FNAME,
+              lname: user.USER_LNAME,
               email: email
             });
           });

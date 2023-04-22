@@ -360,7 +360,7 @@ function addRooms(pool, accommodationId, rooms, callback) {
     } else {
       // if there are rooms, insert them into the room table
       const roomQueries = rooms.map((room) => {
-        return [`${accommodationId}-${room}`, accommodationId];
+        return [`${accommodationId}-${room.name}`, room.price, room.capacity, accommodationId];
       });
       const roomQuery = `
         INSERT INTO room

@@ -358,6 +358,8 @@ function addRooms(pool, accommodationId, rooms, callback) {
   const roomQueries = rooms.map((room) => {
     return [room.roomName, room.roomPrice, room.roomCapacity, accommodationId];
   });
+
+  console.log(roomQueries);
   const roomQuery = `
     INSERT INTO room
       (ROOM_NAME, ROOM_PRICE, ROOM_CAPACITY, ACCOMMODATION_ID)
@@ -366,8 +368,10 @@ function addRooms(pool, accommodationId, rooms, callback) {
   `;
   pool.query(roomQuery, [roomQueries], (error, results, fields) => {
     if (error) {
+      console.log("Error: " + error);
       return callback(error);
     }
+    console.log(results);
     return callback(null, results);
   });
 }

@@ -420,6 +420,13 @@ exports.addAccommodation = (pool) => (req, res) => {
   // }
 
   const { name, type, address, location, description, amenities, userId, rooms} = req.body; // assuming amenities is an array of strings
+   
+  // Printing the details of the accommodation query
+    console.log("========== ACCOMMODATION DETAILS ==========")
+    console.log("Name: " + name);
+    console.log("Type: " + type);
+    console.log("Description: " + description);
+    console.log("Location: " + location);
 
   // Check if there are rooms first
   if (rooms.length == 0) {

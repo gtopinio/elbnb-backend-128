@@ -1192,7 +1192,8 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
   });
 }
 
-// Function to check if a Room Name already exists.
+// Function to check if a Room Name already exists. Currently not in use
+// TODO: Use for adding rooms!
 function checkRoomIfExists(pool, name, callback) {
   pool.getConnection((err, connection) => {
     if (err) {
@@ -1212,7 +1213,10 @@ function checkRoomIfExists(pool, name, callback) {
   });
 }
 
-// Helper function to retrieve a Room's ID by Room name.
+
+// This function takes a database connection pool, an room name (unique), and a callback function as inputs. 
+// It queries the database to retrieve a Room ID associated with the room name in the parameter input.
+// The function returns the callback which includes an error in the first parameter, if the query fails, and the result in the second parameter if the query succeeds.
 function getRoomIDbyName(pool, name, callback) {
   // Start Connection.
   pool.getConnection((err, connection) => {

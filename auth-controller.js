@@ -695,8 +695,8 @@ exports.deleteAccommodation = (pool) => (req, res) => {
     } else if (accommodationId > 0) {
       id = accommodationId;
         // check if the accommodation has amenities
-        const deleteAmenitiesQuery = `
-        DELETE FROM accommodation_amenities
+        const deleteRoomsQuery = `
+        DELETE FROM room
         WHERE ACCOMMODATION_ID = ?;
       `;
 
@@ -716,14 +716,14 @@ exports.deleteAccommodation = (pool) => (req, res) => {
         }
 
         else{
-          // Delete the accommodation's amenities first
-          connection.query(deleteAmenitiesQuery, [id], (err, result) => {
+          // Delete the accommodation's room first
+          connection.query(deleteRoomsQuery, [id], (err, deleteRoomResult) => {
             if (err) {
               connection.rollback(() => {
-                console.log("Error deleting accommodation amenities: " + err);
+                console.log("Error deleting accommodation room(s): " + err);
                 res.send({success:false});
               });
-            } else if (result.affectedRows > 0 || result.affectedRows == 0) {
+            } else if (deleteRoomResult.affectedRows > 0 || result.affectedRows == 0) {
 
               connection.commit((err) => {
                 if(err){
@@ -732,18 +732,18 @@ exports.deleteAccommodation = (pool) => (req, res) => {
                     res.send({success:false});
                   });
                 } else {
-                  // delete the accommodation
-                  const deleteQuery = `
-                  DELETE FROM accommodation
-                  WHERE ACCOMMODATION_ID = ?;
+                  // Delete from favorite table if there's any
+                  const deleteFavoriteQuery = `
+                    DELETE FROM favorite
+                    WHERE ACCOMMODATION_ID = ?;
                   `;
-                  connection.query(deleteQuery, [id], (err) => {
+                  connection.query(deleteFavoriteQuery, [id], (err, deleteFavoriteResult) => {
                     if (err) {
                       connection.rollback(() => {
-                        console.log("Error deleting accommodation: " + err);
+                        console.log("Error deleting accommodation from favorite table: " + err);
                         res.send({success:false});
                       });
-                    } else {
+                    } else if (deleteFavoriteResult.affectedRows > 0 || deleteFavoriteResult.affectedRows == 0) {
                       connection.commit((err) => {
                         if(err){
                           connection.rollback(() => {
@@ -751,13 +751,93 @@ exports.deleteAccommodation = (pool) => (req, res) => {
                             res.send({success:false});
                           });
                         } else {
-                          console.log("Successfully deleted accommodation: " + name);
-                          return res.send({ success: true });
+                          // Delete from review table if there's any
+                          const deleteReviewQuery = `
+                            DELETE FROM review
+                            WHERE ACCOMMODATION_ID = ?;
+                          `;
+                          connection.query(deleteReviewQuery, [id], (err, deleteReviewResult) => {
+                            if (err) {
+                              connection.rollback(() => {
+                                console.log("Error deleting accommodation from review table: " + err);
+                                res.send({success:false});
+                              });
+                            } else if (deleteReviewResult.affectedRows > 0 || deleteReviewResult.affectedRows == 0) {
+                              connection.commit((err) => {
+                                if(err){
+                                  connection.rollback(() => {
+                                    console.log("Commit Error: " + err);
+                                    res.send({success:false});
+                                  });
+                                } else {
+                                  // Delete from picture table if there's any
+                                  const deletePictureQuery = `
+                                    DELETE FROM picture
+                                    WHERE ACCOMMODATION_ID = ?;
+                                  `;
+                                  connection.query(deletePictureQuery, [id], (err, deletePictureResult) => {
+                                    if (err) {
+                                      connection.rollback(() => {
+                                        console.log("Error deleting accommodation from picture table: " + err);
+                                        res.send({success:false});
+                                      });
+                                    } else if (deletePictureResult.affectedRows > 0 || deletePictureResult.affectedRows == 0) {
+                                      connection.commit((err) => {
+                                        if(err){
+                                          connection.rollback(() => {
+                                            console.log("Commit Error: " + err);
+                                            res.send({success:false});
+                                          });
+                                        } else {
+                                          // Delete from accommodation table
+                                          const deleteAccommodationQuery = `
+                                            DELETE FROM accommodation
+                                            WHERE ACCOMMODATION_ID = ?;
+                                          `;
+                                          connection.query(deleteAccommodationQuery, [id], (err, deleteAccommodationResult) => {
+                                            if (err) {
+                                              connection.rollback(() => {
+                                                console.log("Error deleting accommodation: " + err);
+                                                res.send({success:false});
+                                              });
+                                            } else if (deleteAccommodationResult.affectedRows > 0) {
+                                              connection.commit((err) => {
+                                                if(err){
+                                                  connection.rollback(() => {
+                                                    console.log("Commit Error: " + err);
+                                                    res.send({success:false});
+                                                  });
+                                                } else {
+                                                  console.log("Accommodation deleted successfully!");
+                                                  return res.send({success: true});
+                                                }
+                                              });
+                                            } else {
+                                              console.log("Accommodation not found! Cannot proceed to deleting...");
+                                              return res.send({success: false});
+                                            }
+                                          });
+                                        }
+                                      });
+                                    } else {
+                                      console.log("Accommodation not found! Cannot proceed to deleting...");
+                                      return res.send({success: false});
+                                    }
+                                  });
+                                }
+                              });
+                            } else {
+                              console.log("Accommodation not found! Cannot proceed to deleting...");
+                              return res.send({success: false});
+                            }
+                          });
                         }
                       });
+                    } else {
+                      console.log("Accommodation not found! Cannot proceed to deleting...");
+                      return res.send({success: false});
                     }
                   });
-
                 }});
             }
           });

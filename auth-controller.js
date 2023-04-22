@@ -1256,7 +1256,7 @@ exports.editRoom = (pool) => (req, res) => {
     if (err) {
       console.log("Error: " + err);
       return res.send({ success: false });
-    } else if (roomID > 0) {
+    } else if (roomID > 0 && typeof roomID !== "undefined") {
       id = roomID;
         // Query to check if room name already exists within the database.
         const checkRoomNameDupQuery = `
@@ -1335,7 +1335,7 @@ exports.deleteRoom = (pool) => (req, res) => {
     if (err) {
       console.log("Error: " + err);
       return res.send({ success: false });
-    } else if (roomID > 0) {
+    } else if (roomID > 0 && typeof roomID !== "undefined") {
       id = roomID;
         // Query to delete the Room.
         const deleteRoomQuery = `

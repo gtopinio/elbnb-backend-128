@@ -450,7 +450,7 @@ exports.addAccommodation = (pool) => (req, res) => {
                         VALUES
                           (?, ?, ?, ?)
                       `;
-                      connection.query(roomQuery, [room.roomName, room.roomPrice, room.capacity, accommodationId], (err, resultQuery) => {
+                      connection.query(roomQuery, [room.roomName, room.roomPrice, room.roomCapacity, accommodationId], (err, resultQuery) => {
                         if (err) {
                           connection.rollback(() => {
                             console.log("Insert Room Error: " + err);

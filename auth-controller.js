@@ -822,13 +822,16 @@ exports.filterAccommodations = (pool) => (req, res) => {
     pool.getConnection((err, connection) => {
       if (err) {
         console.log("Error: " + err);
-        return res.send({ message: "No accommodations found..." });
+        const empty = []
+        return res.send({ message: "No accommodations found...", accommodations: empty });
       } else {
         connection.query('SELECT * FROM accommodation ORDER BY ACCOMMODATION_NAME', (err, results) => {
           if (err) {
             console.log("Error: " + err);
-            return res.send({ message: "No accommodations found..." });
+            const empty = []
+            return res.send({ message: "No accommodations found...", accommodations: empty });
           } else {
+            console.log("Accommodations found: " + results.length);
             return res.send({ message: "Accommodations found!", accommodations: results });
           }
         });
@@ -890,7 +893,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
                 console.log("Error: " + err);
                 return res.send({ message: "No accommodations found..." });
               } else {
-                console.log("Accommodations found: " + results);
+                console.log("Accommodations found: " + results.length);
                 return res.send({ message: "Accommodations found!", accommodations: results });
               }
             });
@@ -939,7 +942,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
                 const empty = []
                 return res.send({ message: "No accommodations found...", accommodations: empty });
               } else {
-                console.log("Accommodations found: " + results);
+                console.log("Accommodations found: " + results.length);
                 return res.send({ message: "Accommodations found!", accommodations: results });
               }
             });

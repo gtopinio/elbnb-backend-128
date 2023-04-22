@@ -309,53 +309,22 @@ exports.viewProfile = (pool) => (req, res) => {
       console.log(err);
     } else {
         // Check if email exists in any of the tables
-        Admin.findBy(connection, "ADMIN_EMAIL", email, (error, admin) => {
+        User.findBy(connection, "USER_EMAIL", email, (error, user) => {
           if (error) {
             console.log(error);
             return res.send({success:false, message: "Error finding user"});
           }
-          if (admin) {
-              console.log("Admin found! Sending profile data...");
+          if (user) {
+              console.log("User found! Sending profile data...");
               return res.send({
-                first_name: admin.ADMIN_FNAME,
-                last_name: admin.ADMIN_LNAME,
-                email: admin.ADMIN_EMAIL,
-                user_id: admin.ADMIN_ID
+                first_name: user.USER_FNAME,
+                last_name: user.USER_LNAME,
+                email: user.USER_EMAIL,
+                user_id: user.USER_ID
               });
           } else {
-            Owner.findBy(connection, "OWNER_EMAIL", email, (error, owner) => {
-              if (error) {
-                console.log(error);
-                return res.send({success:false, message: "Error finding user"});
-              }
-              if (owner) {
-                return res.send({
-                  first_name: owner.OWNER_FNAME,
-                  last_name: owner.OWNER_LNAME,
-                  email: owner.OWNER_EMAIL,
-                  contact_no: owner.OWNER_CONTACTNUM,
-                  user_id: owner.OWNER_ID
-                });
-              } else {
-                Student.findBy(connection, "STUDENT_EMAIL", email, (error, student) => {
-                  if (error) {
-                    console.log(error);
-                    return res.send({success:false, message: "Error finding user"});
-                  }
-                  if (student) {
-                    return res.send({
-                      first_name: student.STUDENT_FNAME,
-                      last_name: student.STUDENT_LNAME,
-                      email: student.STUDENT_EMAIL,
-                      user_id: student.STUDENT_ID
-                    });
-                  } else {
-                    console.log(`User with email ${email} does not exist.`);
-                    return res.send({success:false, message: "User not found"});
-                  }
-                });
-              }
-            });
+            console.log(`User with email ${email} does not exist.`);
+            return res.send({success:false, message: "User not found"});
           }
         });
     }

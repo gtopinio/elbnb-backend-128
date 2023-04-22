@@ -380,44 +380,15 @@ function addRooms(pool, accommodationId, rooms, callback) {
 // If everything is successful, the function returns a JSON object indicating success.
 exports.addAccommodation = (pool) => (req, res) => {
 
-  // Adding accommodation details first
-  // name, type, address, location, description, amenities, user (owner) id, (array of json objects for rooms)
-
-  // Must know if there is a room first (from JSON)
-      // If there is at least one, add accommodation to db
-      // Else return success = false
-  
-  // Example JSON
-  // {
-  //   "accommodationName": "Sample Accommodation",
-  //   "accommodationType": "Hotel",
-  //   "accommodationAddress": "123 Main St.",
-  //   "accommodationLocation": "New York",
-  //   "accommodationDescription": "A sample description",
-  //   "accommodationAmenities": "Free Wi-Fi, Swimming Pool",
-  //   "rooms": [
-  //     {
-  //       "roomName": "Single Room",
-  //       "roomPrice": 100,
-  //       "roomCapacity": 1
-  //     },
-  //     {
-  //       "roomName": "Double Room",
-  //       "roomPrice": 200,
-  //       "roomCapacity": 2
-  //     }
-  //   ]
-  // }
-
   const { name, type, address, location, description, amenities, userId, rooms} = req.body; // assuming amenities is an array of strings
-   
+
   // Printing the details of the accommodation query
-    console.log("========== ACCOMMODATION DETAILS ==========")
-    console.log("Name: " + name);
-    console.log("Type: " + type);
-    console.log("Description: " + description);
-    console.log("Location: " + location);
-    console.log("Owner ID: " + userId);
+  console.log("========== ACCOMMODATION DETAILS ==========")
+  console.log("Name: " + name);
+  console.log("Type: " + type);
+  console.log("Description: " + description);
+  console.log("Location: " + location);
+  console.log("Owner ID: " + userId);
 
   // Check if there are rooms first
   if (rooms.length == 0) {
@@ -443,70 +414,64 @@ exports.addAccommodation = (pool) => (req, res) => {
       console.log("Duplicate accommodation.");
       return res.send({ success: false });
     } else {
-    // get pool connection
-    pool.getConnection((err, connection) => {
-      if(err) {
-        console.log("Get Connection Error: " + err);
-        return res.send({success:false});
-      }
-        // begin transaction
-    connection.beginTransaction((err) => {
-      if(err){
-        console.log("Begin Transaction Error: " + err);
-        return res.send({success:false});
-      }
+      // get pool connection
+      pool.getConnection((err, connection) => {
+        if (err) {
+          console.log("Get Connection Error: " + err);
+          return res.send({ success:false });
+        }
 
-      else{
-        // accommodation name doesn't exist, proceed with inserting the new accommodation
-        const accommodationQuery = `
-        INSERT INTO accommodation
-          (ACCOMMODATION_NAME, ACCOMMODATION_TYPE, ACCOMMODATION_ADDRESS, ACCOMMODATION_LOCATION, ACCOMMODATION_DESCRIPTION, ACCOMMODATION_AMENITIES, ACCOMMODATION_OWNER_ID)
-        VALUES
-          (?, ?, ?, ?, ?, ?, ?)
-      `;
-      connection.query(accommodationQuery, [name, type, address, location, description, amenities, userId], (err, resultQuery) => {
+        // begin transaction
+        connection.beginTransaction((err) => {
+          if (err) {
+            console.log("Begin Transaction Error: " + err);
+            return res.send({ success:false });
+          } else {
+            // accommodation name doesn't exist, proceed with inserting the new accommodation
+            const accommodationQuery = `
+              INSERT INTO accommodation
+                (ACCOMMODATION_NAME, ACCOMMODATION_TYPE, ACCOMMODATION_ADDRESS, ACCOMMODATION_LOCATION, ACCOMMODATION_DESCRIPTION, ACCOMMODATION_AMENITIES, ACCOMMODATION_OWNER_ID)
+              VALUES
+                (?, ?, ?, ?, ?, ?, ?)
+            `;
+            connection.query(accommodationQuery, [name, type, address, location, description, amenities, userId], (err, resultQuery) => {
+              if (err) {
+                connection.rollback(() => {
+                  console.log("Insert Accommodation Error: " + err);
+                  res.send({ success:false });
+                });
+              } else { // Successful insertion
+                const accommodationId = resultQuery.insertId; // get the auto-generated id of the newly inserted accommodation
+
+                // Check callback if true
+                addRooms(pool, accommodationId, rooms, (err, success) => {
                   if (err) {
                     connection.rollback(() => {
-                      console.log("Insert Accommodation Error: " + err);
-                      res.send({success:false});
+                      console.log("Insert Rooms Error: " + err);
+                      res.send({ success:false });
                     });
-                  }
-                  else { // Successful insertion
-                    const accommodationId = resultQuery.insertId; // get the auto-generated id of the newly inserted accommodation
-
-                        
-                    // Check callback if true
-                    addRooms(pool, accommodationId, rooms, (err, success) => {
+                  } else {
+                    connection.commit((err) => {
                       if (err) {
                         connection.rollback(() => {
-                          console.log("Insert Rooms Error: " + err);
-                          res.send({success:false});
+                          console.log("Commit Error: " + err);
+                          res.send({ success:false });
                         });
-                      }
-                      else {
-                        connection.commit((err) => {
-                          if (err) {
-                            connection.rollback(() => {
-                              console.log("Commit Error: " + err);
-                              res.send({success:false});
-                            });
-                          }
-                          else {
-                            console.log("Accommodation added.");
-                            res.send({success:true});
-                          }
-                        });
+                      } else {
+                        console.log("Accommodation added.");
+                        res.send({ success:true });
                       }
                     });
                   }
-          });
-        }   // else when no errors in beginning transaction
+                });
+              }
+            });
+          } // else when no errors in beginning transaction
+        });
       });
-    });
-  }     // else when there's no duplicate
-  }); // end of checkAccommDup
-};
-
+    } // else when there's no duplicate
+  }); // end of checkAcc
+}; // end of addAccommodation
 
 // This function takes a database connection pool, an accommodation name (unique), and a callback function as inputs. 
 // It queries the database to retrieve the accommodation ID for the provided name and passes the result to the callback function. 

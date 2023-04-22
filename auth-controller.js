@@ -402,15 +402,6 @@ exports.addAccommodation = (pool) => (req, res) => {
     return res.send({ success: false });
   }
 
-  // Otherwise, we add the accommodation first before adding the rooms
-
-  // Printing the details of the accommodation query
-  console.log("========== ACCOMMODATION DETAILS ==========")
-  console.log("Name: " + name);
-  console.log("Type: " + type);
-  console.log("Description: " + description);
-  console.log("Location: " + location);
-
   // check if there's an accommodation that already has the same name
   checkAccommDup(pool, name, (err, hasDup) => {
     if (err) {
@@ -446,17 +437,28 @@ exports.addAccommodation = (pool) => (req, res) => {
                   console.log("Insert Accommodation Error: " + err);
                   res.send({ success:false });
                 });
-              } else { // Successful insertion
+              } else { // Successful insertion of accommodation
                 const accommodationId = resultQuery.insertId; // get the auto-generated id of the newly inserted accommodation
 
-                // Check callback if true
-                addRooms(pool, accommodationId, rooms, (err, success) => {
-                  if (err) {
-                    connection.rollback(() => {
-                      console.log("Insert Rooms Error: " + err);
-                      res.send({ success:false });
-                    });
-                  } else if(success){
+                    // loop through the rooms array and insert each room into the database
+                    for (const room of rooms) {
+                      const roomQuery = `
+                        INSERT INTO room
+                          (ROOM_NAME, ROOM_DESCRIPTION, ROOM_CAPACITY, ROOM_PRICE, ACCOMMODATION_ID)
+                        VALUES
+                          (?, ?, ?, ?, ?)
+                      `;
+                      connection.query(roomQuery, [room.name, room.description, room.capacity, room.price, accommodationId], (err, resultQuery) => {
+                        if (err) {
+                          connection.rollback(() => {
+                            console.log("Insert Room Error: " + err);
+                            res.send({ success:false });
+                          });
+                        }
+                      });
+                    }
+    
+                    // commit the transaction if all queries were successful
                     connection.commit((err) => {
                       if (err) {
                         connection.rollback(() => {
@@ -464,19 +466,12 @@ exports.addAccommodation = (pool) => (req, res) => {
                           res.send({ success:false });
                         });
                       } else {
-                        console.log("Accommodation added.");
+                        console.log("Accommodation and Rooms successfully inserted!");
                         res.send({ success:true });
                       }
                     });
-                  } else{
-                    connection.rollback(() => {
-                      console.log("Insert Rooms Error: " + err);
-                      res.send({ success:false });
-                    });
                   }
                 });
-              }
-            });
           } // else when no errors in beginning transaction
         });
       });

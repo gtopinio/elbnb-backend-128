@@ -1192,3 +1192,33 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
   }
   });
 }
+
+/* The above code exports a function that retrieves the top 5 featured accommodations based on their
+average review rating. It uses a SQL query to join the accommodations and review tables, group the
+results by accommodation ID, calculate the average rating, and order the results by the average
+rating in descending order. The function takes a database connection pool as a parameter and returns
+a middleware function that handles HTTP requests and responses. If there is an error in the database
+query, the function returns a response with success set to false. Otherwise, it returns a response
+with success set to true and the list of featured accommodations. */
+exports.getFeaturedAccommodations = (pool) => (req, res) => {
+  const query = `
+    SELECT *, AVG(review.REVIEW_RATING) AS AVG_RATING
+    FROM accommodations
+    INNER JOIN review ON ACCOMMODATION_ID = review.ACCOMMODATION_ID
+    GROUP BY ACCOMMODATION_ID
+    ORDER BY AVG_RATING DESC
+    LIMIT 5
+  `;
+
+  // Printing the query
+  console.log("Query: " + query);
+  
+  pool.query(query, (err, results) => {
+    if (err) {
+      console.log("Featured Accommodations Error: " + err);
+      return res.send({ success: false });
+    } else {
+      return res.send({ success: true, accommodations: results });
+    }
+  });
+};

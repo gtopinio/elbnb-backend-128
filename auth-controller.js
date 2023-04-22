@@ -444,11 +444,11 @@ exports.addAccommodation = (pool) => (req, res) => {
                     for (const room of rooms) {
                       const roomQuery = `
                         INSERT INTO room
-                          (ROOM_NAME, ROOM_DESCRIPTION, ROOM_CAPACITY, ROOM_PRICE, ACCOMMODATION_ID)
+                          (ROOM_NAME, ROOM_PRICE, ROOM_CAPACITY, ACCOMMODATION_ID)
                         VALUES
                           (?, ?, ?, ?, ?)
                       `;
-                      connection.query(roomQuery, [room.name, room.description, room.capacity, room.price, accommodationId], (err, resultQuery) => {
+                      connection.query(roomQuery, [room.roomName, room.roomPrice, room.capacity, accommodationId], (err, resultQuery) => {
                         if (err) {
                           connection.rollback(() => {
                             console.log("Insert Room Error: " + err);

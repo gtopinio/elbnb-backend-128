@@ -888,7 +888,7 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
           const accommodationPictureId = result.public_id;
           
           // Update the picture table
-          const insertAccommodationPictureQuery = `INSERT INTO picture (ACCOMMODATION_PICTURE_ID, ACCOMMODATION_ID) VALUES ('${accommodationPictureId}', ${accommodationId})`;
+          const insertAccommodationPictureQuery = `INSERT INTO picture (PICTURE_ID, ACCOMMODATION_ID) VALUES ('${accommodationPictureId}', ${accommodationId})`;
           await connection.query(insertAccommodationPictureQuery);
           
           // Return success response
@@ -942,7 +942,7 @@ exports.uploadUserPic = (pool) => async (req, res) => {
           const userPictureId = result.public_id;
           
           // Update the picture table
-          const insertUserPictureQuery = `INSERT INTO picture (ACCOMMODATION_PICTURE_ID, USER_ID) VALUES ('${userPictureId}', ${user.USER_ID})`;
+          const insertUserPictureQuery = `INSERT INTO picture (PICTURE_ID, USER_ID) VALUES ('${userPictureId}', ${user.USER_ID})`;
           await connection.query(insertUserPictureQuery);
           
           // Return success response

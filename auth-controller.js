@@ -354,7 +354,7 @@ function checkAccommDup(pool, name, callback) {
 
 function addRooms(pool, accommodationId, rooms, callback) {
   const roomQueries = rooms.map((room) => {
-    return [room.ROOM_NAME, room.ROOM_PRICE, room.ROOM_CAPACITY, accommodationId];
+    return [room.roomName, room.roomPrice, room.roomCapacity, accommodationId];
   });
   const roomQuery = `
     INSERT INTO room

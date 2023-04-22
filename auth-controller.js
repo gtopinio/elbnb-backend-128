@@ -928,9 +928,9 @@ exports.uploadUserPic = (pool) => async (req, res) => {
     if (err) {
       console.log("Error: " + err);
       return res.send({ success: false });
-    } else if (user > 0) {
+    } else if (user) {
 
-      console.log("User: " + user);
+      console.log("User: " + user.USER_USERNAME); // add this line
 
       pool.getConnection(async (err, connection) => {
         if (err) {
@@ -957,6 +957,7 @@ exports.uploadUserPic = (pool) => async (req, res) => {
       }
     });
   } else {
+    console.log("No user found with username: " + username); // add this line
     console.log("Full upload error");
     return res.send({ success: false });
   }

@@ -1203,7 +1203,7 @@ with success set to true and the list of featured accommodations. */
 exports.getFeaturedAccommodations = (pool) => (req, res) => {
   const query = `
     SELECT *, AVG(review.REVIEW_RATING) AS AVG_RATING
-    FROM accommodations
+    FROM accommodation
     INNER JOIN review ON ACCOMMODATION_ID = review.ACCOMMODATION_ID
     GROUP BY ACCOMMODATION_ID
     ORDER BY AVG_RATING DESC

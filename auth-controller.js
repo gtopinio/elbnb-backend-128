@@ -353,6 +353,8 @@ function checkAccommDup(pool, name, callback) {
 }
 
 function addRooms(pool, accommodationId, rooms, callback) {
+  console.log("Hereeee");
+  console.log(rooms);
   const roomQueries = rooms.map((room) => {
     return [room.roomName, room.roomPrice, room.roomCapacity, accommodationId];
   });

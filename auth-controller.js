@@ -402,7 +402,6 @@ exports.addAccommodation = (pool) => (req, res) => {
     return res.send({ success: false });
   }
 
-  var flag = false;
 
   // check if there's an accommodation that already has the same name
   checkAccommDup(pool, name, (err, hasDup) => {
@@ -413,6 +412,7 @@ exports.addAccommodation = (pool) => (req, res) => {
       console.log("Duplicate accommodation.");
       return res.send({ success: false });
     } else {
+      var flag = true;
       // get pool connection
       pool.getConnection((err, connection) => {
         if (err) {
@@ -454,6 +454,7 @@ exports.addAccommodation = (pool) => (req, res) => {
                         if (err) {
                           connection.rollback(() => {
                             console.log("Insert Room Error: " + err);
+                            flag = false;
                           });
                         } else {
                                 // commit the transaction if all queries were successful
@@ -461,6 +462,7 @@ exports.addAccommodation = (pool) => (req, res) => {
                                   if (err) {
                                     connection.rollback(() => {
                                       console.log("Commit Error: " + err);
+                                      flag = false;
                                     });
                                   } else {
                                     console.log("Room successfully inserted!");
@@ -470,6 +472,13 @@ exports.addAccommodation = (pool) => (req, res) => {
                         }
                       });
                     }
+                    if(flag) {
+                      console.log("Accommodation successfully inserted!");
+                      return res.send({ success: true });
+                    } else {
+                      console.log("Error inserting room.");
+                      return res.send({ success: false });
+                    }
                   }
                 });
           } // else when no errors in beginning transaction
@@ -477,12 +486,6 @@ exports.addAccommodation = (pool) => (req, res) => {
       });
     } // else when there's no duplicate
   }); // end of checkAcc
-
-  if(flag) {
-    return res.send({ success: true });
-  } else {
-    return res.send({ success: false });
-  }
 }; // end of addAccommodation
 
 // This function takes a database connection pool, an accommodation name (unique), and a callback function as inputs. 

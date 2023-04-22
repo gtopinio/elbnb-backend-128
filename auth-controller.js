@@ -454,7 +454,7 @@ exports.addAccommodation = (pool) => (req, res) => {
                         if (err) {
                           connection.rollback(() => {
                             console.log("Insert Room Error: " + err);
-                            res.send({ success:false });
+                            // res.send({ success:false });
                           });
                         } else {
                                 // commit the transaction if all queries were successful

@@ -1663,7 +1663,12 @@ exports.deleteReview = (pool) => (req, res) => {
                       return res.send({ success: false });
                     })
                   }
-                  else{
+                  else if (result.affectedRows == 0){
+                    connection.rollback(() => {
+                      console.log("Review not found! Cannot be deleted");
+                      return res.send({ success: false });
+                    });
+                  } else {
                     connection.commit((err) => {
                       if(err){
                         connection.rollback(() => {

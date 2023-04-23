@@ -1492,12 +1492,12 @@ This function lets the user edit the review that they gave to an accommodation. 
 date timestamp to find the correct review to edit.
 */
 exports.editReview = (pool) => (req, res) => {
-  const {rating, review, date, userName, accommName} = req.body;
+  const {rating, comment, timestamp, userName, accommName} = req.body;
 
   console.log("----------Edit Review----------");
   console.log("Rating: " + rating);
-  console.log("Review: " + review);
-  console.log("Old Timestamp: " + date);
+  console.log("Comment: " + comment);
+  console.log("Date: " + timestamp);
   console.log("Username: " + userName);
   console.log("Accommodation Name: " + accommName);
 
@@ -1531,9 +1531,9 @@ exports.editReview = (pool) => (req, res) => {
                 return res.send({ success: false });
               }
               else{
-                const editQuery = `UPDATE review SET REVIEW_RATING = ?, REVIEW_DATE=CURRENT_TIMESTAMP, REVIEW_COMMENT=? WHERE REVIEW_DATE=? AND USER_ID=? AND ACCOMMODATION_ID=?`;
+                const editQuery = `UPDATE review SET REVIEW_RATING = ?, REVIEW_DATE = ?, REVIEW_COMMENT = ? WHERE USER_ID = ? AND ACCOMMODATION_ID = ?`;
 
-                connection.query(editQuery, [rating, review, date, uId, aId], (err, result) => {
+                connection.query(editQuery, [rating, timestamp, comment, uId, aId], (err, result) => {
                   if(err){
                     connection.rollback(() => {
                       console.log("Edit review error: " + err);
@@ -1560,13 +1560,13 @@ exports.editReview = (pool) => (req, res) => {
           });
         }
         else{
-          console.log("Accommodation not found! Cannot edit  SET REVIEW_RATING = ?, REVIEW_COMMENT=? ");
+          console.log("Accommodation not found! Cannot edit  SET REVIEW_RATING = ?,  REVIEW_DATE = ?, REVIEW_COMMENT=? ");
           return res.send({ success: false });
         }
       })
     }
     else{
-      console.log("User not found! Cannot edit  SET REVIEW_RATING = ?, REVIEW_COMMENT=? ");
+      console.log("User not found! Cannot edit  SET REVIEW_RATING = ?,  REVIEW_DATE = ?, REVIEW_COMMENT=? ");
       return res.send({ success: false });
     }
   })

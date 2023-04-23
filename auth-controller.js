@@ -1234,11 +1234,11 @@ function getUserIdByUsername(pool, name, callback) {
 This is a function that allows the user to leave a rating and review to an accomodation
 */
 exports.addReview = (pool) => (req, res) => {
-  const{rating, review, userName, accommName} = req.body;
+  const{rating, comment, userName, accommName} = req.body;
 
   console.log("----------Rating and Review----------");
   console.log("Rating: " + rating);
-  console.log("Review: " + review);
+  console.log("Review: " + comment);
 
   var uid = null;
   var accomid = null;
@@ -1272,7 +1272,7 @@ exports.addReview = (pool) => (req, res) => {
               else{
                 const insertQuery = `INSERT INTO review (REVIEW_RATING, REVIEW_COMMENT, USER_ID, ACCOMMODATION_ID) VALUES (?, ?, ?, ?)`;
 
-                connection.query(insertQuery, [rating, review, uid, accomid], (err, result) => {
+                connection.query(insertQuery, [rating, comment, uid, accomid], (err, result) => {
                   if(err){
                     connection.rollback(() => {
                       console.log("Insert review error: " + err);

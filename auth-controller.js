@@ -656,6 +656,30 @@ function checkAccommDup(pool, name, callback) {
   });
 }
 
+function addRooms(pool, accommodationId, rooms, callback) {
+  console.log("Hereeee");
+  console.log(rooms);
+  const roomQueries = rooms.map((room) => {
+    return [room.roomName, room.roomPrice, room.roomCapacity, accommodationId];
+  });
+
+  console.log("Query"  +roomQueries);
+  const roomQuery = `
+    INSERT INTO room
+      (ROOM_NAME, ROOM_PRICE, ROOM_CAPACITY, ACCOMMODATION_ID)
+    VALUES
+    ?
+  `;
+  pool.query(roomQuery, [roomQueries], (error, results, fields) => {
+    if (error) {
+      console.log("Error: " + error);
+      return callback(error);
+    }
+    console.log("Results" + results);
+    return callback(null, results);
+  });
+}
+
 // This function is used to add a new accommodation to the database. 
 // It takes in a pool object as input, which is used to establish a database connection. 
 // The function then reads the details of the new accommodation from the request body, including its name, type, description, location, price, capacity, and amenities (an array of strings). 

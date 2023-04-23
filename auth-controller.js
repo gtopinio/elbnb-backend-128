@@ -1204,7 +1204,7 @@ exports.getFeaturedAccommodations = (pool) => (req, res) => {
   const query = `
     SELECT *, AVG(review.REVIEW_RATING) AS AVG_RATING
     FROM accommodation
-    INNER JOIN review ON ACCOMMODATION_ID = review.ACCOMMODATION_ID
+    JOIN review ON accommodation.ACCOMMODATION_ID = review.ACCOMMODATION_ID
     GROUP BY ACCOMMODATION_ID
     ORDER BY AVG_RATING DESC
     LIMIT 5

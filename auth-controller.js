@@ -1088,7 +1088,6 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
   }
   });
 }
-
 exports.uploadUserPic = (pool) => async (req, res) => {
 
   // Extract the image data from the request body
@@ -1595,3 +1594,438 @@ exports.archiveRoom = (pool) => (req, res) => {
       return res.send({success: false});
     }});
 };
+
+
+/*
+This function takes a database connection pool, an accommodation name (unique), and a callback function as inputs. 
+It queries the database to retrieve the user ID for the provided name and passes the result to the callback function. 
+If there is an error in the database query or connection, it logs the error and passes it to the callback function as the first parameter.
+*/
+function getUserIdByUsername(pool, name, callback) {
+  pool.getConnection((err, connection) => {
+    if (err) {
+      console.log("Error: " + err);
+      callback(err, null);
+    } else {
+      const checkQuery = `SELECT USER_ID FROM user WHERE USER_USERNAME = ?`;
+      connection.query(checkQuery, [name], (err, result) => {
+        if (err) {
+          console.log("Get User Id Error: " + err);
+          callback(err, null);
+        } else {
+          try{
+            if(typeof result[0].USER_ID === "undefined") {
+              console.log("Get User Id: Undefined Object");
+              callback(null, 0);
+            }
+            else {
+              console.log("Get User Id: Defined Object");
+              callback(null, result[0].USER_ID);
+            }
+          } catch (err) {
+            console.log("User Not Found...");
+            callback(err, null);
+          }
+          
+        }
+      });
+    }
+  });
+}
+
+/*
+This is a function that allows the user to leave a rating and review to an accomodation
+*/
+exports.addReview = (pool) => (req, res) => {
+  const{rating, comment, userName, timestamp, accommName} = req.body;
+
+  console.log("----------Rating and Review----------");
+  console.log("Rating: " + rating);
+  console.log("Review: " + comment);
+
+  var uid = null;
+  var accomid = null;
+
+  getUserIdByUsername(pool, userName, (err, userId) => {
+    if(err){
+      console.log("Error: " + err);
+      return res.send({ success: false });
+    }
+    else if(userId>0){
+      uid = userId;
+      getAccommodationIdByName(pool, accommName, (err, accommodationId) => {
+        if(err){
+          console.log("Error: " + err);
+          return res.send({ success: false });
+        }
+        else if(accommodationId>0){
+          accomid = accommodationId;
+
+          pool.getConnection((err, connection) => {
+            if(err){
+              console.log("Get Connection Error" + err);
+              return res.send({ success: false });
+            }
+
+            connection.beginTransaction((err) => {
+              if(err){
+                console.log("Error: " + err);
+                return res.send({ success: false });
+              }
+              else{
+                const selectQuery = `SELECT COUNT(*) AS count FROM review WHERE USER_ID = ? AND ACCOMMODATION_ID = ?`;
+                
+                connection.query(selectQuery, [uid, accomid], (err, result) => {
+                  if(err){
+                    console.log("Error: " + err);
+                    return res.send({ success: false })
+                  }
+                  else if(result[0].count>0){
+                    console.log("Review from user already exist");
+                    return res.send({ success: false })
+                  }
+                  else{
+                    const insertQuery = `INSERT INTO review (REVIEW_RATING, REVIEW_COMMENT, REVIEW_DATE, USER_ID, ACCOMMODATION_ID) VALUES (?, ?, ?, ?, ?)`;
+
+                    connection.query(insertQuery, [rating, comment, timestamp, uid, accomid], (err, result1) => {
+                      if(err){
+                        connection.rollback(() => {
+                          console.log("Insert review error: " + err);
+                          return res.send({ success: false });
+                        })
+                      }
+                      else{
+                        connection.commit((err) => {
+                          if(err){
+                            connection.rollback(() => {
+                              console.log("Commit error: " + err);
+                              return res.send({ success: false });
+                            })
+                          }
+                          else{
+                            console.log("Review has been inserted!");
+                            return res.send({ success: true });
+                          }
+                        })
+                      }
+                    })
+                  }
+                })
+              }
+            })
+          });
+        }
+        else{
+          console.log("Accomodation not found! Cannot add review");
+          return res.send({ success: false });
+        }
+      })
+    }
+    else{
+      console.log("User not found! Cannot add review");
+      return res.send({ success: false });
+    }
+  })
+}
+
+/*
+This function adds an accomodation to the favorites of the user. It finds the userid by using the username of the user and the accommodation id using the accommodation
+name. After getting the connect established after finding the user id and accommodation id, it will then do a select query to see if the favorite already exists. If it
+does it will perform a delete and if it does not exists, it will perform insert instead.
+*/
+exports.triggerFavorite = (pool) => (req, res) => {
+  const {userName, accommName} = req.body;
+
+  console.log("----------Favorite----------");
+  console.log("username: " + userName);
+  console.log("accommodation name: " + accommName);
+
+  var uId = null;
+  var aId = null;
+
+  getUserIdByUsername(pool, userName, (err, userId) => {
+    if(err){
+      console.log("Error: " + err);
+      return res.send({ success: false });
+    }
+    else if(userId>0){
+      uId = userId;
+
+      // Get Accommodation Id
+      getAccommodationIdByName(pool, accommName, (err, accommodationId) => {
+        if(err){
+          console.log("Error: " + err);
+          return res.send({ success: false });
+        }
+        else if(accommodationId>0){
+          aId = accommodationId;
+
+          // Begin Transaction for Favorite (either insert or delete)
+          pool.getConnection((err, connection) => {
+            if(err){
+              console.log("Get Connection Error" + err);
+              return res.send({ success: false });
+            }
+        
+            connection.beginTransaction((err) => {
+              if(err){
+                console.log("Error: " + err);
+                return res.send({ success: false });
+              }
+              else{
+                const selectQuery = `SELECT COUNT(*) AS count FROM favorite WHERE USER_ID = ? AND ACCOMMODATION_ID = ?`;
+                
+                connection.query(selectQuery, [uId, aId], (err, result) => {
+                  if(err){
+                    console.log("Error: " + err);
+                    return res.send({ success: false })
+                  }
+                  else if(result[0].count>0){
+                    //remove the favorite
+                    const deleteQuery = `DELETE FROM favorite WHERE USER_ID = '?' AND ACCOMMODATION_ID = '?'`;
+        
+                    connection.query(deleteQuery, [uId, aId], (err, result) => {
+                      if(err){
+                        connection.rollback(() => {
+                          console.log("Insert favorite error: " + err);
+                          return res.send({ success: false });
+                        })
+                      }
+                      else{
+                        connection.commit((err) => {
+                          if(err){
+                            connection.rollback(() => {
+                              console.log("Commit error: " + err);
+                              return res.send({ success: false });
+                            })
+                          }
+                          else{
+                            console.log("Favorite has been removed!");
+                            return res.send({ success: true });
+                          }
+                        })
+                      }
+                    })
+                  }
+                  else{
+                    //insert to favorites
+                    const insertQuery = `INSERT INTO favorite (USER_ID, ACCOMMODATION_ID) VALUES (?, ?)`;
+        
+                    connection.query(insertQuery, [uId, aId], (err, result1) => {
+                      if(err){
+                        connection.rollback(() => {
+                          console.log("Insert favorite error: " + err);
+                          return res.send({ success: false });
+                        })
+                      }
+                      else{
+                        connection.commit((err) => {
+                          if(err){
+                            connection.rollback(() => {
+                              console.log("Commit error: " + err);
+                              return res.send({ success: false });
+                            })
+                          }
+                          else{
+                            console.log("Favorite has been inserted!");
+                            return res.send({ success: true });
+                          }
+                        })
+                      }
+                    })
+                  }
+                })
+              }
+            })
+          });
+        }
+        else{
+          console.log("Accommodation not found! Cannot be added to favorites");
+          return res.send({ success: false });
+        }
+      });
+
+    }
+    else{
+      console.log("User not found! Cannot be added to favorites");
+      return res.send({ success: false });
+    }
+  });
+}
+
+/*
+This function lets the user edit the review that they gave to an accommodation. It uses the username, the accomodation name, and the
+date timestamp to find the correct review to edit.
+*/
+exports.editReview = (pool) => (req, res) => {
+  const {rating, comment, timestamp, userName, accommName} = req.body;
+
+  console.log("----------Edit Review----------");
+  console.log("Rating: " + rating);
+  console.log("Comment: " + comment);
+  console.log("Date: " + timestamp);
+  console.log("Username: " + userName);
+  console.log("Accommodation Name: " + accommName);
+
+  var uId = null;
+  var aId = null;
+
+  getUserIdByUsername(pool, userName, (err, userId) => {
+    if(err){
+      console.log("Error: " + err);
+      return res.send({ success: false });
+    }
+    else if(userId>0){
+      uId = userId;
+      getAccommodationIdByName(pool, accommName, (err, accommodationId) => {
+        if(err){
+          console.log("Error: " + err);
+          return res.send({ success: false });
+        }
+        else if(accommodationId>0){
+          aId = accommodationId;
+
+          pool.getConnection((err, connection) => {
+            if(err){
+              console.log("Get Connection Error" + err);
+              return res.send({ success: false });
+            }
+
+            connection.beginTransaction((err) => {
+              if(err){
+                console.log("Error: " + err);
+                return res.send({ success: false });
+              }
+              else{
+                const editQuery = `UPDATE review SET REVIEW_RATING = ?, REVIEW_DATE = ?, REVIEW_COMMENT = ? WHERE USER_ID = ? AND ACCOMMODATION_ID = ?`;
+
+                connection.query(editQuery, [rating, timestamp, comment, uId, aId], (err, result) => {
+                  if(err){
+                    connection.rollback(() => {
+                      console.log("Edit review error: " + err);
+                      return res.send({ success: false });
+                    })
+                  } // Else if the result is empty, then the review does not exist
+                  else if(result.affectedRows === 0){
+                    connection.rollback(() => {
+                      console.log("Review does not exist");
+                      return res.send({ success: false });
+                    })
+                  }
+                  else{
+                    connection.commit((err) => {
+                      if(err){
+                        connection.rollback(() => {
+                          console.log("Commit error: " + err);
+                          return res.send({ success: false });
+                        })
+                      }
+                      else{
+                        console.log("Review has been edited");
+                        return res.send({ success: true });
+                      }
+                    })
+                  }
+                })
+              }
+            })
+          });
+        }
+        else{
+          console.log("Accommodation not found! Cannot edit review");
+          return res.send({ success: false });
+        }
+      })
+    }
+    else{
+      console.log("User not found! Cannot edit review");
+      return res.send({ success: false });
+    }
+  })
+}
+
+/*
+This function lets the user delete the review that they gave to an accommodation
+*/
+exports.deleteReview = (pool) => (req, res) => {
+  const {userName, accommName} = req.body;
+
+  console.log("----------Delete----------");
+  console.log("username: " + userName);
+  console.log("accommodation name: " + accommName);
+
+  var uId = null;
+  var aId = null;
+
+  getUserIdByUsername(pool, userName, (err, userId) => {
+    if(err){
+      console.log("Error: " + err);
+      return res.send({ success: false });
+    }
+    else if(userId>0){
+      uId = userId;
+      getAccommodationIdByName(pool, accommName, (err, accommodationId) => {
+        if(err){
+          console.log("Error: " + err);
+          return res.send({ success: false });
+        }
+        else if(accommodationId>0){
+          aId = accommodationId;
+
+          pool.getConnection((err, connection) => {
+            if(err){
+              console.log("Get Connection Error" + err);
+              return res.send({ success: false });
+            }
+
+            connection.beginTransaction((err) => {
+              if(err){
+                console.log("Error: " + err);
+                return res.send({ success: false });
+              }
+              else{
+                const deleteQuery = `DELETE FROM review WHERE USER_ID = '?' AND ACCOMMODATION_ID = '?'`;
+
+                connection.query(deleteQuery, [uId, aId], (err, result) => {
+                  if(err){
+                    connection.rollback(() => {
+                      console.log("Delete review error: " + err);
+                      return res.send({ success: false });
+                    })
+                  }
+                  else if (result.affectedRows == 0){
+                    connection.rollback(() => {
+                      console.log("Review not found! Cannot be deleted");
+                      return res.send({ success: false });
+                    });
+                  } else {
+                    connection.commit((err) => {
+                      if(err){
+                        connection.rollback(() => {
+                          console.log("Commit error: " + err);
+                          return res.send({ success: false });
+                        })
+                      }
+                      else{
+                        console.log("Review has been deleted!");
+                        return res.send({ success: true });
+                      }
+                    })
+                  }
+                })
+              }
+            })
+          });
+        }
+        else{
+          console.log("Accommodation not found! Review cannot be deleted");
+          return res.send({ success: false });
+        }
+      })
+    }
+    else{
+      console.log("User not found! Review cannot be deleted");
+      return res.send({ success: false });
+    }
+  })
+}

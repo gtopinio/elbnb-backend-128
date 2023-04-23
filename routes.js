@@ -21,4 +21,9 @@ module.exports = (app, pool) => {
     app.post("/accommodation/edit-room", authController.editRoom(pool));
     app.post("/accommodation/archive-room", authController.archiveRoom(pool));
     app.post("/accommodation/delete-room", authController.deleteRoom(pool));
+    app.post("/accommodation/add-review", authController.addReview(pool));
+    app.post("/accommodation/edit-review", authController.editReview(pool));
+    app.post("/accommodation/delete-review", authController.deleteReview(pool));
+    app.post("/accommodation/add-to-favorites", authController.triggerFavorite(pool));
+    app.post("/accommodation/remove-from-favorites", authController.triggerFavorite(pool));
 }

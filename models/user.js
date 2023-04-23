@@ -49,7 +49,8 @@ const User = {
   },
   edit: (connection, userId, newPassword, newUsername, newFirstName, newLastName, newContactNum, callback) => {
     const sql = 'UPDATE user SET USER_PASSWORD=?, USER_USERNAME=?, USER_FNAME=?, USER_LNAME=?, USER_CONTACTNUM=? WHERE USER_ID=?';
-    connection.query(sql, [newPassword, newUsername, newFirstName, newLastName, newContactNum, userId], (error) => {
+    const hash = bcrypt.hashSync(newPassword, 10);
+    connection.query(sql, [hash, newUsername, newFirstName, newLastName, newContactNum, userId], (error) => {
       if (error) {
         return callback(error);
       }

@@ -1394,7 +1394,7 @@ exports.editRoom = (pool) => (req, res) => {
                SET
                  ROOM_NAME = ?,
                  ROOM_CAPACITY = ?,
-                 ROOM_PRICE = ?,
+                 ROOM_PRICE = ?
                WHERE ROOM_ID = ?
              `;
              connection.query(updateQuery, [newName, newCapacity, newPrice, id], (err) => {

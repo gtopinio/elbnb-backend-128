@@ -1256,13 +1256,13 @@ function getRoomIDbyName(pool, name, accomm_name, callback) {
                 console.log("Room Not Found...");
                 callback(err, null);
               }
-            }
-          });
-        }
-      });
-    }
-  });
-}
+            } // end of query else statement.
+          }); // end of connection query.
+        } // end of connection else statement.
+      }); // end of connection.
+    } // end of getAccomID else-if statement.
+  }); // end of getAccomID function.
+} // end of getRoomID function.
 
 exports.addNewRoom = (pool) => (req, res) => {
   const { name, capacity, price, accommodation } = req.body;

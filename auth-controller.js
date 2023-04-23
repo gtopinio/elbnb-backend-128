@@ -1342,7 +1342,7 @@ exports.addNewRoom = (pool) => (req, res) => {
             console.log("Begin Transaction Error: " + err);
             return res.send({success:false});
           }else{
-            connection.query(addNewRoomQuery, [name, capacity, price, id], (err) => {
+            connection.query(addNewRoomQuery, [name, price, capacity, id], (err) => {
               if(err){  // Failed to insert Room.
                 connection.rollback(() => {
                   console.log("Insert Room Error: " + err);

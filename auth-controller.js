@@ -1270,26 +1270,40 @@ exports.addReview = (pool) => (req, res) => {
                 return res.send({ success: false });
               }
               else{
-                const insertQuery = `INSERT INTO review (REVIEW_RATING, REVIEW_COMMENT, USER_ID, ACCOMMODATION_ID) VALUES (?, ?, ?, ?)`;
-
-                connection.query(insertQuery, [rating, comment, uid, accomid], (err, result) => {
+                const selectQuery = `SELECT COUNT(*) AS count FROM review WHERE USER_ID = ? AND ACCOMMODATION_ID = ?`;
+                
+                connection.query(selectQuery, [uid, accomid], (err, result) => {
                   if(err){
-                    connection.rollback(() => {
-                      console.log("Insert review error: " + err);
-                      return res.send({ success: false });
-                    })
+                    console.log("Error: " + err);
+                    return res.send({ success: false })
+                  }
+                  else if(result[0].count>0){
+                    console.log("Review from user already exist");
+                    return res.send({ success: false })
                   }
                   else{
-                    connection.commit((err) => {
+                    const insertQuery = `INSERT INTO review (REVIEW_RATING, REVIEW_COMMENT, USER_ID, ACCOMMODATION_ID) VALUES (?, ?, ?, ?)`;
+
+                    connection.query(insertQuery, [rating, comment, uid, accomid], (err, result) => {
                       if(err){
                         connection.rollback(() => {
-                          console.log("Commit error: " + err);
+                          console.log("Insert review error: " + err);
                           return res.send({ success: false });
                         })
                       }
                       else{
-                        console.log("Review has been inserted!");
-                        return res.send({ success: true });
+                        connection.commit((err) => {
+                          if(err){
+                            connection.rollback(() => {
+                              console.log("Commit error: " + err);
+                              return res.send({ success: false });
+                            })
+                          }
+                          else{
+                            console.log("Review has been inserted!");
+                            return res.send({ success: true });
+                          }
+                        })
                       }
                     })
                   }

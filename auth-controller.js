@@ -1534,7 +1534,7 @@ This function lets the user edit the review that they gave to an accommodation. 
 date timestamp to find the correct review to edit.
 */
 exports.editReview = (pool) => (req, res) => {
-  const {rating, review, date, userName, accommName} = req.body;
+  const {rating, review, userName, accommName} = req.body;
 
   console.log("----------Edit Review----------");
   console.log("Rating: " + rating);
@@ -1573,9 +1573,9 @@ exports.editReview = (pool) => (req, res) => {
                 return res.send({ success: false });
               }
               else{
-                const editQuery = `UPDATE review SET REVIEW_RATING = ?, REVIEW_DATE=CURRENT_TIMESTAMP, REVIEW_COMMENT=? WHERE REVIEW_DATE=? AND USER_ID=? AND ACCOMMODATION_ID=?`;
+                const editQuery = `UPDATE review SET REVIEW_RATING = ?, REVIEW_DATE=CURRENT_TIMESTAMP, REVIEW_COMMENT=? WHERE USER_ID=? AND ACCOMMODATION_ID=?`;
 
-                connection.query(editQuery, [rating, review, date, uId, aId], (err, result) => {
+                connection.query(editQuery, [rating, review, uId, aId], (err, result) => {
                   if(err){
                     connection.rollback(() => {
                       console.log("Edit review error: " + err);
@@ -1602,13 +1602,94 @@ exports.editReview = (pool) => (req, res) => {
           });
         }
         else{
-          console.log("Accommodation not found! Cannot edit  SET REVIEW_RATING = ?, REVIEW_COMMENT=? ");
+          console.log("Accommodation not found! Cannot edit review");
           return res.send({ success: false });
         }
       })
     }
     else{
-      console.log("User not found! Cannot edit  SET REVIEW_RATING = ?, REVIEW_COMMENT=? ");
+      console.log("User not found! Cannot edit review");
+      return res.send({ success: false });
+    }
+  })
+}
+
+/*
+This function lets the user delete the review that they gave to an accommodation
+*/
+exports.deleteReview = (pool) => (req, res) => {
+  const {userName, accommName} = req.body;
+
+  console.log("----------Delete----------");
+  console.log("username: " + userName);
+  console.log("accommodation name: " + accommName);
+
+  var uId = null;
+  var aId = null;
+
+  getUserIdByUsername(pool, userName, (err, userId) => {
+    if(err){
+      console.log("Error: " + err);
+      return res.send({ success: false });
+    }
+    else if(userId>0){
+      uId = userId;
+      getAccommodationIdByName(pool, accommName, (err, accommodationId) => {
+        if(err){
+          console.log("Error: " + err);
+          return res.send({ success: false });
+        }
+        else if(accommodationId>0){
+          aId = accommodationId;
+
+          pool.getConnection((err, connection) => {
+            if(err){
+              console.log("Get Connection Error" + err);
+              return res.send({ success: false });
+            }
+
+            connection.beginTransaction((err) => {
+              if(err){
+                console.log("Error: " + err);
+                return res.send({ success: false });
+              }
+              else{
+                const deleteQuery = `DELETE FROM review WHERE USER_ID = '?' AND ACCOMMODATION_ID = '?'`;
+
+                connection.query(deleteQuery, [uId, aId], (err, result) => {
+                  if(err){
+                    connection.rollback(() => {
+                      console.log("Delete review error: " + err);
+                      return res.send({ success: false });
+                    })
+                  }
+                  else{
+                    connection.commit((err) => {
+                      if(err){
+                        connection.rollback(() => {
+                          console.log("Commit error: " + err);
+                          return res.send({ success: false });
+                        })
+                      }
+                      else{
+                        console.log("Review has been deleted!");
+                        return res.send({ success: true });
+                      }
+                    })
+                  }
+                })
+              }
+            })
+          });
+        }
+        else{
+          console.log("Accommodation not found! Review cannot be deleted");
+          return res.send({ success: false });
+        }
+      })
+    }
+    else{
+      console.log("User not found! Review cannot be deleted");
       return res.send({ success: false });
     }
   })

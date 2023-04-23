@@ -1534,7 +1534,7 @@ This function lets the user edit the review that they gave to an accommodation. 
 date timestamp to find the correct review to edit.
 */
 exports.editReview = (pool) => (req, res) => {
-  const {rating, review, date, userName, accommName} = req.body;
+  const {rating, comment, timestamp, userName, accommName} = req.body;
 
   console.log("----------Edit Review----------");
   console.log("Rating: " + rating);

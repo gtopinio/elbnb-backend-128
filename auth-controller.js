@@ -636,14 +636,14 @@ exports.viewProfile = (pool) => (req, res) => {
 };
 
 
-// The checkAccommDup function checks if an accommodation with the given name already exists in the database by querying the accommodations table. 
+// The checkAccommDup function checks if an accommodation with the given name already exists in the database by querying the accommodation table. 
 function checkAccommDup(pool, name, callback) {
   pool.getConnection((err, connection) => {
     if (err) {
       console.log("Error: " + err);
       callback(err, null);
     } else {
-      const checkQuery = `SELECT ACCOMMODATION_ID FROM accommodations WHERE ACCOMMODATION_NAME = ?`;
+      const checkQuery = `SELECT ACCOMMODATION_ID FROM accommodation WHERE ACCOMMODATION_NAME = ?`;
       connection.query(checkQuery, [name], (err, result) => {
         if (err) {
           console.log("Check Accom Dup Error: " + err);
@@ -684,7 +684,7 @@ function addRooms(pool, accommodationId, rooms, callback) {
 // It takes in a pool object as input, which is used to establish a database connection. 
 // The function then reads the details of the new accommodation from the request body, including its name, type, description, location, price, capacity, and amenities (an array of strings). 
 // If an accommodation with the same name already exists in the database, the function returns a JSON object indicating failure. 
-// Otherwise, the function begins a transaction and inserts the new accommodation into the accommodations table, along with its amenities (if any). 
+// Otherwise, the function begins a transaction and inserts the new accommodation into the accommodation table, along with its amenities (if any). 
 // If everything is successful, the function returns a JSON object indicating success.
 exports.addAccommodation = (pool) => (req, res) => {
 
@@ -799,7 +799,7 @@ function getAccommodationIdByName(pool, name, callback) {
       console.log("Error: " + err);
       callback(err, null);
     } else {
-      const checkQuery = `SELECT ACCOMMODATION_ID FROM accommodations WHERE ACCOMMODATION_NAME = ?`;
+      const checkQuery = `SELECT ACCOMMODATION_ID FROM accommodation WHERE ACCOMMODATION_NAME = ?`;
       connection.query(checkQuery, [name], (err, result) => {
         if (err) {
           console.log("Get Accomm Id Error: " + err);
@@ -845,7 +845,7 @@ exports.editAccommodation = (pool) => (req, res) => {
         // check if the updated name already exists for another accommodation
         const checkNameDupQuery = `
         SELECT COUNT(*) AS count
-        FROM accommodations
+        FROM accommodation
         WHERE ACCOMMODATION_NAME = ? AND ACCOMMODATION_ID != ?
       `;
 
@@ -873,7 +873,7 @@ exports.editAccommodation = (pool) => (req, res) => {
             } else {
               // update the accommodation details
               const updateQuery = `
-                UPDATE accommodations
+                UPDATE accommodation
                 SET
                   ACCOMMODATION_NAME = ?,
                   ACCOMMODATION_TYPE = ?,
@@ -947,7 +947,7 @@ exports.archiveAccommodation = (pool) => (req, res) => {
         else{
               // archive the accommodation details
               const archiveQuery = `
-                UPDATE accommodations
+                UPDATE accommodation
                 SET
                   ACCOMMODATION_ISARCHIVED = ?
                 WHERE ACCOMMODATION_ID = ?
@@ -1035,7 +1035,7 @@ exports.deleteAccommodation = (pool) => (req, res) => {
                 } else {
                   // delete the accommodation
                   const deleteQuery = `
-                  DELETE FROM accommodations
+                  DELETE FROM accommodation
                   WHERE ACCOMMODATION_ID = ?;
                   `;
                   connection.query(deleteQuery, [id], (err) => {
@@ -1072,9 +1072,9 @@ exports.deleteAccommodation = (pool) => (req, res) => {
 
 
 
-// The function takes in a database connection pool object and returns a callback function that filters accommodations based on the user's search criteria specified in the req.query object. 
+// The function takes in a database connection pool object and returns a callback function that filters accommodation based on the user's search criteria specified in the req.query object. 
 // The function constructs a SQL query using the search criteria and executes it against the database. 
-// The results are returned in a JSON object with a success property indicating whether the query was successful and an accommodations property containing the filtered results. 
+// The results are returned in a JSON object with a success property indicating whether the query was successful and an accommodation property containing the filtered results. 
 // The function also logs the filter details and SQL query for debugging purposes.
 exports.filterAccommodations = (pool) => (req, res) => {
   const { minPrice, maxPrice, capacity, type } = req.query;
@@ -1127,7 +1127,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
 
   const query = `
     SELECT *
-    FROM accommodations
+    FROM accommodation
     ${whereClause}
     ${orderByClause}
   `;
@@ -1143,7 +1143,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
       console.log("Filter Accommodations Error: " + err);
       return res.send({ success: false });
     } else {
-      return res.send({ success: true, accommodations: results });
+      return res.send({ success: true, accommodation: results });
     }
   });
 };

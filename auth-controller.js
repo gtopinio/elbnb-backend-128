@@ -1239,6 +1239,10 @@ exports.getUserPic = (pool) => (req, res) => {
           return res.send({ success: true, imageUrl: imageUrl });
         }
       });
+    } else {
+      // No user found with the username
+      console.log("No user found with the username: " + username);
+      return res.send({ success: false });
     }
   });
 }

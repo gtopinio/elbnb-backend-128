@@ -1317,82 +1317,96 @@ exports.addNewRoom = (pool) => (req, res) => {
 // If the updated name doesn't exist, the function updates the room's details according to the request body and returns a response indicating the successful update to the client.
 // Otherwise, it returns a response indicating the unsuccessful update to the client.
 exports.editRoom = (pool) => (req, res) => {
-  const {name, newName, newCapacity, newPrice} = req.body;
+  const {name, newName, newCapacity, newPrice, accommodation} = req.body;
 
-  // Get the ID of the room if the name exists.
-  var id = null;
-  getRoomIDbyName(pool, name, (err, roomID) => {
+  // Get the ID of the Accommodation if the name exists.
+  var accommid = null;
+  getAccommodationIdByName(pool, accommodation, (err, accommodationId) => {
     if (err) {
       console.log("Error: " + err);
       return res.send({ success: false });
-    } else if (roomID > 0 && typeof roomID !== "undefined") {
-      id = roomID;
-        // Query to check if room name already exists within the database.
-        const checkRoomNameDupQuery = `
-        SELECT COUNT(*) AS count
-        FROM room
-        WHERE ROOM_NAME = ? AND ROOM_ID != ?
-      `;
+    } else if (accommodationId > 0 && typeof accommodationId != "undefined") {
+      accommid = accommodationId;
+      
+      // Check if the room ID exists.
+      var id = null;
+      getRoomIDbyName(pool, name, (err, roomID) => {
+        if (err) {
+          console.log("Error: " + err);
+          return res.send({ success: false });
+        } else if (roomID > 0 && typeof roomID !== "undefined") {
 
-      // Get Pool Connection
-      pool.getConnection((err, connection) => {
-        if(err) {
-          console.log("Get Connection Error: " + err);
-          return res.send({success:false});
-        }
-          // Begin Transaction.
-      connection.beginTransaction((err) => {
-        if(err){
-          console.log("Begin Transaction Error: " + err);
-          return res.send({success:false});
-        }
-
-        else{
-          connection.query(checkRoomNameDupQuery, [newName, id], (err, result) => {
-            if (err) {
-              console.log("Error: " + err);
-              return res.send({ success: false });
-            } else if (result[0].count > 0) {
-              console.log("Duplicate room name.");
-              return res.send({ success: false });
-            } else {
-              // Update the Room details.
-              const updateQuery = `
-                UPDATE room
-                SET
-                  ROOM_NAME = ?,
-                  ROOM_CAPACITY = ?,
-                  ROOM_PRICE = ?,
-                WHERE ROOM_ID = ?
-              `;
-              connection.query(updateQuery, [newName, newCapacity, newPrice, id], (err) => {
+          id = roomID;
+            // Query to check if room name already exists within the database.
+            const checkRoomNameDupQuery = `
+            SELECT COUNT(*) AS count
+            FROM room
+            WHERE ROOM_NAME = ? AND ROOM_ID != ?
+          `;
+    
+          // Get Pool Connection
+          pool.getConnection((err, connection) => {
+            if(err) {
+              console.log("Get Connection Error: " + err);
+              return res.send({success:false});
+            }
+              // Begin Transaction.
+          connection.beginTransaction((err) => {
+            if(err){
+              console.log("Begin Transaction Error: " + err);
+              return res.send({success:false});
+            }
+    
+            else{
+              connection.query(checkRoomNameDupQuery, [newName, id], (err, result) => {
                 if (err) {
-                  connection.rollback(() => {
-                    console.log("Error updating room: " + err);
-                    res.send({success:false});
-                  });
+                  console.log("Error: " + err);
+                  return res.send({ success: false });
+                } else if (result[0].count > 0) {
+                  console.log("Duplicate room name.");
+                  return res.send({ success: false });
                 } else {
-                  connection.commit((err) => {
-                    if(err){
+                  // Update the Room details.
+                  const updateQuery = `
+                    UPDATE room
+                    SET
+                      ROOM_NAME = ?,
+                      ROOM_CAPACITY = ?,
+                      ROOM_PRICE = ?,
+                    WHERE ROOM_ID = ?
+                  `;
+                  connection.query(updateQuery, [newName, newCapacity, newPrice, id], (err) => {
+                    if (err) {
                       connection.rollback(() => {
-                        console.log("Commit Error: " + err);
+                        console.log("Error updating room: " + err);
                         res.send({success:false});
                       });
                     } else {
-                      console.log("Successfully updated room: " + name);
-                      return res.send({ success: true });
+                      connection.commit((err) => {
+                        if(err){
+                          connection.rollback(() => {
+                            console.log("Commit Error: " + err);
+                            res.send({success:false});
+                          });
+                        } else {
+                          console.log("Successfully updated room: " + name);
+                          return res.send({ success: true });
+                        }
+                      });
                     }
                   });
                 }
               });
-            }
+            }});
           });
-        }});
+        } else {
+          console.log("Room not found! Cannot proceed to editing...");
+          return res.send({success: false});
+        }
       });
-    } else {
-      console.log("Room not found! Cannot proceed to editing...");
-      return res.send({success: false});
-    }});
+    }
+  });
+  
 };
 
 

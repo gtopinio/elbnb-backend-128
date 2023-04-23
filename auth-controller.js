@@ -1193,7 +1193,7 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
   });
 }
 
-/* The above code exports a function that retrieves the top 5 featured accommodations based on their
+/* This code exports a function that retrieves the top 5 featured accommodations based on their
 average review rating. It uses a SQL query to join the accommodations and review tables, group the
 results by accommodation ID, calculate the average rating, and order the results by the average
 rating in descending order. The function takes a database connection pool as a parameter and returns
@@ -1223,7 +1223,40 @@ exports.getFeaturedAccommodations = (pool) => (req, res) => {
   });
 };
 
-/* The above code is defining a function that checks if an accommodation has been favorited by a user.
+// This function takes a database connection pool, a username (unique), and a callback function as inputs. 
+// It queries the database to retrieve the user ID for the provided username and passes the result to the callback function. 
+// If there is an error in the database query or connection, it logs the error and passes it to the callback function as the first parameter.
+function getUserIdByName(pool, username, callback) {
+  pool.getConnection((err, connection) => {
+    if (err) {
+      console.log("Error: " + err);
+      callback(err, null);
+    } else {
+      const query = `SELECT USER_ID FROM user WHERE USER_USERNAME = ?`;
+      connection.query(query, [username], (err, result) => {
+        if (err) {
+          console.log("Get User ID Error: " + err);
+          callback(err, null);
+        } else {
+          try {
+            if(typeof result[0].USER_ID === 'undefined') {
+              console.log("Get User ID: Undefined Object");
+              callback(null, 0);
+            } else {
+              console.log("Get User ID: Defined Object");
+              callback(null, result[0].USER_ID);
+            }
+          } catch (err) {
+            console.log("User Not Found...");
+            callback(err, null);
+          }
+        }
+      });
+    }
+  });
+}
+
+/* This code is defining a function that checks if an accommodation has been favorited by a user.
 It does this by executing a SQL query that joins the `accommodation` and `favorite` tables on the
 `ACCOMMODATION_ID` column and returns all rows where the `favorite` table has a non-null
 `ACCOMMODATION_ID`. The function takes a `pool` parameter which is a connection pool to a database,

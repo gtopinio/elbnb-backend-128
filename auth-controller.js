@@ -1201,12 +1201,14 @@ a middleware function that handles HTTP requests and responses. If there is an e
 query, the function returns a response with success set to false. Otherwise, it returns a response
 with success set to true and the list of featured accommodation. */
 exports.getFeaturedAccommodations = (pool) => (req, res) => {
+
+  // Query that gets the top 5 featured accommodation based on their average review rating
   const query = `
-    SELECT *, AVG(review.REVIEW_RATING) AS AVG_RATING
+    SELECT ACCOMMODATION_ID, ACCOMMODATION_NAME, ACCOMMODATION_TYPE,ACCOMMODATION_DESCRIPTION, ACCOMMODATION_AMENITIES, ACCOMMODATION_ADDRESS, ACCOMMODATION_LOCATION, ACCOMMODATION_OWNER_ID, AVG(REVIEW_RATING) AS AVERAGE_RATING
     FROM accommodation
-    JOIN review ON accommodation.ACCOMMODATION_ID = review.ACCOMMODATION_ID
+    JOIN review ON ACCOMMODATION_ID = REVIEW_ACCOMMODATION
     GROUP BY ACCOMMODATION_ID
-    ORDER BY AVG_RATING DESC
+    ORDER BY AVERAGE_RATING DESC
     LIMIT 5
   `;
 

@@ -1214,38 +1214,50 @@ function checkRoomIfExists(pool, name, callback) {
 }
 
 
-// This function takes a database connection pool, a room name (unique), and a callback function as inputs. 
+// This function takes a database connection pool, a room name (unique), an accommodation_id, and a callback function as inputs. 
 // It queries the database to retrieve a Room ID associated with the room name in the parameter input.
 // The function returns the callback which includes an error in the first parameter, if the query fails, and the Room ID in the second parameter if the query succeeds.
-function getRoomIDbyName(pool, name, callback) {
-  // Start Connection.
-  pool.getConnection((err, connection) => {
+function getRoomIDbyName(pool, name, accomm_name, callback) {
+
+  // Get accommodation ID from accommodation name.
+  var accommid = null;
+  getAccommodationIdByName(pool, accomm_name, (err, accommodationId) => {
     if (err) {
       console.log("Error: " + err);
-      callback(err, null);
-    } else {
-      const checkQuery = `SELECT ROOM_ID FROM room WHERE ROOM_NAME = ?`;
-      connection.query(checkQuery, [name], (err, result) => {
+      return res.send({ success: false });
+    } else if (accommodationId > 0 && typeof accommodationId != "undefined") {
+      accommid = accommodationId;
+
+      // Start connection.
+      pool.getConnection((err, connection) => {
         if (err) {
-          console.log("Get Room ID Error: " + err);
+          console.log("Error: " + err);
           callback(err, null);
         } else {
-          // Room ID error.
-          try{
-            if(typeof result[0].ROOM_ID === "undefined") {
-              console.log("Get Room ID: Undefined Object");
-              callback(null, 0);
+          const checkQuery = `SELECT ROOM_ID FROM room WHERE ROOM_NAME = ? AND ACCOMMODATION_ID = ?`;
+          connection.query(checkQuery, [name, accommid], (err, result) => {
+            if (err) {
+              console.log("Get Room ID Error: " + err);
+              callback(err, null);
+            } else {
+              // Room ID error.
+              try{
+                if(typeof result[0].ROOM_ID === "undefined") {
+                  console.log("Get Room ID: Undefined Object");
+                  callback(null, 0);
+                }
+              // Room ID success.
+                else {
+                  console.log("Get Room ID: Defined Object");
+                  callback(null, result[0].ROOM_ID);
+                }
+              // Room does not exist.
+              } catch (err) {
+                console.log("Room Not Found...");
+                callback(err, null);
+              }
             }
-          // Room ID success.
-            else {
-              console.log("Get Room ID: Defined Object");
-              callback(null, result[0].ROOM_ID);
-            }
-          // Room does not exist.
-          } catch (err) {
-            console.log("Room Not Found...");
-            callback(err, null);
-          }
+          });
         }
       });
     }

@@ -1194,7 +1194,12 @@ exports.getAccommodationPic = (pool) => (req, res) => {
         if (err) {
           console.log("Error: " + err);
           return res.send({ success: false });
-        } else {
+        } else if(results.length == 0) {
+          // No picture found with the accommodation id
+          console.log("No picture found with the accommodation id: " + id);
+          return res.send({ success: false });
+        }
+        else {
           // Get the image url from Cloudinary
           const pictureId = results[0].PICTURE_ID;
           const imageUrl = cloudinary.url(pictureId, { secure: true });

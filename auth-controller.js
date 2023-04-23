@@ -2,7 +2,6 @@
 const jwt = require("jsonwebtoken");
 const cloudinary = require('cloudinary').v2;
 const { User } = require('./models/user');
-const { errorMonitor } = require("events");
 
 // Configuration for cloudinary (cloud for uploading unstructured files) 
 cloudinary.config({

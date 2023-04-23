@@ -1323,9 +1323,11 @@ exports.addNewRoom = (pool) => (req, res) => {
                   if (err) {
                     connection.rollback(() => {
                       console.log("Commit Error: " + err);
+                      return res.send({success:false});
                     });
                   } else {
                     console.log("Room successfully inserted!");
+                    return res.send({success:true});
                   }
                 }); // end of connection.commit.
               } // end of connection.query else statement.

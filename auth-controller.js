@@ -1418,7 +1418,7 @@ exports.deleteRoom = (pool) => (req, res) => {
 
   // Get the ID of the room if the name exists.
   var id = null;
-  getRoomIDbyName(pool, name, (err, roomID) => {
+  getRoomIDbyName(pool, name, accommodation_name, (err, roomID) => {
     if (err) {
       console.log("Error: " + err);
       return res.send({ success: false });
@@ -1475,11 +1475,11 @@ exports.deleteRoom = (pool) => (req, res) => {
 // If the room exists, it updates a detail of the room in the database to classify it as archived and returns a response indicating a successful operation to the client.
 // Otherwise, it returns a response indicating the unsuccessful operation to the client.
 exports.archiveRoom = (pool) => (req, res) => {
-  const {name, isArchived } = req.body;
+  const {name, isArchived, accommodation_name } = req.body;
 
   //Get the ID of the room if the name exists.
   var id = null;
-  getRoomIDbyName(pool, name, (err, roomID) => {
+  getRoomIDbyName(pool, name, accommodation_name, (err, roomID) => {
     if (err) {
       console.log("Error: " + err);
       return res.send({ success: false });

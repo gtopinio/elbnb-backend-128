@@ -1254,7 +1254,6 @@ function getRoomIDbyName(pool, name, callback) {
 
 exports.addNewRoom = (pool) => (req, res) => {
   const { name, capacity, price, accommodation } = req.body;
-
   var id = null;
   getAccommodationIdByName(pool, accommodation, (err, accommodationId) => {
     if (err) {
@@ -1295,18 +1294,16 @@ exports.addNewRoom = (pool) => (req, res) => {
                   if (err) {
                     connection.rollback(() => {
                       console.log("Commit Error: " + err);
-                      flag = false;
                     });
                   } else {
                     console.log("Room successfully inserted!");
-                    flag = true;
                   }
-                }); // end of connection.commit
-              }
-            });
-          }
-        });
-      });
+                }); // end of connection.commit.
+              } // end of connection.query else statement.
+            }); // end of connection.query.
+          } // end of transaction else statement.
+        }); // end of transaction.
+      }); // end of pool connection.
     }else {
       console.log("Accommodation not found! Cannot proceed to adding new room...");
       return res.send({success: false});

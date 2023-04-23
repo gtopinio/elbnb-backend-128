@@ -1333,7 +1333,7 @@ exports.editRoom = (pool) => (req, res) => {
 
  // Check if the room ID exists.
  var id = null;
- getRoomIDbyName(pool, name, accommodation, (err, roomID) => {
+ getRoomIDbyName(pool, name, accommodation_name, (err, roomID) => {
    if (err) {
      console.log("Error: " + err);
      return res.send({ success: false });

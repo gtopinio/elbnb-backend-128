@@ -19,4 +19,5 @@ module.exports = (app, pool) => {
     app.get("/get-top-five-accommodations", authController.getFeaturedAccommodations(pool));
     app.post("/accommodation/is-favorite", authController.isAccommodationFavorited(pool));
     app.post("/accommodation/get-reviews", authController.getAccommodationReviews(pool));
+    app.post("/accommodation/get-ratings", authController.getAccommodationAverageRating(pool));
 }

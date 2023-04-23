@@ -1327,3 +1327,30 @@ exports.getAccommodationReviews = (pool) => (req, res) => {
     }
   });
 }
+
+// This function takes a database connection pool, an accommodation name and gets the average rating for that accommodation.
+exports.getAccommodationAverageRating = (pool) => (req, res) => {
+  const {accommodationName} = req.body;
+
+  getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+    if (err) {
+      console.log("Error: " + err);
+      return res.send({ success: false });
+    } else if (accommodationId > 0 && typeof accommodationId !== 'undefined') {
+      const ratingsQuery = `
+        SELECT AVG(REVIEW_RATING) AS AVG_RATING
+        FROM review
+        WHERE ACCOMMODATION_ID = ?
+      `;
+      pool.query(ratingsQuery, [accommodationId], (err, results) => {
+        if (err) {
+          console.log("Error getting ratings: " + err);
+          return res.send({ success: false });
+        } else {
+          console.log("Average Rating of " + accommodationName + ": " + results[0].AVG_RATING);
+          return res.send({ success: true, averageRating: results[0].AVG_RATING });
+        }
+      });
+    }
+  });
+}

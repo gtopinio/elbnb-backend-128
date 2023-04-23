@@ -12,13 +12,11 @@ cloudinary.config({
 
 // MOCKUP-BACKEND-128 ENDPOINTS
 
-// This function exports a route handler for signing up a user. 
-// It takes a MySQL connection pool as a parameter and returns a function that handles HTTP requests and responses. 
-// The function first gets a database connection from the pool, and then begins a transaction. 
-// It then extracts the necessary data from the HTTP request body, such as email, password, username, first name, last name, contact number, and account type. 
-// Based on the account type, it checks if the email already exists in the database using the appropriate user class (Admin, Owner, or Student), and creates a new user if the email is unique. 
-// If an error occurs during any of these steps, the function logs the error and rolls back the transaction. 
-// If everything is successful, the function commits the transaction and sends a response indicating success or failure.
+// This signup function takes a connection pool as a parameter and handles signup requests for admins, owners, and students.
+// It extracts the user information from the request body, checks if the email already exists in the user table, and creates a new user in the user table.
+// It then checks which user type to create and creates a new user in the corresponding table.
+// Finally, it returns a response with success true if the signup is successful.
+// If the signup fails or an error occurs, it returns a response with success false.
 exports.signUp = (pool) => (req, res) => {
   pool.getConnection((err, connection) => {
     if(err){
@@ -70,10 +68,10 @@ exports.signUp = (pool) => (req, res) => {
 };
 
 
-// This login function takes a connection pool as a parameter and handles login requests for admins, owners, and students. 
-// It extracts the email and password from the request body, checks if the email exists in the admin table, owner table, or student table, and finds the corresponding user in the table. 
-// It then compares the provided password with the hashed password in the table and generates a JSON Web Token (JWT) with a user payload containing user information, including the user type. 
-// Finally, it returns the JWT and user information as a response if the login is successful. 
+// This login function takes a connection pool as a parameter and handles login requests for admins, owners, and students.
+// It extracts the user information from the request body, checks if the email exists in the user table, and finds the user in the user table.
+// It then compares the password entered by the user with the password stored in the database.
+// Finally, it returns a response with success true if the login is successful, along with the token, user's id, username, first name, last name, and email.
 // If the login fails or an error occurs, it returns a response with success false.
 exports.login = (pool) => (req, res) => {
 
@@ -188,13 +186,9 @@ exports.checkIfLoggedIn = (pool) => (req, res) => {
     });
 }
 
-// The deleteUserByEmail function takes a MySQL pool as its input and also receives a POST request object.
-// The req object is expected to have a body property containing an email field representing the email address of the user to be deleted. 
-// This function deletes the user with the specified email address from the database. 
-// It first begins a transaction and checks whether the email exists in any of the three tables (Admin, Owner, Student). 
-// If the email exists in any table, it deletes the user and logs a message to the console with the email address of the deleted user. 
-// If the email does not exist in any table, it rolls back the transaction and returns a response with a success property set to false. 
-// Finally, if the deletion is successful, it commits the transaction and returns a response with a success property set to true.
+// This function takes a connection pool as a parameter and handles requests to delete a user by email.
+// It extracts the email from the request body, checks if the email exists in the user table, and deletes the user from the user table.
+// Finally, it returns a response with success true if the user is successfully deleted, and success false if the user is not deleted or an error occurs.
 exports.deleteUserByEmail = (pool) => (req, res) => {
   const email = req.body.email;
 
@@ -241,13 +235,9 @@ exports.deleteUserByEmail = (pool) => (req, res) => {
 };
 
 
-// The editUserByEmail takes in a pool object and returns a function that handles editing user information by email. 
-// The function expects a POST request that contains the user email to be edited, as well as the new password, username, first name, last name, and contact number (if applicable) to be updated. 
-// The function begins by logging the email to be edited, then attempts to establish a connection to the database. 
-// If successful, the function checks if the email exists in any of the three user tables (Admin, Owner, Student), and if 
-// found, updates the corresponding user's information in the database with the new data provided in the request body. 
-// If the email is not found, the function returns a response indicating that the user does not exist. If any errors occur during the process, the function logs the error and returns a response indicating that the operation was unsuccessful. 
-// The function returns a response indicating whether the operation was successful or not.
+// This function takes a connection pool as a parameter and handles requests to edit a user by email.
+// It extracts the email, new password, new username, new first name, new last name, and new contact number from the request body, checks if the email exists in the user table, and updates the user in the user table.
+// Finally, it returns a response with success true if the user is successfully updated, and success false if the user is not updated or an error occurs.
 exports.editUserByEmail = (pool) => (req, res) => {
   const { email, newPassword, newUsername, newFirstName, newLastName, newContactNum} = req.body;
 
@@ -295,9 +285,9 @@ exports.editUserByEmail = (pool) => (req, res) => {
 };
 
 
-// The viewProfile function retrieves the user profile information for the user identified by the provided email address. 
-// It checks if the email exists in any of the tables for admins, owners, or students. 
-// If it finds a match, it returns the corresponding profile information in JSON format.
+// This function takes a connection pool as a parameter and handles requests to view a user by email.
+// It extracts the email from the request body, checks if the email exists in the user table, and returns the user's profile data.
+// Finally, it returns a response with success true if the user is successfully found, and success false if the user is not found or an error occurs.
 exports.viewProfile = (pool) => (req, res) => {
   const email = req.body.email;
 
@@ -334,6 +324,8 @@ exports.viewProfile = (pool) => (req, res) => {
 
 
 // The checkAccommDup function checks if an accommodation with the given name already exists in the database by querying the accommodation table. 
+// It takes a connection pool, accommodation name, and callback function as parameters.
+// It returns a boolean value in the callback function.
 function checkAccommDup(pool, name, callback) {
   pool.getConnection((err, connection) => {
     if (err) {
@@ -353,39 +345,16 @@ function checkAccommDup(pool, name, callback) {
   });
 }
 
-function addRooms(pool, accommodationId, rooms, callback) {
-  console.log("Hereeee");
-  console.log(rooms);
-  const roomQueries = rooms.map((room) => {
-    return [room.roomName, room.roomPrice, room.roomCapacity, accommodationId];
-  });
-
-  console.log("Query"  +roomQueries);
-  const roomQuery = `
-    INSERT INTO room
-      (ROOM_NAME, ROOM_PRICE, ROOM_CAPACITY, ACCOMMODATION_ID)
-    VALUES
-    ?
-  `;
-  pool.query(roomQuery, [roomQueries], (error, results, fields) => {
-    if (error) {
-      console.log("Error: " + error);
-      return callback(error);
-    }
-    console.log("Results" + results);
-    return callback(null, results);
-  });
-}
 
 // This function is used to add a new accommodation to the database. 
 // It takes in a pool object as input, which is used to establish a database connection. 
-// The function then reads the details of the new accommodation from the request body, including its name, type, description, location, price, capacity, and amenities (an array of strings). 
+// The function then reads the details of the new accommodation from the request body, including its name, type, description, amenities, location, address, and rooms (an array of rooms). 
 // If an accommodation with the same name already exists in the database, the function returns a JSON object indicating failure. 
-// Otherwise, the function begins a transaction and inserts the new accommodation into the accommodation table, along with its amenities (if any). 
+// Otherwise, the function begins a transaction and inserts the new accommodation into the accommodation table, along with its rooms. 
 // If everything is successful, the function returns a JSON object indicating success.
 exports.addAccommodation = (pool) => (req, res) => {
 
-  const { name, type, address, location, description, amenities, userId, rooms} = req.body; // assuming amenities is an array of strings
+  const { name, type, address, location, description, amenities, userId, rooms} = req.body; // assuming rooms is an array of room objects
 
   // Printing the details of the accommodation query
   console.log("========== ACCOMMODATION DETAILS ==========")
@@ -847,7 +816,7 @@ exports.deleteAccommodation = (pool) => (req, res) => {
 };
 
 
-// The function takes in a database connection pool object and returns a callback function that filters accommodation based on the user's search criteria specified in the req.query object.
+// The function takes in a database connection pool object and returns a callback function that filters a room based on the user's search criteria specified in the req.query object.
 function filterRooms(pool, priceTo, priceFrom, capacity, callback) {
   const query = `
     SELECT DISTINCT ACCOMMODATION_ID FROM room
@@ -868,7 +837,7 @@ function filterRooms(pool, priceTo, priceFrom, capacity, callback) {
 }
 
 
-// The function takes in a database connection pool object and returns a callback function that filters accommodation based on the user's search criteria specified in the req.query object. 
+// The function takes in a database connection pool object and returns a callback function that filters accommodations based on the user's search criteria specified in the req.query object. 
 // The function constructs a SQL query using the search criteria and executes it against the database. 
 // The results are returned in a JSON object with a success property indicating whether the query was successful and an accommodation property containing the filtered results. 
 // The function also logs the filter details and SQL query for debugging purposes.
@@ -1088,6 +1057,13 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
   }
   });
 }
+
+// This is a function that uploads an image to Cloudinary and updates the picture table in
+// the SQL database with the user picture ID and user ID. It first extracts the image data from the request body,
+// converts the buffer to a base64 data URL, and finds the user ID from the request parameters.
+// It then checks if there is a user with the same name and gets the user ID using the getUserIDByName function.
+// If there is no error and the user ID is greater than 0, it establishes a connection to the database and uploads the image to Cloudinary using the cloudinary.uploader.upload method.
+// It then inserts a new row in the picture table with the user picture ID and user ID using an SQL INSERT statement.
 exports.uploadUserPic = (pool) => async (req, res) => {
 
   // Extract the image data from the request body
@@ -1145,6 +1121,11 @@ exports.uploadUserPic = (pool) => async (req, res) => {
   });
 }
 
+// This is a function that gets the accommodation ID by the accommodation name. After getting the id, it gets the rooms by the accommodation id.
+// It first gets the accommodation id from the request parameters and then gets the rooms by the accommodation id using an SQL SELECT statement.
+// If there is an error, it logs the error and sends a response with a success value of false and a message indicating an error occurred.
+// If there is no error, it sends a response with a success value of true and the rooms.
+// If there is no accommodation found with the accommodationName, it logs the error and sends a response with a success value of false and a message indicating no accommodation found.
 exports.getRoomsByAccommodationName = (pool) => (req, res) => {
   // Get the id of the accommodation name
   const accommodationName = req.body.accommodationName;
@@ -1248,7 +1229,7 @@ exports.getUserPic = (pool) => (req, res) => {
 }
 
 // Function to check if a Room Name already exists. Currently not in use
-// TODO: Use for adding rooms!
+// TODO: Use for adding rooms! It is for checking if a room name already exists for a specific accommodation. To be implemented in the addNewRoom function in the future.
 function checkRoomIfExists(pool, name, callback) {
   pool.getConnection((err, connection) => {
     if (err) {
@@ -1320,6 +1301,9 @@ function getRoomIDbyName(pool, name, accomm_name, callback) {
   }); // end of getAccomID function.
 } // end of getRoomID function.
 
+// This function takes a database connection pool, the room name, its capacity, its price, and the accommodation name as inputs.
+// It uses the getAccommodationIdByName to retrieve the Accommodation ID associated with the accommodation name.
+// It queries the database to insert a new room with the room name, capacity, price, and accommodation ID in the parameter input.
 exports.addNewRoom = (pool) => (req, res) => {
   const { name, capacity, price, accommodationName } = req.body;
   var id = null;
@@ -1642,9 +1626,11 @@ function getUserIdByUsername(pool, name, callback) {
   });
 }
 
-/*
-This is a function that allows the user to leave a rating and review to an accomodation
-*/
+// This is a function that allows the user to leave a rating and review an accomodation.
+// It takes a database connection pool as input, along with the rating, comment, username, timestamp and accommodation name.
+// It then queries the database to retrieve the user ID and accommodation ID for the provided username and accommodation name.
+// If the user ID and accommodation ID are found, it inserts the rating and review into the database.
+// Otherwise, it returns a response indicating the unsuccessful operation to the client.
 exports.addReview = (pool) => (req, res) => {
   const{rating, comment, userName, timestamp, accommName} = req.body;
 
@@ -1740,7 +1726,7 @@ exports.addReview = (pool) => (req, res) => {
 /*
 This function adds an accomodation to the favorites of the user. It finds the userid by using the username of the user and the accommodation id using the accommodation
 name. After getting the connect established after finding the user id and accommodation id, it will then do a select query to see if the favorite already exists. If it
-does it will perform a delete and if it does not exists, it will perform insert instead.
+does, it will perform a delete and if it does not exists, it will perform insert instead.
 */
 exports.triggerFavorite = (pool) => (req, res) => {
   const {userName, accommName} = req.body;
@@ -1953,9 +1939,7 @@ exports.editReview = (pool) => (req, res) => {
   })
 }
 
-/*
-This function lets the user delete the review that they gave to an accommodation
-*/
+// This function lets the user delete a review that they gave to an accommodation.
 exports.deleteReview = (pool) => (req, res) => {
   const {userName, accommName} = req.body;
 
@@ -2110,7 +2094,7 @@ exports.isAccommodationFavorited = (pool) => (req, res) => {
   });
 };
 
-/* This code is defining a function that retrieves the ratings of an accommodation from a MySQL
+/* This code is defining a function that retrieves the reviews of an accommodation from a MySQL
 database using a pool connection. The function takes in a pool connection as a parameter and returns
 a middleware function that handles a POST request with an accommodation name in the request body.
 The function first retrieves the ID of the accommodation using the getAccommodationIdByName

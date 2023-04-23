@@ -1255,32 +1255,63 @@ function getRoomIDbyName(pool, name, callback) {
 exports.addNewRoom = (pool) => (req, res) => {
   const { name, capacity, price, accommodation } = req.body;
 
-  // Check if a room with the same name exists.
-  checkRoomIfExists(pool, name, (err, hasDup) => {
+  var id = null;
+  getAccommodationIdByName(pool, accommodation, (err, accommodationId) => {
     if (err) {
       console.log("Error: " + err);
       return res.send({ success: false });
-    } else if (hasDup) {
-      console.log("Duplicate room name.");
-      return res.send({ success: false });
-    } else {
-      var id = null;
-      getAccommodationIdByName(pool, accommodation, (err, accommodationId) => {
-        if (err) {
-          console.log("Error: " + err);
-          return res.send({ success: false });
-        } else if (accommodationId > 0 && typeof accommodationId != "undefined") {
-          id = accommodationId;
-            // check if the updated name already exists for another accommodation
-            const checkNameDupQuery = `
-            SELECT COUNT(*) AS count
-            FROM accommodations
-            WHERE ACCOMMODATION_NAME = ? AND ACCOMMODATION_ID != ?
+    } else if (accommodationId > 0 && typeof accommodationId != "undefined") {
+      id = accommodationId;
+        // check if the updated name already exists for another accommodation
+        const addNewRoomQuery = `
+        INSERT INTO room
+          (ROOM_NAME, ROOM_PRICE, ROOM_CAPACITY, ACCOMMODATION_ID)
+        VALUES
+        (?, ?, ?, ?)
           `;
-        }
-      }); // end of getAccommodationIDByName
-    } // end of else
-  }); // end of checkRoomIfExists function
+
+        // Get Pool Connection.
+        pool.getConnection((err, connection) => {
+          if(err) {
+            console.log("Get Connection Error: " + err);
+            return res.send({success:false});
+          }
+            
+        // Begin Transaction
+        connection.beginTransaction((err) => {
+          if(err){
+            console.log("Begin Transaction Error: " + err);
+            return res.send({success:false});
+          }else{
+            connection.query(addNewRoomQuery, [name, capacity, price, id], (err, result) => {
+              if(err){  // Failed to insert Room.
+                connection.rollback(() => {
+                  console.log("Insert Room Error: " + err);
+                  res.send({ success:false });
+                });
+              }else{ // Successful Insertion of Room.
+                // Commit insertion.
+                connection.commit((err) => {
+                  if (err) {
+                    connection.rollback(() => {
+                      console.log("Commit Error: " + err);
+                      flag = false;
+                    });
+                  } else {
+                    console.log("Room successfully inserted!");
+                    flag = true;
+                  }
+                });
+              }
+            });
+          }
+        });
+      });
+    }else {
+      console.log("Accommodation not found! Cannot proceed to adding new room...");
+      return res.send({success: false});
+    } // Accommodation does not Exist.
+  }); // end of getAccommodationIDByName function
 }; // end of function
 
 // The editRoom function takes a database connection pool as input and returns a callback function that handles a POST request for editing a room.

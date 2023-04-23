@@ -1261,7 +1261,7 @@ exports.addNewRoom = (pool) => (req, res) => {
       return res.send({ success: false });
     } else if (accommodationId > 0 && typeof accommodationId != "undefined") {
       id = accommodationId;
-        // check if the updated name already exists for another accommodation
+        // Create query for inserting a room.
         const addNewRoomQuery = `
         INSERT INTO room
           (ROOM_NAME, ROOM_PRICE, ROOM_CAPACITY, ACCOMMODATION_ID)

@@ -1303,7 +1303,7 @@ The function first retrieves the ID of the accommodation using the getAccommodat
 function. If the ID is found, it then executes a SQL query to retrieve all reviews for that
 accommodation and sends the results back in the response. If there is an error at any point, the
 function sends a response with success set to false. */
-exports.getAccommodationRatings = (pool) => (req, res) => {
+exports.getAccommodationReviews = (pool) => (req, res) => {
   const {accommodationName} = req.body;
 
   getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
@@ -1321,7 +1321,7 @@ exports.getAccommodationRatings = (pool) => (req, res) => {
           console.log("Error getting ratings: " + err);
           return res.send({ success: false });
         } else {
-          return res.send({ success: true, ratings: results });
+          return res.send({ success: true, reviews: results });
         }
       });
     }

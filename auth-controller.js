@@ -1214,9 +1214,9 @@ function checkRoomIfExists(pool, name, callback) {
 }
 
 
-// This function takes a database connection pool, an room name (unique), and a callback function as inputs. 
+// This function takes a database connection pool, a room name (unique), and a callback function as inputs. 
 // It queries the database to retrieve a Room ID associated with the room name in the parameter input.
-// The function returns the callback which includes an error in the first parameter, if the query fails, and the result in the second parameter if the query succeeds.
+// The function returns the callback which includes an error in the first parameter, if the query fails, and the Room ID in the second parameter if the query succeeds.
 function getRoomIDbyName(pool, name, callback) {
   // Start Connection.
   pool.getConnection((err, connection) => {

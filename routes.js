@@ -18,5 +18,6 @@ module.exports = (app, pool) => {
     app.post("/accommodations/upload-pic", authController.uploadAccommodationPic(pool));
     app.post("/accommodation/add-review", authController.addReview(pool));
     app.post("/accommodation/edit-review", authController.editReview(pool));
-    app.post("/accommodation/favorite", authController.addFavorite(pool));
+    app.post("/accommodation/add-to-favorites", authController.addFavorite(pool));
+    app.post("/accommodation/remove-from-favorites", authController.removeFavorite(pool));
 }

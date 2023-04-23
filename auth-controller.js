@@ -1234,7 +1234,7 @@ function getUserIdByUsername(pool, name, callback) {
 This is a function that allows the user to leave a rating and review to an accomodation
 */
 exports.addReview = (pool) => (req, res) => {
-  const{rating, comment, userName, accommName} = req.body;
+  const{rating, comment, userName, timestamp, accommName} = req.body;
 
   console.log("----------Rating and Review----------");
   console.log("Rating: " + rating);
@@ -1282,9 +1282,9 @@ exports.addReview = (pool) => (req, res) => {
                     return res.send({ success: false })
                   }
                   else{
-                    const insertQuery = `INSERT INTO review (REVIEW_RATING, REVIEW_COMMENT, USER_ID, ACCOMMODATION_ID) VALUES (?, ?, ?, ?)`;
+                    const insertQuery = `INSERT INTO review (REVIEW_RATING, REVIEW_COMMENT, REVIEW_DATE, USER_ID, ACCOMMODATION_ID) VALUES (?, ?, ?, ?, ?)`;
 
-                    connection.query(insertQuery, [rating, comment, uid, accomid], (err, result1) => {
+                    connection.query(insertQuery, [rating, comment, timestamp, uid, accomid], (err, result1) => {
                       if(err){
                         connection.rollback(() => {
                           console.log("Insert review error: " + err);
@@ -1534,12 +1534,12 @@ This function lets the user edit the review that they gave to an accommodation. 
 date timestamp to find the correct review to edit.
 */
 exports.editReview = (pool) => (req, res) => {
-  const {rating, review, userName, accommName} = req.body;
+  const {rating, review, date, userName, accommName} = req.body;
 
   console.log("----------Edit Review----------");
   console.log("Rating: " + rating);
-  console.log("Review: " + review);
-  console.log("Old Timestamp: " + date);
+  console.log("Comment: " + comment);
+  console.log("Date: " + timestamp);
   console.log("Username: " + userName);
   console.log("Accommodation Name: " + accommName);
 
@@ -1573,9 +1573,9 @@ exports.editReview = (pool) => (req, res) => {
                 return res.send({ success: false });
               }
               else{
-                const editQuery = `UPDATE review SET REVIEW_RATING = ?, REVIEW_DATE=CURRENT_TIMESTAMP, REVIEW_COMMENT=? WHERE USER_ID=? AND ACCOMMODATION_ID=?`;
+                const editQuery = `UPDATE review SET REVIEW_RATING = ?, REVIEW_DATE = ?, REVIEW_COMMENT = ? WHERE USER_ID = ? AND ACCOMMODATION_ID = ?`;
 
-                connection.query(editQuery, [rating, review, uId, aId], (err, result) => {
+                connection.query(editQuery, [rating, timestamp, comment, uId, aId], (err, result) => {
                   if(err){
                     connection.rollback(() => {
                       console.log("Edit review error: " + err);

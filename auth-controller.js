@@ -1584,6 +1584,12 @@ exports.editReview = (pool) => (req, res) => {
                       console.log("Edit review error: " + err);
                       return res.send({ success: false });
                     })
+                  } // Else if the result is empty, then the review does not exist
+                  else if(result.affectedRows === 0){
+                    connection.rollback(() => {
+                      console.log("Review does not exist");
+                      return res.send({ success: false });
+                    })
                   }
                   else{
                     connection.commit((err) => {

@@ -1222,3 +1222,30 @@ exports.getFeaturedAccommodations = (pool) => (req, res) => {
     }
   });
 };
+
+/* The above code is defining a function that checks if an accommodation has been favorited by a user.
+It does this by executing a SQL query that joins the `accommodation` and `favorite` tables on the
+`ACCOMMODATION_ID` column and returns all rows where the `favorite` table has a non-null
+`ACCOMMODATION_ID`. The function takes a `pool` parameter which is a connection pool to a database,
+and returns a middleware function that takes `req` and `res` parameters and sends a response
+indicating whether the query was successful or not. */
+exports.isAccommodationFavorited = (pool) => (req, res) => {
+  const query = `
+    SELECT *
+    FROM accommodation
+    LEFT JOIN favorite ON accommodation.ACCOMMODATION_ID = favorite.ACCOMMODATION_ID
+    WHERE favorite.ACCOMMODATION_ID IS NOT NULL
+  `;
+
+  // Printing the query
+  console.log("Query: " + query);
+  
+  pool.query(query, (err) => {
+    if (err) {
+      console.log("Error checking favorites: " + err);
+      return res.send({ success: false });
+    } else {
+      return res.send({ success: true });
+    }
+  });
+};

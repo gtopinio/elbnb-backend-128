@@ -704,7 +704,6 @@ exports.addAccommodation = (pool) => (req, res) => {
     return res.send({ success: false });
   }
 
-
   // check if there's an accommodation that already has the same name
   checkAccommDup(pool, name, (err, hasDup) => {
     if (err) {
@@ -1231,8 +1230,9 @@ function checkRoomIfExists(pool, name, callback) {
 }
 
 
-// This function takes a database connection pool, a room name (unique), an accommodation_id, and a callback function as inputs. 
-// It queries the database to retrieve a Room ID associated with the room name in the parameter input.
+// This function takes a database connection pool, a room name (unique), an accommodation_id, and a callback function as inputs.
+// It uses the getAccommodationIdByName to retrieve the Accommodation ID associated with the accomm_name.
+// It queries the database to retrieve a Room ID associated with the room name and the accommodation ID in the parameter input.
 // The function returns the callback which includes an error in the first parameter, if the query fails, and the Room ID in the second parameter if the query succeeds.
 function getRoomIDbyName(pool, name, accomm_name, callback) {
 
@@ -1341,7 +1341,7 @@ exports.addNewRoom = (pool) => (req, res) => {
 }; // end of function
 
 // The editRoom function takes a database connection pool as input and returns a callback function that handles a POST request for editing a room.
-// The function takes the information in the request body which it will use to identify the Room ID associated with the current room name provided through the getRoomIDbyName helper function.
+// The function takes the information in the request body which it will use to identify the Room ID, that is associated with the current room name and accommodation name provided, through the getRoomIDbyName helper function.
 // If the room exists, it checks if the updated name already exists within the database.
 // If the updated name doesn't exist, the function updates the room's details according to the request body and returns a response indicating the successful update to the client.
 // Otherwise, it returns a response indicating the unsuccessful update to the client.
@@ -1427,7 +1427,7 @@ exports.editRoom = (pool) => (req, res) => {
 };
 
 // The deleteRoom function takes a database connection pool as input and returns a callback function that handles a POST request for deleting a room.
-// The function takes the information in the request body which it will use to identify the Room ID associated with the current room name provided through the getRoomIDbyName helper function.
+// The function takes the information in the request body which it will use to identify the Room ID , that is associated with the current room name and accommodation name provided, through the getRoomIDbyName helper function.
 // If the room exists, it removes the room from the database and returns a response indicating the successful deletion to the client.
 // Otherwise, it returns a response indicating the unsuccessful deletion to the client.
 exports.deleteRoom = (pool) => (req, res) => {
@@ -1488,7 +1488,7 @@ exports.deleteRoom = (pool) => (req, res) => {
 };
 
 // The archiveRoom function takes a database connection pool as input and returns a callback function that handles a POST request for archiving a room.
-// The function takes the information in the request body which it will use to identify the Room ID associated with the current room name provided through the getRoomIDbyName helper function.
+// The function takes the information in the request body which it will use to identify the Room ID, that is associated with the current room name and accommodation name provided, through the getRoomIDbyName helper function.
 // If the room exists, it updates a detail of the room in the database to classify it as archived and returns a response indicating a successful operation to the client.
 // Otherwise, it returns a response indicating the unsuccessful operation to the client.
 exports.archiveRoom = (pool) => (req, res) => {

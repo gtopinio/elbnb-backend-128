@@ -1284,7 +1284,7 @@ exports.addReview = (pool) => (req, res) => {
                   else{
                     const insertQuery = `INSERT INTO review (REVIEW_RATING, REVIEW_COMMENT, USER_ID, ACCOMMODATION_ID) VALUES (?, ?, ?, ?)`;
 
-                    connection.query(insertQuery, [rating, comment, uid, accomid], (err, result) => {
+                    connection.query(insertQuery, [rating, comment, uid, accomid], (err, result1) => {
                       if(err){
                         connection.rollback(() => {
                           console.log("Insert review error: " + err);

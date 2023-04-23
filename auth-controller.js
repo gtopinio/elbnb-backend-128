@@ -1256,29 +1256,42 @@ function getUserIdByName(pool, username, callback) {
   });
 }
 
-/* This code is defining a function that checks if an accommodation has been favorited by a user.
-It does this by executing a SQL query that joins the `accommodation` and `favorite` tables on the
-`ACCOMMODATION_ID` column and returns all rows where the `favorite` table has a non-null
-`ACCOMMODATION_ID`. The function takes a `pool` parameter which is a connection pool to a database,
-and returns a middleware function that takes `req` and `res` parameters and sends a response
-indicating whether the query was successful or not. */
-exports.isAccommodationFavorited = (pool) => (req, res) => {
-  const query = `
-    SELECT *
-    FROM accommodation
-    LEFT JOIN favorite ON accommodation.ACCOMMODATION_ID = favorite.ACCOMMODATION_ID
-    WHERE favorite.ACCOMMODATION_ID IS NOT NULL
-  `;
 
-  // Printing the query
-  console.log("Query: " + query);
-  
-  pool.query(query, (err) => {
+/* This code is a function that checks if a given accommodation is favorited by a given user. It
+takes in a database connection pool as a parameter and returns a function that handles HTTP
+requests. The function extracts the username and accommodation name from the request body, retrieves
+the user ID and accommodation ID from the database using helper functions, and then checks if there
+is a record in the "favorite" table that matches the user ID and accommodation ID. If there is a
+match, it returns a response indicating that the accommodation is favorited by the user, otherwise
+it returns a response indicating that it is not */
+exports.isAccommodationFavorited = (pool) => (req, res) => {
+  const {username, accommodationName} = req.body;
+
+  getUserIdByName(pool, username, (err, userId) => {
     if (err) {
-      console.log("Error checking favorites: " + err);
+      console.log("Error: " + err);
       return res.send({ success: false });
-    } else {
-      return res.send({ success: true });
+    } else if (userId > 0 && typeof userId !== 'undefined') {
+      getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+        if (err) {
+          console.log("Error: " + err);
+          return res.send({ success: false });
+        } else if (accommodationId > 0 && typeof accommodationId !== 'undefined') {
+          const isFavoriteQuery = `
+            SELECT *
+            FROM favorite
+            WHERE USER_ID = ? AND ACCOMMODATION_ID = ?
+          `;
+          pool.query(isFavoriteQuery, [userId, accommodationId], (err, result) => {
+            if (err) {
+              console.log("Error checking if favorite: " + err);
+              return res.send({ success: false, isFavorite: false });
+            } else {
+              return res.send({ success: true, isFavorite: true });
+            }
+          });
+        }
+      });
     }
   });
 };

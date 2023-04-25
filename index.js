@@ -1,18 +1,19 @@
-// This file is for starting the actual backend server (CMSC 128 - E1L)
-
-// Dependencies
 const express = require("express");
 const mysql = require("mysql");
+const cookieParser = require("cookie-parser");
+const multer = require("multer");
+const upload = multer();
 const url = require("url");
 
-// Port number : Use 3001 when testing locally
 const PORT = process.env.PORT || 3001;
 const app = express();
 const appLink = "https://official-backend-128.herokuapp.com/"
 
+require('./models/user');
+
 // Parse the database URL from the config var
 const dbUrl = url.parse(process.env.CLEARDB_DATABASE_URL);
-console.log("URL: "+ dbUrl)
+// Check if database URL exists
 if (!dbUrl) {
   throw new Error('Database URL not found');
 }
@@ -26,8 +27,6 @@ const pool = mysql.createPool({
   connectionLimit: 10,
 });
 
-
-// Check if database is connected
 pool.getConnection((err, connection) => {
   if (err) {
     console.log("Error connecting to database:", err);
@@ -40,6 +39,10 @@ pool.getConnection((err, connection) => {
 // The two lines below is to ensure that the server has parser to read the body of incoming requests
 app.use(express.urlencoded({extended: true}));
 app.use(express.json());
+app.use(cookieParser());
+
+// for parsing multipart/form-data
+app.use(upload.fields([{ name: 'accommodationName', maxCount: 1 }, { name: 'data', maxCount: 1 }, { name: 'username', maxCount: 1 }, { name: 'data', maxCount: 1 }]));
 
 // allow CORS
 app.use((req, res, next) => {

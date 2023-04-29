@@ -42,7 +42,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 // for parsing multipart/form-data
-app.use(upload.fields([{ name: 'accommodationName', maxCount: 1 }, { name: 'data', maxCount: 1 }]));
+app.use(upload.fields([{ name: 'accommodationName', maxCount: 1 }, { name: 'data', maxCount: 1 }, { name: 'username', maxCount: 1 }, { name: 'data', maxCount: 1 }]));
 
 // allow CORS
 app.use((req, res, next) => {

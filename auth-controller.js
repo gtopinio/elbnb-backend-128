@@ -1240,14 +1240,14 @@ exports.getUserPic = (pool) => (req, res) => {
 
 // Function to check if a Room Name already exists. Currently not in use
 // TODO: Use for adding rooms! It is for checking if a room name already exists for a specific accommodation. To be implemented in the addNewRoom function in the future.
-function checkRoomIfExists(pool, name, callback) {
+function checkRoomIfExists(pool, name, accommID, callback) {
   pool.getConnection((err, connection) => {
     if (err) {
       console.log("Error: " + err);
       callback(err, null);
     } else {
-      const checkQuery = `SELECT ROOM_ID FROM room WHERE ROOM_NAME = ?`;
-      connection.query(checkQuery, [name], (err, result) => {
+      const checkQuery = `SELECT ROOM_ID FROM room WHERE ROOM_NAME = ? AND ACCOMMODATION_ID = ?`;
+      connection.query(checkQuery, [name, accommID], (err, result) => {
         if (err) {
           console.log("Check Room if Exists error: " + err);
           callback(err, null);
@@ -1330,44 +1330,53 @@ exports.addNewRoom = (pool) => (req, res) => {
         VALUES
         (?, ?, ?, ?)
           `;
-
-        // Get Pool Connection.
-        pool.getConnection((err, connection) => {
-          if(err) {
-            console.log("Get Connection Error: " + err);
-            return res.send({success:false});
-          }
-            
-        // Begin Transaction
-        connection.beginTransaction((err) => {
-          if(err){
-            console.log("Begin Transaction Error: " + err);
-            return res.send({success:false});
+        
+        checkRoomIfExists(pool, name, id, (err, hasDup) => {
+          if (err){
+            console.log("Error: " + err);
+            return res.send({ success: false });
+          }else if (hasDup){
+            console.log("Room name already exists!");
+            return res.send({ success: false });
           }else{
-            connection.query(addNewRoomQuery, [name, price, capacity, id], (err) => {
-              if(err){  // Failed to insert Room.
-                connection.rollback(() => {
-                  console.log("Insert Room Error: " + err);
-                  res.send({ success:false });
-                });
-              }else{ // Successful Insertion of Room.
-                // Commit insertion.
-                connection.commit((err) => {
-                  if (err) {
-                    connection.rollback(() => {
-                      console.log("Commit Error: " + err);
-                      return res.send({success:false});
-                    });
-                  } else {
-                    console.log("Room successfully inserted!");
-                    return res.send({success:true});
-                  }
-                }); // end of connection.commit.
-              } // end of connection.query else statement.
-            }); // end of connection.query.
-          } // end of transaction else statement.
-        }); // end of transaction.
-      }); // end of pool connection.
+            // Get Pool Connection.
+            pool.getConnection((err, connection) => {
+              if(err) {
+                console.log("Get Connection Error: " + err);
+                return res.send({success:false});
+              }
+              // Begin Transaction
+              connection.beginTransaction((err) => {
+                if(err){
+                  console.log("Begin Transaction Error: " + err);
+                  return res.send({success:false});
+                }else{
+                  connection.query(addNewRoomQuery, [name, price, capacity, id], (err) => {
+                    if(err){  // Failed to insert Room.
+                      connection.rollback(() => {
+                        console.log("Insert Room Error: " + err);
+                        res.send({ success:false });
+                      });
+                    }else{ // Successful Insertion of Room.
+                      // Commit insertion.
+                      connection.commit((err) => {
+                        if (err) {
+                          connection.rollback(() => {
+                            console.log("Commit Error: " + err);
+                            return res.send({success:false});
+                          });
+                        } else {
+                          console.log("Room successfully inserted!");
+                          return res.send({success:true});
+                        }
+                      }); // end of connection.commit.
+                    } // end of connection.query else statement.
+                  }); // end of connection.query.
+                } // end of transaction else statement.
+              }); // end of transaction.
+            }); // end of pool connection.
+          }
+        });
     }else {
       console.log("Accommodation not found! Cannot proceed to adding new room...");
       return res.send({success: false});

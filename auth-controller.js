@@ -386,7 +386,6 @@ exports.addAccommodation = (pool) => (req, res) => {
           console.log("Get Connection Error: " + err);
           return res.send({ success:false });
         }
-
         // begin transaction
         connection.beginTransaction((err) => {
           if (err) {
@@ -409,50 +408,61 @@ exports.addAccommodation = (pool) => (req, res) => {
               } else { // Successful insertion of accommodation
                 const accommodationId = resultQuery.insertId; // get the auto-generated id of the newly inserted accommodation
 
-                    // loop through the rooms array and insert each room into the database
-                    for (const room of rooms) {
-                      const roomQuery = `
-                        INSERT INTO room
-                          (ROOM_NAME, ROOM_PRICE, ROOM_CAPACITY, ACCOMMODATION_ID)
-                        VALUES
-                          (?, ?, ?, ?)
-                      `;
-                      connection.query(roomQuery, [room.roomName, room.roomPrice, room.roomCapacity, accommodationId], (err, resultQuery) => {
-                        if (err) {
-                          connection.rollback(() => {
-                            console.log("Insert Room Error: " + err);
-                            flag = false;
-                          });
-                        } else {
-                                // commit the transaction if all queries were successful
-                                connection.commit((err) => {
-                                  if (err) {
-                                    connection.rollback(() => {
-                                      console.log("Commit Error: " + err);
-                                      flag = false;
-                                    });
-                                  } else {
-                                    console.log("Room successfully inserted!");
-                                    flag = true;
-                                  }
-                                });
-                        }
-                      });
-                    }
-                    if(flag) {
-                      console.log("Accommodation successfully inserted!");
-                      return res.send({ success: true });
-                    } else {
-                      console.log("Error inserting room.");
-                      return res.send({ success: false });
-                    }
+                    if (amenities.length > 0) {
+                        // if there are amenities, insert them into the accommodation_amenities table
+                        const amenityQueries = amenities.map((amenity) => {
+                          return [`${accommodationId}-${amenity}`, accommodationId];
+                        });
+                        const amenityQuery = `
+                          INSERT INTO accommodation_amenities
+                            (ACCOMMODATION_AMENITIES_ID, ACCOMMODATION_ID)
+                          VALUES
+                            ?
+                        `;
+                        connection.query(amenityQuery, [amenityQueries], (err) => {
+                          if (err) {
+                            connection.rollback(() => {
+                              console.log("Query Amenities Error: " + err);
+                              res.send({success:false});
+                            });
+                          }
+
+                          // commit the transaction if everything is successful
+                          else connection.commit((err) => {
+                            if (err) {
+                              connection.rollback(() => {
+                                console.log("Insert Amenities Error: " + err);
+                              });
+                            }
+
+                            // return a JSON object indicating success
+                            else{
+                              return res.send({ success: true });
+                            }   });
+                        });
+                      } else {
+                        // commit the transaction if there are no amenities
+                        connection.commit((err) => {
+                          if (err) {
+                            connection.rollback(() => {
+                              console.log("Commit Error: " + err);
+                              res.send({success:false});
+                            });
+                          }
+                          // return a JSON object indicating success
+                          else{
+                            return res.send({ success: true });
+                          } 
+
+                        });
+                      }
                   }
                 });
           } // else when no errors in beginning transaction
         });
       });
     } // else when there's no duplicate
-  }); // end of checkAcc
+  }); // end of checkAccomDupe
 }; // end of addAccommodation
 
 // This function takes a database connection pool, an accommodation name (unique), and a callback function as inputs. 

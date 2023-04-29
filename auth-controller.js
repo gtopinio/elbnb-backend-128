@@ -2154,7 +2154,8 @@ exports.getAccommodationAverageRating = (pool) => (req, res) => {
   });
 }
 
-// TODO: generateReport function
+// This function takes a database connection pool and fetches all the accomodations that matches the same query used in filterAccomodations.
+// A PDF file is then dynamically generated containing the accomodations matching the specified criteria and can be downloaded by the user.
 exports.generateReport = (pool) => (req, res) => {
   // Building PDF from filters
   const filters = req.body.filters;
@@ -2179,6 +2180,7 @@ exports.generateReport = (pool) => (req, res) => {
             console.log("Error: " + err);
             return res.send({ message: "An error occured. PDF Cannot be generated" });
           } else {
+            // TODO: PDF file is accessible by forcing the browser to download the file. Coordinate with front-end?
             // Setting Headers
             res.setHeader('Content-Type', 'application/pdf');
             res.setHeader('Content-Disposition', 'inline; filename=report.pdf')

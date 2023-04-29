@@ -1330,7 +1330,6 @@ exports.addNewRoom = (pool) => (req, res) => {
         VALUES
         (?, ?, ?, ?)
           `;
-        
         checkRoomIfExists(pool, name, id, (err, hasDup) => {
           if (err){
             console.log("Error: " + err);
@@ -1391,14 +1390,14 @@ exports.addNewRoom = (pool) => (req, res) => {
 // Otherwise, it returns a response indicating the unsuccessful update to the client.
 exports.editRoom = (pool) => (req, res) => {
   const {name, newName, newCapacity, newPrice, accommodationName} = req.body;
-
+  var accommID = null;
   // Check if accommodation exists.
   getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
     if (err) {
       console.log("Error: " + err);
       return res.send({ success: false });
     } else if (accommodationId > 0 && typeof accommodationId != "undefined") {
-
+    accommID = accommodationId;
     // Check if the room ID exists.
     var id = null;
     getRoomIDbyName(pool, name, accommodationName, (err, roomID) => {
@@ -1412,7 +1411,7 @@ exports.editRoom = (pool) => (req, res) => {
           const checkRoomNameDupQuery = `
           SELECT COUNT(*) AS count
           FROM room
-          WHERE ROOM_NAME = ? AND ROOM_ID != ?
+          WHERE ROOM_NAME = ? AND ROOM_ID != ? AND ACCOMMODATION_ID = ?
         `;
 
         // Get Pool Connection
@@ -1429,7 +1428,7 @@ exports.editRoom = (pool) => (req, res) => {
           }
 
           else{
-            connection.query(checkRoomNameDupQuery, [newName, id], (err, result) => {
+            connection.query(checkRoomNameDupQuery, [newName, id, accommID], (err, result) => {
               if (err) {
                 console.log("Error: " + err);
                 return res.send({ success: false });

@@ -2163,22 +2163,29 @@ at any point, */
 exports.viewRoom = (pool) => (req, res) => {
   const {accommodationName, roomName} = req.body;
 
-  getRoomIDbyName(pool, roomName, accommodationName, (err, roomID) => {
+  getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
     if (err) {
       console.log("Error: " + err);
       return res.send({ success: false });
-    } else if (roomID > 0 && typeof roomID !== 'undefined') {
-      const roomQuery = `
-        SELECT *
-        FROM room
-        WHERE ROOM_ID = ?
-      `;
-      pool.query(roomQuery, [roomID], (err, result) => {
+    } else if (accommodationId > 0 && typeof accommodationId !== 'undefined') {
+      getRoomIDbyName(pool, roomName, (err, roomID) => {
         if (err) {
-          console.log("Error getting room: " + err);
+          console.log("Error: " + err);
           return res.send({ success: false });
-        } else {
-          return res.send({ success: true, room: result });
+        } else if (roomID > 0 && typeof roomID !== 'undefined') {
+          const roomQuery = `
+            SELECT *
+            FROM room
+            WHERE ROOM_ID = ? AND ACCOMMODATION_ID = ?
+          `;
+          pool.query(roomQuery, [roomID, accommodationId], (err, result) => {
+            if (err) {
+              console.log("Error getting room: " + err);
+              return res.send({ success: false });
+            } else {
+              return res.send({ success: true, room: result });
+            }
+          });
         }
       });
     }

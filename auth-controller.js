@@ -2152,3 +2152,35 @@ exports.getAccommodationAverageRating = (pool) => (req, res) => {
     }
   });
 }
+
+/* This code is defining a function called `viewRoom` that takes a database connection pool as
+input and returns a function that handles a HTTP request to view a specific room in an
+accommodation. The function extracts the accommodation name and room name from the request body,
+uses a helper function called `getRoomIDbyName` to get the ID of the room from the database, and
+then uses the room ID to query the database for the room details. If successful, the function
+returns a JSON response with the room details and a success flag set to true. If there is an error
+at any point, */
+exports.viewRoom = (pool) => (req, res) => {
+  const {accommodationName, roomName} = req.body;
+
+  getRoomIDbyName(pool, roomName, accommodationName, (err, roomID) => {
+    if (err) {
+      console.log("Error: " + err);
+      return res.send({ success: false });
+    } else if (roomID > 0 && typeof roomID !== 'undefined') {
+      const roomQuery = `
+        SELECT *
+        FROM room
+        WHERE ROOM_ID = ?
+      `;
+      pool.query(roomQuery, [roomID], (err, result) => {
+        if (err) {
+          console.log("Error getting room: " + err);
+          return res.send({ success: false });
+        } else {
+          return res.send({ success: true, room: result });
+        }
+      });
+    }
+  });
+}

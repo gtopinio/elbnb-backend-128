@@ -2168,7 +2168,7 @@ exports.viewRoom = (pool) => (req, res) => {
       console.log("Error: " + err);
       return res.send({ success: false });
     } else if (accommodationId > 0 && typeof accommodationId !== 'undefined') {
-      getRoomIDbyName(pool, roomName, (err, roomID) => {
+      getRoomIDbyName(pool, roomName, accommodationName,(err, roomID) => {
         if (err) {
           console.log("Error: " + err);
           return res.send({ success: false });

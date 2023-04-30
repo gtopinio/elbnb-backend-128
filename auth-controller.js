@@ -2164,7 +2164,7 @@ exports.viewAllStudents = (pool) => (req, res) => {
       const empty = [];
       return res.send({ success: false, students: empty });
     } else {
-      connection.query('SELECT * FROM users WHERE USER_TYPE = "Student"', (err, results) => {
+      connection.query('SELECT * FROM user WHERE USER_TYPE = "Student"', (err, results) => {
         if(err){
           const empty=[];
           console.log("View All Students Error: " + err);

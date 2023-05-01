@@ -899,16 +899,6 @@ exports.filterUsersByName = (pool) => (req, res) => {
 
 }; // end of function.
 
-exports.filterUsersByUname = (pool) => (req, res) => {
-  const {name, type} = req.body;
-
-};
-
-exports.filterUsersByEmail = (pool) => (req, res) => {
-  const {name, type} = req.body;
-
-};
-
 // The function takes in a database connection pool object and returns a callback function that filters a room based on the user's search criteria specified in the req.query object.
 function filterRooms(pool, priceTo, priceFrom, capacity, callback) {
   const query = `

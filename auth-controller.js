@@ -825,11 +825,10 @@ exports.deleteAccommodation = (pool) => (req, res) => {
     }});
 };
 
-
 // Type is true for student, type is false for owner.
-exports.filterUsersByName = (pool) => (req, res) => {
+exports.filterUsersByString = (pool) => (req, res) => {
   const {name, type} = req.body;
-
+  const empty=[];
   // Checks if filter is set as empty.
   if (!name){
     pool.getConnection((err, connection) => {
@@ -839,7 +838,6 @@ exports.filterUsersByName = (pool) => (req, res) => {
       }else if (type == true){
         connection.query('SELECT * FROM user WHERE USER_TYPE = "Student" ORDER BY USER_ID ASC', (err, results) => {
           if(err){
-            const empty=[];
             console.log("View All Students Error: " + err);
             return res.send({ success: false, users: empty });
           } else {
@@ -850,7 +848,6 @@ exports.filterUsersByName = (pool) => (req, res) => {
       }else if (type == false){
         connection.query('SELECT * FROM user WHERE USER_TYPE = "Owner" ORDER BY USER_ID ASC', (err, results) => {
           if(err){
-            const empty=[];
             console.log("View All Owners Error: " + err);
             return res.send({ success: false, users: empty });
           } else {
@@ -871,7 +868,6 @@ exports.filterUsersByName = (pool) => (req, res) => {
       }else if (type == true){
         connection.query(`SELECT * FROM user WHERE USER_FNAME LIKE '%${name}%' OR USER_LNAME LIKE '%${name}%' OR USER_USERNAME LIKE '%${name}%' OR USER_EMAIL LIKE '%${name}%' AND USER_TYPE = 'Student' ORDER BY USER_ID ASC`, (err, results) => {
           if(err){
-            const empty=[];
             console.log("View All Students Error: " + err);
             return res.send({ success: false, users: empty });
           } else {
@@ -882,7 +878,6 @@ exports.filterUsersByName = (pool) => (req, res) => {
       }else if (type == false){
         connection.query(`SELECT * FROM user WHERE USER_FNAME LIKE '%${name}%' OR USER_LNAME LIKE '%${name}%' OR USER_USERNAME LIKE '%${name}%' OR USER_EMAIL LIKE '%${name}%' AND USER_TYPE = 'Owner' ORDER BY USER_ID ASC`, (err, results) => {
           if(err){
-            const empty=[];
             console.log("View All Owners Error: " + err);
             return res.send({ success: false, users: empty });
           } else {

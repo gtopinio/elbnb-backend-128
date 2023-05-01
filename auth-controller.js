@@ -870,7 +870,7 @@ exports.filterUsersByString = (pool) => (req, res) => {
         console.log("Error: " + err);
         return res.send({ success: false, users: empty });
       }else if (type == true){
-        connection.query(`SELECT * FROM user WHERE USER_FNAME LIKE '%${name}%' OR USER_LNAME LIKE '%${name}%' OR USER_USERNAME LIKE '%${name}%' OR USER_EMAIL LIKE '%${name}%' AND USER_TYPE = 'Student' ORDER BY USER_ID ASC`, (err, results) => {
+        connection.query(`SELECT * FROM user WHERE (USER_FNAME LIKE '%${name}%' OR USER_LNAME LIKE '%${name}%' OR USER_USERNAME LIKE '%${name}%' OR USER_EMAIL LIKE '%${name}%') AND USER_TYPE = 'Student' ORDER BY USER_ID ASC`, (err, results) => {
           if(err){
             console.log("View Students Error: " + err);
             return res.send({ success: false, users: empty });
@@ -880,7 +880,7 @@ exports.filterUsersByString = (pool) => (req, res) => {
           }
         });
       }else if (type == false){
-        connection.query(`SELECT * FROM user WHERE USER_FNAME LIKE '%${name}%' OR USER_LNAME LIKE '%${name}%' OR USER_USERNAME LIKE '%${name}%' OR USER_EMAIL LIKE '%${name}%' AND USER_TYPE = 'Owner' ORDER BY USER_ID ASC`, (err, results) => {
+        connection.query(`SELECT * FROM user WHERE (USER_FNAME LIKE '%${name}%' OR USER_LNAME LIKE '%${name}%' OR USER_USERNAME LIKE '%${name}%' OR USER_EMAIL LIKE '%${name}%') AND USER_TYPE = 'Owner' ORDER BY USER_ID ASC`, (err, results) => {
           if(err){
             console.log("View Owners Error: " + err);
             return res.send({ success: false, users: empty });

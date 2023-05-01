@@ -826,6 +826,39 @@ exports.deleteAccommodation = (pool) => (req, res) => {
 };
 
 
+// Type is true for student, type is false for owner.
+exports.filterUsersByName = (pool) => (req, res) => {
+  const {name, type} = req.body;
+
+  // Checks if filter is set as empty.
+  if (!name){
+    pool.getConnection((err, connection) => {
+      if(err){
+        console.log("Error: " + err);
+        return res.send({ success: false });
+      }else if (type == true){
+
+      }else if (type == false){
+
+      }else{
+        console.log("Error defining user type.");
+        return res.send({ success: false});
+      }
+    }); // end of pool connection for empty filter.
+  }
+
+}; // end of function.
+
+exports.filterUsersByUname = (pool) => (req, res) => {
+  const {name, type} = req.body;
+
+};
+
+exports.filterUsersByEmail = (pool) => (req, res) => {
+  const {name, type} = req.body;
+
+};
+
 // The function takes in a database connection pool object and returns a callback function that filters a room based on the user's search criteria specified in the req.query object.
 function filterRooms(pool, priceTo, priceFrom, capacity, callback) {
   const query = `

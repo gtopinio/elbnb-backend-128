@@ -887,11 +887,13 @@ exports.filterUsersByString = (pool) => (req, res) => {
         });
       }else{
         console.log("Error defining user type.");
-        return res.send({ success: false});
+        return res.send({ success: false, users: empty});
       }
     });
+  } else{
+    console.log("Error defining string.");
+    return res.send({ success: false, users: empty});
   }
-
 }; // end of function.
 
 // The function takes in a database connection pool object and returns a callback function that filters a room based on the user's search criteria specified in the req.query object.

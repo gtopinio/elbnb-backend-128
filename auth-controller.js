@@ -835,16 +835,66 @@ exports.filterUsersByName = (pool) => (req, res) => {
     pool.getConnection((err, connection) => {
       if(err){
         console.log("Error: " + err);
-        return res.send({ success: false });
+        return res.send({ success: false, users: empty });
       }else if (type == true){
-
+        connection.query('SELECT * FROM user WHERE USER_TYPE = "Student" ORDER BY USER_ID ASC', (err, results) => {
+          if(err){
+            const empty=[];
+            console.log("View All Students Error: " + err);
+            return res.send({ success: false, users: empty });
+          } else {
+            console.log("Students found: " + results.length);
+            return res.send({ success: true, users: results });
+          }
+        });
       }else if (type == false){
-
+        connection.query('SELECT * FROM user WHERE USER_TYPE = "Owner" ORDER BY USER_ID ASC', (err, results) => {
+          if(err){
+            const empty=[];
+            console.log("View All Owners Error: " + err);
+            return res.send({ success: false, users: empty });
+          } else {
+            console.log("Owners found: " + results.length);
+            return res.send({ success: true, users: results });
+          }
+        });
       }else{
         console.log("Error defining user type.");
         return res.send({ success: false});
       }
     }); // end of pool connection for empty filter.
+  }else if (name){
+    pool.getConnection((err, connection) => {
+      if(err){
+        console.log("Error: " + err);
+        return res.send({ success: false, users: empty });
+      }else if (type == true){
+        connection.query(`SELECT * FROM user WHERE USER_FNAME LIKE '%${name}%' OR USER_LNAME LIKE '%${name}%' OR USER_USERNAME LIKE '%${name}%' OR USER_EMAIL LIKE '%${name}%' AND USER_TYPE = 'Student' ORDER BY USER_ID ASC`, (err, results) => {
+          if(err){
+            const empty=[];
+            console.log("View All Students Error: " + err);
+            return res.send({ success: false, users: empty });
+          } else {
+            console.log("Students found: " + results.length);
+            return res.send({ success: true, users: results });
+          }
+        });
+      }else if (type == false){
+        connection.query(`SELECT * FROM user WHERE USER_FNAME LIKE '%${name}%' OR USER_LNAME LIKE '%${name}%' OR USER_USERNAME LIKE '%${name}%' OR USER_EMAIL LIKE '%${name}%' AND USER_TYPE = 'Owner' ORDER BY USER_ID ASC`, (err, results) => {
+          if(err){
+            const empty=[];
+            console.log("View All Owners Error: " + err);
+            return res.send({ success: false, users: empty });
+          } else {
+            console.log("Owners found: " + results.length);
+            return res.send({ success: true, users: results });
+          }
+        });
+      }else{
+        console.log("Error defining user type.");
+        return res.send({ success: false});
+      }
+    });
   }
 
 }; // end of function.

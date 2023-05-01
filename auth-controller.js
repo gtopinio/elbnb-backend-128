@@ -825,7 +825,11 @@ exports.deleteAccommodation = (pool) => (req, res) => {
     }});
 };
 
-// Type is true for student, type is false for owner.
+// The filterUsersByString function takes in a pool object and processes the request object containing a string that is used to filter users.
+// The function uses a LIKE query to determine which rows contain the substring.
+// The function also filters by user type, and depending on the value of the boolean "type", the function may return a table of students or owners.
+// Type is true for students, and is false for owners.
+// The function returns a response indicating the success of the query as well as a list of users depending on the filter.
 exports.filterUsersByString = (pool) => (req, res) => {
   const {name, type} = req.body;
   const empty=[];

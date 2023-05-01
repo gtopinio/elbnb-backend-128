@@ -869,7 +869,7 @@ exports.filterUsersByString = (pool) => (req, res) => {
       if(err){
         console.log("Error: " + err);
         return res.send({ success: false, users: empty });
-      }else if (type == true){
+      }else if (isStudent == true){
         connection.query(`SELECT * FROM user WHERE USER_FNAME LIKE '%${name}%' OR USER_LNAME LIKE '%${name}%' OR USER_USERNAME LIKE '%${name}%' OR USER_EMAIL LIKE '%${name}%' AND USER_TYPE = 'Student' ORDER BY USER_ID ASC`, (err, results) => {
           if(err){
             console.log("View Students Error: " + err);
@@ -879,7 +879,7 @@ exports.filterUsersByString = (pool) => (req, res) => {
             return res.send({ success: true, users: results });
           }
         });
-      }else if (type == false){
+      }else if (isStudent == false){
         connection.query(`SELECT * FROM user WHERE USER_FNAME LIKE '%${name}%' OR USER_LNAME LIKE '%${name}%' OR USER_USERNAME LIKE '%${name}%' OR USER_EMAIL LIKE '%${name}%' AND USER_TYPE = 'Owner' ORDER BY USER_ID ASC`, (err, results) => {
           if(err){
             console.log("View Owners Error: " + err);

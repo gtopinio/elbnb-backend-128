@@ -827,11 +827,11 @@ exports.deleteAccommodation = (pool) => (req, res) => {
 
 // The filterUsersByString function takes in a pool object and processes the request object containing a string that is used to filter users.
 // The function uses a LIKE query to determine which rows contain the substring.
-// The function also filters by user type, and depending on the value of the boolean "type", the function may return a table of students or owners.
-// Type is true for students, and is false for owners.
+// The function also filters by user type, and depending on the value of the boolean "isStudent", the function may return a table of students or owners.
+// isStudent is true for students, and is false for owners.
 // The function returns a response indicating the success of the query as well as a list of users depending on the filter.
 exports.filterUsersByString = (pool) => (req, res) => {
-  const {name, type} = req.body;
+  const {name, isStudent} = req.body;
   const empty=[];
   // Checks if filter is set as empty.
   if (!name){
@@ -839,7 +839,7 @@ exports.filterUsersByString = (pool) => (req, res) => {
       if(err){
         console.log("Error: " + err);
         return res.send({ success: false, users: empty });
-      }else if (type == true){
+      }else if (isStudent == true){
         connection.query('SELECT * FROM user WHERE USER_TYPE = "Student" ORDER BY USER_ID ASC', (err, results) => {
           if(err){
             console.log("View All Students Error: " + err);
@@ -849,7 +849,7 @@ exports.filterUsersByString = (pool) => (req, res) => {
             return res.send({ success: true, users: results });
           }
         });
-      }else if (type == false){
+      }else if (isStudent == false){
         connection.query('SELECT * FROM user WHERE USER_TYPE = "Owner" ORDER BY USER_ID ASC', (err, results) => {
           if(err){
             console.log("View All Owners Error: " + err);

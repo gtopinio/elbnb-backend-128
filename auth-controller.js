@@ -2238,7 +2238,7 @@ exports.updateUserPicture = (pool) => (req, res) => {
               return res.send({ success: false });
             } else {
               // upload the new picture to cloudinary
-              cloudinary.uploader.upload(imageDataUrl, (err, results) => {
+              cloudinary.uploader.upload(imageDataUrl, { upload_preset: 'mockup_setup' }, (err, results) => {
                 if (err) {
                   console.log("Error uploading picture to cloudinary: " + err);
                   return res.send({ success: false });

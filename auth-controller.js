@@ -2176,7 +2176,7 @@ exports.removeUserPicture = (pool) => (req, res) => {
           return res.send({ success: false });
         } else {
           // delete the picture from cloudinary
-          cloudinary.uploader.destroy(results[0].USER_PICTURE_ID, (err, results) => {
+          cloudinary.uploader.destroy(results[0].PICTURE_ID, (err, results) => {
             if (err) {
               console.log("Error deleting picture from cloudinary: " + err);
               return res.send({ success: false });

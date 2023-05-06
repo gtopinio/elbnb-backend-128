@@ -2166,8 +2166,8 @@ exports.removeUserPicture = (pool) => (req, res) => {
     } else if (userId > 0 && typeof userId !== 'undefined') {
       // get the user picture id
       const getPictureIdQuery = `
-        SELECT USER_PICTURE_ID
-        FROM user
+        SELECT PICTURE_ID
+        FROM picture
         WHERE USER_ID = ?
       `;
       pool.query(getPictureIdQuery, [userId], (err, results) => {

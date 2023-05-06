@@ -37,4 +37,5 @@ module.exports = (app, pool) => {
     app.post("/accommodation/get-ratings", authController.getAccommodationAverageRating(pool));
     app.get("/view-all-students", authController.viewAllStudents(pool));
     app.post("/filter-users", authController.filterUsersByString(pool));
+    app.post("/accommodation/view-room", authController.viewRoom(pool));
 }

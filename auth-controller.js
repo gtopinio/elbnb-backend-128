@@ -2455,3 +2455,48 @@ exports.viewAllStudents = (pool) => (req, res) => {
     }
   });
 }
+/*
+This function retrieves information about an accommodation using the connection pool
+*/
+exports.viewAccommodation = (pool) => (req, res) => {
+  const {accommodationName} =  req.body;
+
+  var accomid = null;
+
+  getAccommodationIdByName(pool, accommodationName, (err, accommodationId) =>{
+    if(err){
+      console.log("Error: " + err);
+      return res.send({ success: false });
+    }
+    else if(accommodationId>0){
+      accomid = accommodationId;
+
+      pool.getConnection((err, connection) => {
+        if(err){
+          console.log("Error: " + err);
+          return res.send({ success: false });
+        }
+        else{
+          const selectQuery = `SELECT * FROM accommodation WHERE ACCOMMODATION_ID = ?`;
+
+          connection.query(selectQuery, [accomid], (err, result1) => {
+            if(err){
+              connection.rollback(() => {
+                console.log("Select accommodation error: " + err);
+                return res.send({ success: false });
+              })
+            }
+            else{
+              console.log("Select accommodation successful");
+              return res.send({ success: true, accommodation: result1});
+            }
+          })
+        }
+      })
+    }
+    else{
+      console.log("Accomodation not found! Cannot select an accommodation");
+      return res.send({ success: false });
+    }
+  })
+}

@@ -2152,3 +2152,53 @@ exports.getAccommodationAverageRating = (pool) => (req, res) => {
     }
   });
 }
+
+// Function to remove the user picture from cloudinary and the mysql database
+exports.removeUserPicture = (pool) => (req, res) => {
+  // get the username from the request body
+  const {username} = req.body;
+
+  // see if the user exists
+  getUserIdByUsername(pool, username, (err, userId) => {
+    if (err) {
+      console.log("Error: " + err);
+      return res.send({ success: false });
+    } else if (userId > 0 && typeof userId !== 'undefined') {
+      // get the user picture id
+      const getPictureIdQuery = `
+        SELECT USER_PICTURE_ID
+        FROM user
+        WHERE USER_ID = ?
+      `;
+      pool.query(getPictureIdQuery, [userId], (err, results) => {
+        if (err) {
+          console.log("Error getting picture id: " + err);
+          return res.send({ success: false });
+        } else {
+          // delete the picture from cloudinary
+          cloudinary.uploader.destroy(results[0].USER_PICTURE_ID, (err, results) => {
+            if (err) {
+              console.log("Error deleting picture from cloudinary: " + err);
+              return res.send({ success: false });
+            } else {
+              // update the user picture id in the database to null
+              const updatePictureIdQuery = `
+                UPDATE user
+                SET USER_PICTURE_ID = NULL
+                WHERE USER_ID = ?
+              `;
+              pool.query(updatePictureIdQuery, [userId], (err, results) => {
+                if (err) {
+                  console.log("Error updating picture id: " + err);
+                  return res.send({ success: false });
+                } else {
+                  return res.send({ success: true });
+                }
+              });
+            }
+          });
+        }
+      });
+    }
+  });
+}

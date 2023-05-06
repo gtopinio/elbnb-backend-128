@@ -1345,7 +1345,7 @@ function getRoomIDbyName(pool, name, accomm_name, callback) {
   getAccommodationIdByName(pool, accomm_name, (err, accommodationId) => {
     if (err) {
       console.log("Error: " + err);
-      return res.send({ success: false });
+      callback(err, null);
     } else if (accommodationId > 0 && typeof accommodationId != "undefined") {
       accommid = accommodationId;
 

@@ -2381,3 +2381,28 @@ exports.updateAccommodationPicture = (pool) => (req, res) => {
     }
   });
 }
+
+// The viewAllStudents function takes a database connection pool, and gets all
+// entries in the user table whose USER_TYPE is a "Student"
+exports.viewAllStudents = (pool) => (req, res) => {
+  console.log("Viewing All Students");
+
+  pool.getConnection((err, connection) => {
+    if(err){
+      console.log("Error: " + err);
+      const empty = [];
+      return res.send({ success: false, students: empty });
+    } else {
+      connection.query('SELECT * FROM user WHERE USER_TYPE = "Student"', (err, results) => {
+        if(err){
+          const empty=[];
+          console.log("View All Students Error: " + err);
+          return res.send({ success: false, students: empty });
+        } else {
+          console.log("Students found: " + results.length);
+          return res.send({ success: true, students: results });
+        }
+      });
+    }
+  });
+}

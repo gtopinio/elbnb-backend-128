@@ -2183,8 +2183,8 @@ exports.removeUserPicture = (pool) => (req, res) => {
             } else {
               // update the user picture id in the database to null
               const updatePictureIdQuery = `
-                UPDATE user
-                SET USER_PICTURE_ID = NULL
+                UPDATE picture
+                SET PICTURE_ID = NULL
                 WHERE USER_ID = ?
               `;
               pool.query(updatePictureIdQuery, [userId], (err, results) => {

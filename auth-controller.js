@@ -2202,3 +2202,67 @@ exports.removeUserPicture = (pool) => (req, res) => {
     }
   });
 }
+
+// Function to update the user picture from cloudinary and the mysql database
+exports.updateUserPicture = (pool) => (req, res) => {
+  // Extract the image data from the request body
+  const imageData = req.files.data[0].buffer;
+
+   // Convert the buffer to a base64 data URL
+   const mimeType = req.files.data[0].mimetype;
+   const imageDataUrl = `data:${mimeType};base64,${imageData.toString('base64')}`;
+
+  // get the username from the request body
+  const {username} = req.body;
+  // see if the user exists
+  getUserIdByUsername(pool, username, (err, userId) => {
+    if (err) {
+      console.log("Error: " + err);
+      return res.send({ success: false });
+    } else if (userId > 0 && typeof userId !== 'undefined') {
+      // get the user picture id
+      const getPictureIdQuery = `
+        SELECT PICTURE_ID
+        FROM picture
+        WHERE USER_ID = ?
+      `;
+      pool.query(getPictureIdQuery, [userId], (err, results) => {
+        if (err) {
+          console.log("Error getting picture id: " + err);
+          return res.send({ success: false });
+        } else {
+          // delete the picture from cloudinary
+          cloudinary.uploader.destroy(results[0].PICTURE_ID, (err, results) => {
+            if (err) {
+              console.log("Error deleting picture from cloudinary: " + err);
+              return res.send({ success: false });
+            } else {
+              // upload the new picture to cloudinary
+              cloudinary.uploader.upload(imageDataUrl, (err, results) => {
+                if (err) {
+                  console.log("Error uploading picture to cloudinary: " + err);
+                  return res.send({ success: false });
+                } else {
+                  // update the user picture id in the database
+                  const updatePictureIdQuery = `
+                    UPDATE picture
+                    SET PICTURE_ID = ?
+                    WHERE USER_ID = ?
+                  `;
+                  pool.query(updatePictureIdQuery, [results.public_id, userId], (err, results) => {
+                    if (err) {
+                      console.log("Error updating picture id: " + err);
+                      return res.send({ success: false });
+                    } else {
+                      return res.send({ success: true });
+                    }
+                  });
+                }
+              });
+            }
+          });
+        }
+      });
+    }
+  });
+}

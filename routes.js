@@ -17,6 +17,7 @@ module.exports = (app, pool) => {
     app.post("/user/upload-user-pic", authController.uploadUserPic(pool));
     app.post("/user/get-user-pic", authController.getUserPic(pool));
     app.post("/user/remove-user-pic", authController.removeUserPicture(pool));
+    app.post("/user/update-user-pic", authController.updateUserPicture(pool));
     app.post("/accommodation/get-rooms", authController.getRoomsByAccommodationName(pool));
     app.post("/accommodation/add-room", authController.addNewRoom(pool));
     app.post("/accommodation/edit-room", authController.editRoom(pool));

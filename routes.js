@@ -38,4 +38,5 @@ module.exports = (app, pool) => {
     app.get("/view-all-students", authController.viewAllStudents(pool));
     app.post("/filter-users", authController.filterUsersByString(pool));
     app.post("/accommodation/view-room", authController.viewRoom(pool));
+    app.post("/generate-report", authController.generateReport(pool));
 }

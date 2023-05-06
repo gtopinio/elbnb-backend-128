@@ -13,6 +13,45 @@ cloudinary.config({
 
 // MOCKUP-BACKEND-128 ENDPOINTS
 
+// ===================================== START OF USER MANAGEMENT FEATURES =====================================
+
+/*
+This function takes a database connection pool, an accommodation name (unique), and a callback function as inputs. 
+It queries the database to retrieve the user ID for the provided name and passes the result to the callback function. 
+If there is an error in the database query or connection, it logs the error and passes it to the callback function as the first parameter.
+*/
+function getUserIdByUsername(pool, name, callback) {
+  pool.getConnection((err, connection) => {
+    if (err) {
+      console.log("Error: " + err);
+      callback(err, null);
+    } else {
+      const checkQuery = `SELECT USER_ID FROM user WHERE USER_USERNAME = ?`;
+      connection.query(checkQuery, [name], (err, result) => {
+        if (err) {
+          console.log("Get User Id Error: " + err);
+          callback(err, null);
+        } else {
+          try{
+            if(typeof result[0].USER_ID === "undefined") {
+              console.log("Get User Id: Undefined Object");
+              callback(null, 0);
+            }
+            else {
+              console.log("Get User Id: Defined Object");
+              callback(null, result[0].USER_ID);
+            }
+          } catch (err) {
+            console.log("User Not Found...");
+            callback(err, null);
+          }
+          
+        }
+      });
+    }
+  });
+}
+
 // This signup function takes a connection pool as a parameter and handles signup requests for admins, owners, and students.
 // It extracts the user information from the request body, checks if the email already exists in the user table, and creates a new user in the user table.
 // It then checks which user type to create and creates a new user in the corresponding table.
@@ -323,6 +362,320 @@ exports.viewProfile = (pool) => (req, res) => {
   });
 };
 
+// The filterUsersByString function takes in a pool object and processes the request object containing a string that is used to filter users.
+// The function uses a LIKE query to determine which rows contain the substring.
+// The function also filters by user type, and depending on the value of the boolean "isStudent", the function may return a table of students or owners.
+// isStudent is true for students, and is false for owners.
+// The function returns a response indicating the success of the query as well as a list of users depending on the filter.
+exports.filterUsersByString = (pool) => (req, res) => {
+  const {name, isStudent} = req.body;
+  const empty=[];
+  // Checks if filter is set as empty.
+  if (!name){
+    pool.getConnection((err, connection) => {
+      if(err){
+        console.log("Error: " + err);
+        return res.send({ success: false, users: empty });
+      }else if (isStudent == true){
+        connection.query('SELECT * FROM user WHERE USER_TYPE = "Student" ORDER BY USER_ID ASC', (err, results) => {
+          if(err){
+            console.log("View All Students Error: " + err);
+            return res.send({ success: false, users: empty });
+          } else {
+            console.log("Students found: " + results.length);
+            return res.send({ success: true, users: results });
+          }
+        });
+      }else if (isStudent == false){
+        connection.query('SELECT * FROM user WHERE USER_TYPE = "Owner" ORDER BY USER_ID ASC', (err, results) => {
+          if(err){
+            console.log("View All Owners Error: " + err);
+            return res.send({ success: false, users: empty });
+          } else {
+            console.log("Owners found: " + results.length);
+            return res.send({ success: true, users: results });
+          }
+        });
+      }else{
+        console.log("Error defining user type.");
+        return res.send({ success: false});
+      }
+    }); // end of pool connection for empty filter.
+  }else if (name){
+    pool.getConnection((err, connection) => {
+      if(err){
+        console.log("Error: " + err);
+        return res.send({ success: false, users: empty });
+      }else if (isStudent == true){
+        connection.query(`SELECT * FROM user WHERE (USER_FNAME LIKE '%${name}%' OR USER_LNAME LIKE '%${name}%' OR USER_USERNAME LIKE '%${name}%' OR USER_EMAIL LIKE '%${name}%') AND USER_TYPE = 'Student' ORDER BY USER_ID ASC`, (err, results) => {
+          if(err){
+            console.log("View Students Error: " + err);
+            return res.send({ success: false, users: empty });
+          } else {
+            console.log("Students found: " + results.length);
+            return res.send({ success: true, users: results });
+          }
+        });
+      }else if (isStudent == false){
+        connection.query(`SELECT * FROM user WHERE (USER_FNAME LIKE '%${name}%' OR USER_LNAME LIKE '%${name}%' OR USER_USERNAME LIKE '%${name}%' OR USER_EMAIL LIKE '%${name}%') AND USER_TYPE = 'Owner' ORDER BY USER_ID ASC`, (err, results) => {
+          if(err){
+            console.log("View Owners Error: " + err);
+            return res.send({ success: false, users: empty });
+          } else {
+            console.log("Owners found: " + results.length);
+            return res.send({ success: true, users: results });
+          }
+        });
+      }else{
+        console.log("Error defining user type.");
+        return res.send({ success: false, users: empty});
+      }
+    });
+  } else{
+    console.log("Error defining string.");
+    return res.send({ success: false, users: empty});
+  }
+}; // end of function.
+
+// The viewAllStudents function takes a database connection pool, and gets all
+// entries in the user table whose USER_TYPE is a "Student"
+exports.viewAllStudents = (pool) => (req, res) => {
+  console.log("Viewing All Students");
+
+  pool.getConnection((err, connection) => {
+    if(err){
+      console.log("Error: " + err);
+      const empty = [];
+      return res.send({ success: false, students: empty });
+    } else {
+      connection.query('SELECT * FROM user WHERE USER_TYPE = "Student"', (err, results) => {
+        if(err){
+          const empty=[];
+          console.log("View All Students Error: " + err);
+          return res.send({ success: false, students: empty });
+        } else {
+          console.log("Students found: " + results.length);
+          return res.send({ success: true, students: results });
+        }
+      });
+    }
+  });
+};
+
+// This is a function that uploads an image to Cloudinary and updates the picture table in
+// the SQL database with the user picture ID and user ID. It first extracts the image data from the request body,
+// converts the buffer to a base64 data URL, and finds the user ID from the request parameters.
+// It then checks if there is a user with the same name and gets the user ID using the getUserIDByName function.
+// If there is no error and the user ID is greater than 0, it establishes a connection to the database and uploads the image to Cloudinary using the cloudinary.uploader.upload method.
+// It then inserts a new row in the picture table with the user picture ID and user ID using an SQL INSERT statement.
+exports.uploadUserPic = (pool) => async (req, res) => {
+
+  // Extract the image data from the request body
+  const imageData = req.files.data[0].buffer;
+
+   // Convert the buffer to a base64 data URL
+   const mimeType = req.files.data[0].mimetype;
+   const imageDataUrl = `data:${mimeType};base64,${imageData.toString('base64')}`;
+    
+  // Find the accommodation id from the request parameters
+  const username = req.body.username;
+
+  // console.log("Data: " + base64Data);
+  console.log("Username: " + username);
+  
+  // get the user id
+
+  User.findBy(pool, "USER_USERNAME", username, (err, user) => {
+    if (err) {
+      console.log("Error: " + err);
+      return res.send({ success: false });
+    } else if (user) {
+
+      console.log("User: " + user.USER_USERNAME); // add this line
+
+      pool.getConnection(async (err, connection) => {
+        if (err) {
+          console.log("Error: " + err);
+          callback(err, null);
+        } else {
+  
+        // Upload the image to Cloudinary
+        try {
+          const result = await cloudinary.uploader.upload(imageDataUrl, { upload_preset: 'mockup_setup' });
+          const userPictureId = result.public_id;
+          
+          // Update the picture table
+          const insertUserPictureQuery = `INSERT INTO picture (PICTURE_ID, USER_ID) VALUES ('${userPictureId}', ${user.USER_ID})`;
+          await connection.query(insertUserPictureQuery);
+          
+          // Return success response
+          console.log("Successfully uploaded the user image to cloudinary!");
+          return res.send({ success: true });
+        } catch (error) {
+          console.error(error);
+          return res.send({ success: false, message: 'Error uploading image' });
+        }
+      }
+    });
+  } else {
+    console.log("No user found with username: " + username); // add this line
+    console.log("Full upload error");
+    return res.send({ success: false });
+  }
+  });
+};
+
+// Function to fetch a user's picture url from Cloudinary using the username and accessing it using the User.findBy function.
+// After getting the id, we look through the picture table for the picture with the same user id and get the picture id and use it to access the image url from Cloudinary.
+// If there is an error, it logs the error and sends a response with a success value of false and a message indicating an error occurred.
+// If there is no error, it sends a response with a success value of true and the image url
+exports.getUserPic = (pool) => (req, res) => {
+  const username = req.body.username;
+
+  User.findBy(pool, "USER_USERNAME", username, (err, user) => {
+    if(err){
+      console.log("Error: " + err);
+      return res.send({ success: false });
+    } else if(user){
+      // Get the picture id of the user
+      const query = `SELECT PICTURE_ID FROM picture WHERE USER_ID = ${user.USER_ID}`;
+      pool.query(query, (err, results) => {
+        if (err) {
+          console.log("Error: " + err);
+          return res.send({ success: false });
+        } else {
+          // Get the image url from Cloudinary
+          const pictureId = results[0].PICTURE_ID;
+          const imageUrl = cloudinary.url(pictureId, { secure: true });
+          return res.send({ success: true, imageUrl: imageUrl });
+        }
+      });
+    } else {
+      // No user found with the username
+      console.log("No user found with the username: " + username);
+      return res.send({ success: false });
+    }
+  });
+}
+
+// Function to remove the user picture from cloudinary and the mysql database
+exports.removeUserPicture = (pool) => (req, res) => {
+  // get the username from the request body
+  const {username} = req.body;
+
+  // see if the user exists
+  getUserIdByUsername(pool, username, (err, userId) => {
+    if (err) {
+      console.log("Error: " + err);
+      return res.send({ success: false });
+    } else if (userId > 0 && typeof userId !== 'undefined') {
+      // get the user picture id
+      const getPictureIdQuery = `
+        SELECT PICTURE_ID
+        FROM picture
+        WHERE USER_ID = ?
+      `;
+      pool.query(getPictureIdQuery, [userId], (err, results) => {
+        if (err) {
+          console.log("Error getting picture id: " + err);
+          return res.send({ success: false });
+        } else {
+          // delete the picture from cloudinary
+          cloudinary.uploader.destroy(results[0].PICTURE_ID, (err, results) => {
+            if (err) {
+              console.log("Error deleting picture from cloudinary: " + err);
+              return res.send({ success: false });
+            } else {
+              // update the user picture id in the database to null
+              const updatePictureIdQuery = `
+                UPDATE picture
+                SET PICTURE_ID = ?
+                WHERE USER_ID = ?
+              `;
+              pool.query(updatePictureIdQuery, [userId, userId], (err, results) => {
+                if (err) {
+                  console.log("Error updating picture id: " + err);
+                  return res.send({ success: false });
+                } else {
+                  return res.send({ success: true });
+                }
+              });
+            }
+          });
+        }
+      });
+    }
+  });
+}
+
+// Function to update the user picture from cloudinary and the mysql database
+exports.updateUserPicture = (pool) => (req, res) => {
+  // Extract the image data from the request body
+  const imageData = req.files.data[0].buffer;
+
+   // Convert the buffer to a base64 data URL
+   const mimeType = req.files.data[0].mimetype;
+   const imageDataUrl = `data:${mimeType};base64,${imageData.toString('base64')}`;
+
+  // get the username from the request body
+  const {username} = req.body;
+  // see if the user exists
+  getUserIdByUsername(pool, username, (err, userId) => {
+    if (err) {
+      console.log("Error: " + err);
+      return res.send({ success: false });
+    } else if (userId > 0 && typeof userId !== 'undefined') {
+      // get the user picture id
+      const getPictureIdQuery = `
+        SELECT PICTURE_ID
+        FROM picture
+        WHERE USER_ID = ?
+      `;
+      pool.query(getPictureIdQuery, [userId], (err, results) => {
+        if (err) {
+          console.log("Error getting picture id: " + err);
+          return res.send({ success: false });
+        } else {
+          // delete the picture from cloudinary
+          cloudinary.uploader.destroy(results[0].PICTURE_ID, (err, results) => {
+            if (err) {
+              console.log("Error deleting picture from cloudinary: " + err);
+              return res.send({ success: false });
+            } else {
+              // upload the new picture to cloudinary
+              cloudinary.uploader.upload(imageDataUrl, { upload_preset: 'mockup_setup' }, (err, results) => {
+                if (err) {
+                  console.log("Error uploading picture to cloudinary: " + err);
+                  return res.send({ success: false });
+                } else {
+                  // update the user picture id in the database
+                  const updatePictureIdQuery = `
+                    UPDATE picture
+                    SET PICTURE_ID = ?
+                    WHERE USER_ID = ?
+                  `;
+                  pool.query(updatePictureIdQuery, [results.public_id, userId], (err, results) => {
+                    if (err) {
+                      console.log("Error updating picture id: " + err);
+                      return res.send({ success: false });
+                    } else {
+                      return res.send({ success: true });
+                    }
+                  });
+                }
+              });
+            }
+          });
+        }
+      });
+    }
+  });
+}
+
+// ===================================== END OF USER MANAGEMENT FEATURES =====================================
+
+
+// ===================================== START OF ACCOMMODATION MANAGEMENT FEATURES =====================================
 
 // The checkAccommDup function checks if an accommodation with the given name already exists in the database by querying the accommodation table. 
 // It takes a connection pool, accommodation name, and callback function as parameters.
@@ -783,80 +1136,51 @@ exports.deleteAccommodation = (pool) => (req, res) => {
     }});
 };
 
-// The filterUsersByString function takes in a pool object and processes the request object containing a string that is used to filter users.
-// The function uses a LIKE query to determine which rows contain the substring.
-// The function also filters by user type, and depending on the value of the boolean "isStudent", the function may return a table of students or owners.
-// isStudent is true for students, and is false for owners.
-// The function returns a response indicating the success of the query as well as a list of users depending on the filter.
-exports.filterUsersByString = (pool) => (req, res) => {
-  const {name, isStudent} = req.body;
-  const empty=[];
-  // Checks if filter is set as empty.
-  if (!name){
-    pool.getConnection((err, connection) => {
-      if(err){
-        console.log("Error: " + err);
-        return res.send({ success: false, users: empty });
-      }else if (isStudent == true){
-        connection.query('SELECT * FROM user WHERE USER_TYPE = "Student" ORDER BY USER_ID ASC', (err, results) => {
-          if(err){
-            console.log("View All Students Error: " + err);
-            return res.send({ success: false, users: empty });
-          } else {
-            console.log("Students found: " + results.length);
-            return res.send({ success: true, users: results });
-          }
-        });
-      }else if (isStudent == false){
-        connection.query('SELECT * FROM user WHERE USER_TYPE = "Owner" ORDER BY USER_ID ASC', (err, results) => {
-          if(err){
-            console.log("View All Owners Error: " + err);
-            return res.send({ success: false, users: empty });
-          } else {
-            console.log("Owners found: " + results.length);
-            return res.send({ success: true, users: results });
-          }
-        });
-      }else{
-        console.log("Error defining user type.");
-        return res.send({ success: false});
-      }
-    }); // end of pool connection for empty filter.
-  }else if (name){
-    pool.getConnection((err, connection) => {
-      if(err){
-        console.log("Error: " + err);
-        return res.send({ success: false, users: empty });
-      }else if (isStudent == true){
-        connection.query(`SELECT * FROM user WHERE (USER_FNAME LIKE '%${name}%' OR USER_LNAME LIKE '%${name}%' OR USER_USERNAME LIKE '%${name}%' OR USER_EMAIL LIKE '%${name}%') AND USER_TYPE = 'Student' ORDER BY USER_ID ASC`, (err, results) => {
-          if(err){
-            console.log("View Students Error: " + err);
-            return res.send({ success: false, users: empty });
-          } else {
-            console.log("Students found: " + results.length);
-            return res.send({ success: true, users: results });
-          }
-        });
-      }else if (isStudent == false){
-        connection.query(`SELECT * FROM user WHERE (USER_FNAME LIKE '%${name}%' OR USER_LNAME LIKE '%${name}%' OR USER_USERNAME LIKE '%${name}%' OR USER_EMAIL LIKE '%${name}%') AND USER_TYPE = 'Owner' ORDER BY USER_ID ASC`, (err, results) => {
-          if(err){
-            console.log("View Owners Error: " + err);
-            return res.send({ success: false, users: empty });
-          } else {
-            console.log("Owners found: " + results.length);
-            return res.send({ success: true, users: results });
-          }
-        });
-      }else{
-        console.log("Error defining user type.");
-        return res.send({ success: false, users: empty});
-      }
-    });
-  } else{
-    console.log("Error defining string.");
-    return res.send({ success: false, users: empty});
-  }
-}; // end of function.
+/*
+This function retrieves information about an accommodation using the connection pool
+*/
+exports.viewAccommodation = (pool) => (req, res) => {
+  const {accommodationName} =  req.body;
+
+  var accomid = null;
+
+  getAccommodationIdByName(pool, accommodationName, (err, accommodationId) =>{
+    if(err){
+      console.log("Error: " + err);
+      return res.send({ success: false });
+    }
+    else if(accommodationId>0){
+      accomid = accommodationId;
+
+      pool.getConnection((err, connection) => {
+        if(err){
+          console.log("Error: " + err);
+          return res.send({ success: false });
+        }
+        else{
+          const selectQuery = `SELECT * FROM accommodation WHERE ACCOMMODATION_ID = ?`;
+
+          connection.query(selectQuery, [accomid], (err, result1) => {
+            if(err){
+              connection.rollback(() => {
+                console.log("Select accommodation error: " + err);
+                return res.send({ success: false });
+              })
+            }
+            else{
+              console.log("Select accommodation successful");
+              return res.send({ success: true, accommodation: result1});
+            }
+          })
+        }
+      })
+    }
+    else{
+      console.log("Accomodation not found! Cannot select an accommodation");
+      return res.send({ success: false });
+    }
+  })
+}
 
 // The function takes in a database connection pool object and returns a callback function that filters a room based on the user's search criteria specified in the req.query object.
 function filterRooms(pool, priceTo, priceFrom, capacity, callback) {
@@ -1100,103 +1424,6 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
   });
 }
 
-// This is a function that uploads an image to Cloudinary and updates the picture table in
-// the SQL database with the user picture ID and user ID. It first extracts the image data from the request body,
-// converts the buffer to a base64 data URL, and finds the user ID from the request parameters.
-// It then checks if there is a user with the same name and gets the user ID using the getUserIDByName function.
-// If there is no error and the user ID is greater than 0, it establishes a connection to the database and uploads the image to Cloudinary using the cloudinary.uploader.upload method.
-// It then inserts a new row in the picture table with the user picture ID and user ID using an SQL INSERT statement.
-exports.uploadUserPic = (pool) => async (req, res) => {
-
-  // Extract the image data from the request body
-  const imageData = req.files.data[0].buffer;
-
-   // Convert the buffer to a base64 data URL
-   const mimeType = req.files.data[0].mimetype;
-   const imageDataUrl = `data:${mimeType};base64,${imageData.toString('base64')}`;
-    
-  // Find the accommodation id from the request parameters
-  const username = req.body.username;
-
-  // console.log("Data: " + base64Data);
-  console.log("Username: " + username);
-  
-  // get the user id
-
-  User.findBy(pool, "USER_USERNAME", username, (err, user) => {
-    if (err) {
-      console.log("Error: " + err);
-      return res.send({ success: false });
-    } else if (user) {
-
-      console.log("User: " + user.USER_USERNAME); // add this line
-
-      pool.getConnection(async (err, connection) => {
-        if (err) {
-          console.log("Error: " + err);
-          callback(err, null);
-        } else {
-  
-        // Upload the image to Cloudinary
-        try {
-          const result = await cloudinary.uploader.upload(imageDataUrl, { upload_preset: 'mockup_setup' });
-          const userPictureId = result.public_id;
-          
-          // Update the picture table
-          const insertUserPictureQuery = `INSERT INTO picture (PICTURE_ID, USER_ID) VALUES ('${userPictureId}', ${user.USER_ID})`;
-          await connection.query(insertUserPictureQuery);
-          
-          // Return success response
-          console.log("Successfully uploaded the user image to cloudinary!");
-          return res.send({ success: true });
-        } catch (error) {
-          console.error(error);
-          return res.send({ success: false, message: 'Error uploading image' });
-        }
-      }
-    });
-  } else {
-    console.log("No user found with username: " + username); // add this line
-    console.log("Full upload error");
-    return res.send({ success: false });
-  }
-  });
-}
-
-// This is a function that gets the accommodation ID by the accommodation name. After getting the id, it gets the rooms by the accommodation id.
-// It first gets the accommodation id from the request parameters and then gets the rooms by the accommodation id using an SQL SELECT statement.
-// If there is an error, it logs the error and sends a response with a success value of false and a message indicating an error occurred.
-// If there is no error, it sends a response with a success value of true and the rooms.
-// If there is no accommodation found with the accommodationName, it logs the error and sends a response with a success value of false and a message indicating no accommodation found.
-exports.getRoomsByAccommodationName = (pool) => (req, res) => {
-  // Get the id of the accommodation name
-  const accommodationName = req.body.accommodationName;
-
-  var id = null;
-  getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
-    if (err) {
-      console.log("Error: " + err);
-      return res.send({ success: false });
-    } else if (accommodationId > 0) {
-      id = accommodationId;
-      // Get the rooms by the accommodation id
-      const query = `SELECT * FROM room WHERE ACCOMMODATION_ID = ${id}`;
-      pool.query(query, (err, results) => {
-        if (err) {
-          console.log("Error: " + err);
-          return res.send({ success: false });
-        } else {
-          return res.send({ success: true, rooms: results });
-        }
-      });
-    } else {
-      // No accommodation found with the accommodationName
-      console.log("No accommodation found with the name: " + accommodationName);
-      return res.send({ success: false });
-    }
-  });
-}
-
 // Function to fetch an accommodation's picture url from Cloudinary using the accommodation name and accessing it using the getAccommodationIdByName function. 
 // After getting the id, we look through the picture table for the picture with the same accommodation id and get the picture id and use it to access the image url from Cloudinary.
 // If there is an error, it logs the error and sends a response with a success value of false and a message indicating an error occurred.
@@ -1237,34 +1464,154 @@ exports.getAccommodationPic = (pool) => (req, res) => {
   });
 }
 
-// Function to fetch a user's picture url from Cloudinary using the username and accessing it using the User.findBy function.
-// After getting the id, we look through the picture table for the picture with the same user id and get the picture id and use it to access the image url from Cloudinary.
-// If there is an error, it logs the error and sends a response with a success value of false and a message indicating an error occurred.
-// If there is no error, it sends a response with a success value of true and the image url
-exports.getUserPic = (pool) => (req, res) => {
-  const username = req.body.username;
+// Function to remove an accommodation picture from cloudinary and the mysql database
+exports.removeAccommodationPicture = (pool) => (req, res) => {
+  // get the accommodation name from the request body
+  const {accommodationName} = req.body;
 
-  User.findBy(pool, "USER_USERNAME", username, (err, user) => {
-    if(err){
+  // see if the accommodation exists
+  getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+    if (err) {
       console.log("Error: " + err);
       return res.send({ success: false });
-    } else if(user){
-      // Get the picture id of the user
-      const query = `SELECT PICTURE_ID FROM picture WHERE USER_ID = ${user.USER_ID}`;
+    } else if (accommodationId > 0 && typeof accommodationId !== 'undefined') {
+      // get the accommodation picture id
+      const getPictureIdQuery = `
+        SELECT PICTURE_ID
+        FROM picture
+        WHERE ACCOMMODATION_ID = ?
+      `;
+      pool.query(getPictureIdQuery, [accommodationId], (err, results) => {
+        if (err) {
+          console.log("Error getting picture id: " + err);
+          return res.send({ success: false });
+        } else {
+          // delete the picture from cloudinary
+          cloudinary.uploader.destroy(results[0].PICTURE_ID, (err, results) => {
+            if (err) {
+              console.log("Error deleting picture from cloudinary: " + err);
+              return res.send({ success: false });
+            } else {
+              // update the accommodation picture id in the database to null
+              const updatePictureIdQuery = `
+                UPDATE picture
+                SET PICTURE_ID = ?
+                WHERE ACCOMMODATION_ID = ?
+              `;
+              pool.query(updatePictureIdQuery, [accommodationId, accommodationId], (err, results) => {
+                if (err) {
+                  console.log("Error updating picture id: " + err);
+                  return res.send({ success: false });
+                } else {
+                  return res.send({ success: true });
+                }
+              });
+            }
+          });
+        }
+      });
+    }
+  });
+}
+
+// Function to update an accommodation picture from cloudinary and the mysql database
+exports.updateAccommodationPicture = (pool) => (req, res) => {
+  // Extract the image data from the request body
+  const imageData = req.files.data[0].buffer;
+
+   // Convert the buffer to a base64 data URL
+   const mimeType = req.files.data[0].mimetype;
+   const imageDataUrl = `data:${mimeType};base64,${imageData.toString('base64')}`;
+
+  // get the accommodation name from the request body
+  const {accommodationName} = req.body;
+  // see if the accommodation exists
+  getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+    if (err) {
+      console.log("Error: " + err);
+      return res.send({ success: false });
+    } else if (accommodationId > 0 && typeof accommodationId !== 'undefined') {
+      // get the accommodation picture id
+      const getPictureIdQuery = `
+        SELECT PICTURE_ID
+        FROM picture
+        WHERE ACCOMMODATION_ID = ?
+      `;
+      pool.query(getPictureIdQuery, [accommodationId], (err, results) => {
+        if (err) {
+          console.log("Error getting picture id: " + err);
+          return res.send({ success: false });
+        } else {
+          // delete the picture from cloudinary
+          cloudinary.uploader.destroy(results[0].PICTURE_ID, (err, results) => {
+            if (err) {
+              console.log("Error deleting picture from cloudinary: " + err);
+              return res.send({ success: false });
+            } else {
+              // upload the new picture to cloudinary
+              cloudinary.uploader.upload(imageDataUrl, { upload_preset: 'mockup_setup' }, (err, results) => {
+                if (err) {
+                  console.log("Error uploading picture to cloudinary: " + err);
+                  return res.send({ success: false });
+                } else {
+                  // update the accommodation picture id in the database
+                  const updatePictureIdQuery = `
+                    UPDATE picture
+                    SET PICTURE_ID = ?
+                    WHERE ACCOMMODATION_ID = ?
+                  `;
+                  pool.query(updatePictureIdQuery, [results.public_id, accommodationId], (err, results) => {
+                    if (err) {
+                      console.log("Error updating picture id: " + err);
+                      return res.send({ success: false });
+                    } else {
+                      return res.send({ success: true });
+                    }
+                  }
+                  );
+                }
+              });
+            }
+          });
+        }
+      });
+    }
+  });
+}
+
+// ===================================== END OF ACCOMMODATION MANAGEMENT FEATURES =====================================
+
+// ===================================== START OF ROOM MANAGEMENT FEATURES =====================================
+
+// This is a function that gets the accommodation ID by the accommodation name. After getting the id, it gets the rooms by the accommodation id.
+// It first gets the accommodation id from the request parameters and then gets the rooms by the accommodation id using an SQL SELECT statement.
+// If there is an error, it logs the error and sends a response with a success value of false and a message indicating an error occurred.
+// If there is no error, it sends a response with a success value of true and the rooms.
+// If there is no accommodation found with the accommodationName, it logs the error and sends a response with a success value of false and a message indicating no accommodation found.
+exports.getRoomsByAccommodationName = (pool) => (req, res) => {
+  // Get the id of the accommodation name
+  const accommodationName = req.body.accommodationName;
+
+  var id = null;
+  getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+    if (err) {
+      console.log("Error: " + err);
+      return res.send({ success: false });
+    } else if (accommodationId > 0) {
+      id = accommodationId;
+      // Get the rooms by the accommodation id
+      const query = `SELECT * FROM room WHERE ACCOMMODATION_ID = ${id}`;
       pool.query(query, (err, results) => {
         if (err) {
           console.log("Error: " + err);
           return res.send({ success: false });
         } else {
-          // Get the image url from Cloudinary
-          const pictureId = results[0].PICTURE_ID;
-          const imageUrl = cloudinary.url(pictureId, { secure: true });
-          return res.send({ success: true, imageUrl: imageUrl });
+          return res.send({ success: true, rooms: results });
         }
       });
     } else {
-      // No user found with the username
-      console.log("No user found with the username: " + username);
+      // No accommodation found with the accommodationName
+      console.log("No accommodation found with the name: " + accommodationName);
       return res.send({ success: false });
     }
   });
@@ -1638,43 +1985,48 @@ exports.archiveRoom = (pool) => (req, res) => {
     }});
 };
 
+/* This code is defining a function called `viewRoom` that takes a database connection pool as
+input and returns a function that handles a HTTP request to view a specific room in an
+accommodation. The function extracts the accommodation name and room name from the request body,
+uses a helper function called `getRoomIDbyName` to get the ID of the room from the database, and
+then uses the room ID to query the database for the room details. If successful, the function
+returns a JSON response with the room details and a success flag set to true. If there is an error
+at any point, */
+exports.viewRoom = (pool) => (req, res) => {
+  const {accommodationName, roomName} = req.body;
 
-/*
-This function takes a database connection pool, an accommodation name (unique), and a callback function as inputs. 
-It queries the database to retrieve the user ID for the provided name and passes the result to the callback function. 
-If there is an error in the database query or connection, it logs the error and passes it to the callback function as the first parameter.
-*/
-function getUserIdByUsername(pool, name, callback) {
-  pool.getConnection((err, connection) => {
+  getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
     if (err) {
       console.log("Error: " + err);
-      callback(err, null);
-    } else {
-      const checkQuery = `SELECT USER_ID FROM user WHERE USER_USERNAME = ?`;
-      connection.query(checkQuery, [name], (err, result) => {
+      return res.send({ success: false });
+    } else if (accommodationId > 0 && typeof accommodationId !== 'undefined') {
+      getRoomIDbyName(pool, roomName, accommodationName,(err, roomID) => {
         if (err) {
-          console.log("Get User Id Error: " + err);
-          callback(err, null);
-        } else {
-          try{
-            if(typeof result[0].USER_ID === "undefined") {
-              console.log("Get User Id: Undefined Object");
-              callback(null, 0);
+          console.log("Error: " + err);
+          return res.send({ success: false });
+        } else if (roomID > 0 && typeof roomID !== 'undefined') {
+          const roomQuery = `
+            SELECT *
+            FROM room
+            WHERE ROOM_ID = ? AND ACCOMMODATION_ID = ?
+          `;
+          pool.query(roomQuery, [roomID, accommodationId], (err, result) => {
+            if (err) {
+              console.log("Error getting room: " + err);
+              return res.send({ success: false });
+            } else {
+              return res.send({ success: true, room: result });
             }
-            else {
-              console.log("Get User Id: Defined Object");
-              callback(null, result[0].USER_ID);
-            }
-          } catch (err) {
-            console.log("User Not Found...");
-            callback(err, null);
-          }
-          
+          });
         }
       });
     }
   });
 }
+
+// ===================================== END OF ROOM MANAGEMENT FEATURES =====================================
+
+// ===================================== START OF REVIEW + FAVORITE + RATING MANAGEMENT FEATURES =====================================
 
 // This is a function that allows the user to leave a rating and review an accomodation.
 // It takes a database connection pool as input, along with the rating, comment, username, timestamp and accommodation name.
@@ -2203,343 +2555,9 @@ exports.getAccommodationAverageRating = (pool) => (req, res) => {
   });
 }
 
-// Function to remove the user picture from cloudinary and the mysql database
-exports.removeUserPicture = (pool) => (req, res) => {
-  // get the username from the request body
-  const {username} = req.body;
+// ===================================== END OF REVIEW + FAVORITE + RATING MANAGEMENT FEATURES =====================================
 
-  // see if the user exists
-  getUserIdByUsername(pool, username, (err, userId) => {
-    if (err) {
-      console.log("Error: " + err);
-      return res.send({ success: false });
-    } else if (userId > 0 && typeof userId !== 'undefined') {
-      // get the user picture id
-      const getPictureIdQuery = `
-        SELECT PICTURE_ID
-        FROM picture
-        WHERE USER_ID = ?
-      `;
-      pool.query(getPictureIdQuery, [userId], (err, results) => {
-        if (err) {
-          console.log("Error getting picture id: " + err);
-          return res.send({ success: false });
-        } else {
-          // delete the picture from cloudinary
-          cloudinary.uploader.destroy(results[0].PICTURE_ID, (err, results) => {
-            if (err) {
-              console.log("Error deleting picture from cloudinary: " + err);
-              return res.send({ success: false });
-            } else {
-              // update the user picture id in the database to null
-              const updatePictureIdQuery = `
-                UPDATE picture
-                SET PICTURE_ID = ?
-                WHERE USER_ID = ?
-              `;
-              pool.query(updatePictureIdQuery, [userId, userId], (err, results) => {
-                if (err) {
-                  console.log("Error updating picture id: " + err);
-                  return res.send({ success: false });
-                } else {
-                  return res.send({ success: true });
-                }
-              });
-            }
-          });
-        }
-      });
-    }
-  });
-}
-
-// Function to update the user picture from cloudinary and the mysql database
-exports.updateUserPicture = (pool) => (req, res) => {
-  // Extract the image data from the request body
-  const imageData = req.files.data[0].buffer;
-
-   // Convert the buffer to a base64 data URL
-   const mimeType = req.files.data[0].mimetype;
-   const imageDataUrl = `data:${mimeType};base64,${imageData.toString('base64')}`;
-
-  // get the username from the request body
-  const {username} = req.body;
-  // see if the user exists
-  getUserIdByUsername(pool, username, (err, userId) => {
-    if (err) {
-      console.log("Error: " + err);
-      return res.send({ success: false });
-    } else if (userId > 0 && typeof userId !== 'undefined') {
-      // get the user picture id
-      const getPictureIdQuery = `
-        SELECT PICTURE_ID
-        FROM picture
-        WHERE USER_ID = ?
-      `;
-      pool.query(getPictureIdQuery, [userId], (err, results) => {
-        if (err) {
-          console.log("Error getting picture id: " + err);
-          return res.send({ success: false });
-        } else {
-          // delete the picture from cloudinary
-          cloudinary.uploader.destroy(results[0].PICTURE_ID, (err, results) => {
-            if (err) {
-              console.log("Error deleting picture from cloudinary: " + err);
-              return res.send({ success: false });
-            } else {
-              // upload the new picture to cloudinary
-              cloudinary.uploader.upload(imageDataUrl, { upload_preset: 'mockup_setup' }, (err, results) => {
-                if (err) {
-                  console.log("Error uploading picture to cloudinary: " + err);
-                  return res.send({ success: false });
-                } else {
-                  // update the user picture id in the database
-                  const updatePictureIdQuery = `
-                    UPDATE picture
-                    SET PICTURE_ID = ?
-                    WHERE USER_ID = ?
-                  `;
-                  pool.query(updatePictureIdQuery, [results.public_id, userId], (err, results) => {
-                    if (err) {
-                      console.log("Error updating picture id: " + err);
-                      return res.send({ success: false });
-                    } else {
-                      return res.send({ success: true });
-                    }
-                  });
-                }
-              });
-            }
-          });
-        }
-      });
-    }
-  });
-}
-
-// Function to remove an accommodation picture from cloudinary and the mysql database
-exports.removeAccommodationPicture = (pool) => (req, res) => {
-  // get the accommodation name from the request body
-  const {accommodationName} = req.body;
-
-  // see if the accommodation exists
-  getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
-    if (err) {
-      console.log("Error: " + err);
-      return res.send({ success: false });
-    } else if (accommodationId > 0 && typeof accommodationId !== 'undefined') {
-      // get the accommodation picture id
-      const getPictureIdQuery = `
-        SELECT PICTURE_ID
-        FROM picture
-        WHERE ACCOMMODATION_ID = ?
-      `;
-      pool.query(getPictureIdQuery, [accommodationId], (err, results) => {
-        if (err) {
-          console.log("Error getting picture id: " + err);
-          return res.send({ success: false });
-        } else {
-          // delete the picture from cloudinary
-          cloudinary.uploader.destroy(results[0].PICTURE_ID, (err, results) => {
-            if (err) {
-              console.log("Error deleting picture from cloudinary: " + err);
-              return res.send({ success: false });
-            } else {
-              // update the accommodation picture id in the database to null
-              const updatePictureIdQuery = `
-                UPDATE picture
-                SET PICTURE_ID = ?
-                WHERE ACCOMMODATION_ID = ?
-              `;
-              pool.query(updatePictureIdQuery, [accommodationId, accommodationId], (err, results) => {
-                if (err) {
-                  console.log("Error updating picture id: " + err);
-                  return res.send({ success: false });
-                } else {
-                  return res.send({ success: true });
-                }
-              });
-            }
-          });
-        }
-      });
-    }
-  });
-}
-
-// Function to update an accommodation picture from cloudinary and the mysql database
-exports.updateAccommodationPicture = (pool) => (req, res) => {
-  // Extract the image data from the request body
-  const imageData = req.files.data[0].buffer;
-
-   // Convert the buffer to a base64 data URL
-   const mimeType = req.files.data[0].mimetype;
-   const imageDataUrl = `data:${mimeType};base64,${imageData.toString('base64')}`;
-
-  // get the accommodation name from the request body
-  const {accommodationName} = req.body;
-  // see if the accommodation exists
-  getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
-    if (err) {
-      console.log("Error: " + err);
-      return res.send({ success: false });
-    } else if (accommodationId > 0 && typeof accommodationId !== 'undefined') {
-      // get the accommodation picture id
-      const getPictureIdQuery = `
-        SELECT PICTURE_ID
-        FROM picture
-        WHERE ACCOMMODATION_ID = ?
-      `;
-      pool.query(getPictureIdQuery, [accommodationId], (err, results) => {
-        if (err) {
-          console.log("Error getting picture id: " + err);
-          return res.send({ success: false });
-        } else {
-          // delete the picture from cloudinary
-          cloudinary.uploader.destroy(results[0].PICTURE_ID, (err, results) => {
-            if (err) {
-              console.log("Error deleting picture from cloudinary: " + err);
-              return res.send({ success: false });
-            } else {
-              // upload the new picture to cloudinary
-              cloudinary.uploader.upload(imageDataUrl, { upload_preset: 'mockup_setup' }, (err, results) => {
-                if (err) {
-                  console.log("Error uploading picture to cloudinary: " + err);
-                  return res.send({ success: false });
-                } else {
-                  // update the accommodation picture id in the database
-                  const updatePictureIdQuery = `
-                    UPDATE picture
-                    SET PICTURE_ID = ?
-                    WHERE ACCOMMODATION_ID = ?
-                  `;
-                  pool.query(updatePictureIdQuery, [results.public_id, accommodationId], (err, results) => {
-                    if (err) {
-                      console.log("Error updating picture id: " + err);
-                      return res.send({ success: false });
-                    } else {
-                      return res.send({ success: true });
-                    }
-                  }
-                  );
-                }
-              });
-            }
-          });
-        }
-      });
-    }
-  });
-}
-
-// The viewAllStudents function takes a database connection pool, and gets all
-// entries in the user table whose USER_TYPE is a "Student"
-exports.viewAllStudents = (pool) => (req, res) => {
-  console.log("Viewing All Students");
-
-  pool.getConnection((err, connection) => {
-    if(err){
-      console.log("Error: " + err);
-      const empty = [];
-      return res.send({ success: false, students: empty });
-    } else {
-      connection.query('SELECT * FROM user WHERE USER_TYPE = "Student"', (err, results) => {
-        if(err){
-          const empty=[];
-          console.log("View All Students Error: " + err);
-          return res.send({ success: false, students: empty });
-        } else {
-          console.log("Students found: " + results.length);
-          return res.send({ success: true, students: results });
-        }
-      });
-    }
-  });
-}
-/*
-This function retrieves information about an accommodation using the connection pool
-*/
-exports.viewAccommodation = (pool) => (req, res) => {
-  const {accommodationName} =  req.body;
-
-  var accomid = null;
-
-  getAccommodationIdByName(pool, accommodationName, (err, accommodationId) =>{
-    if(err){
-      console.log("Error: " + err);
-      return res.send({ success: false });
-    }
-    else if(accommodationId>0){
-      accomid = accommodationId;
-
-      pool.getConnection((err, connection) => {
-        if(err){
-          console.log("Error: " + err);
-          return res.send({ success: false });
-        }
-        else{
-          const selectQuery = `SELECT * FROM accommodation WHERE ACCOMMODATION_ID = ?`;
-
-          connection.query(selectQuery, [accomid], (err, result1) => {
-            if(err){
-              connection.rollback(() => {
-                console.log("Select accommodation error: " + err);
-                return res.send({ success: false });
-              })
-            }
-            else{
-              console.log("Select accommodation successful");
-              return res.send({ success: true, accommodation: result1});
-            }
-          })
-        }
-      })
-    }
-    else{
-      console.log("Accomodation not found! Cannot select an accommodation");
-      return res.send({ success: false });
-    }
-  })
-}
-
-/* This code is defining a function called `viewRoom` that takes a database connection pool as
-input and returns a function that handles a HTTP request to view a specific room in an
-accommodation. The function extracts the accommodation name and room name from the request body,
-uses a helper function called `getRoomIDbyName` to get the ID of the room from the database, and
-then uses the room ID to query the database for the room details. If successful, the function
-returns a JSON response with the room details and a success flag set to true. If there is an error
-at any point, */
-exports.viewRoom = (pool) => (req, res) => {
-  const {accommodationName, roomName} = req.body;
-
-  getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
-    if (err) {
-      console.log("Error: " + err);
-      return res.send({ success: false });
-    } else if (accommodationId > 0 && typeof accommodationId !== 'undefined') {
-      getRoomIDbyName(pool, roomName, accommodationName,(err, roomID) => {
-        if (err) {
-          console.log("Error: " + err);
-          return res.send({ success: false });
-        } else if (roomID > 0 && typeof roomID !== 'undefined') {
-          const roomQuery = `
-            SELECT *
-            FROM room
-            WHERE ROOM_ID = ? AND ACCOMMODATION_ID = ?
-          `;
-          pool.query(roomQuery, [roomID, accommodationId], (err, result) => {
-            if (err) {
-              console.log("Error getting room: " + err);
-              return res.send({ success: false });
-            } else {
-              return res.send({ success: true, room: result });
-            }
-          });
-        }
-      });
-    }
-  });
-}
+// ===================================== START OF REPORT MANAGEMENT FEATURES =====================================
 
 // This function takes a database connection pool and fetches all the accomodations that matches the same query used in filterAccomodations.
 // A PDF file is then dynamically generated containing the accomodations matching the specified criteria and can be downloaded by the user.
@@ -2797,3 +2815,5 @@ exports.generateReport = (pool) => (req, res) => {
     }
   }
 }
+
+// ===================================== END OF REPORT MANAGEMENT FEATURES =====================================

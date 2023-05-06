@@ -354,7 +354,7 @@ function checkAccommDup(pool, name, callback) {
 // If everything is successful, the function returns a JSON object indicating success.
 exports.addAccommodation = (pool) => (req, res) => {
 
-  const { name, type, address, location, description, amenities, userId, rooms} = req.body; // assuming rooms is an array of room objects
+  const { name, type, address, location, description, amenities, userId} = req.body;
 
   // Printing the details of the accommodation query
   console.log("========== ACCOMMODATION DETAILS ==========")
@@ -363,12 +363,6 @@ exports.addAccommodation = (pool) => (req, res) => {
   console.log("Description: " + description);
   console.log("Location: " + location);
   console.log("Owner ID: " + userId);
-
-  // Check if there are rooms first
-  if (rooms.length == 0) {
-    console.log("No rooms.");
-    return res.send({ success: false });
-  }
 
   // check if there's an accommodation that already has the same name
   checkAccommDup(pool, name, (err, hasDup) => {
@@ -379,14 +373,13 @@ exports.addAccommodation = (pool) => (req, res) => {
       console.log("Duplicate accommodation.");
       return res.send({ success: false });
     } else {
-      var flag = true;
+
       // get pool connection
       pool.getConnection((err, connection) => {
         if (err) {
           console.log("Get Connection Error: " + err);
           return res.send({ success:false });
         }
-
         // begin transaction
         connection.beginTransaction((err) => {
           if (err) {
@@ -407,52 +400,26 @@ exports.addAccommodation = (pool) => (req, res) => {
                   res.send({ success:false });
                 });
               } else { // Successful insertion of accommodation
-                const accommodationId = resultQuery.insertId; // get the auto-generated id of the newly inserted accommodation
-
-                    // loop through the rooms array and insert each room into the database
-                    for (const room of rooms) {
-                      const roomQuery = `
-                        INSERT INTO room
-                          (ROOM_NAME, ROOM_PRICE, ROOM_CAPACITY, ACCOMMODATION_ID)
-                        VALUES
-                          (?, ?, ?, ?)
-                      `;
-                      connection.query(roomQuery, [room.roomName, room.roomPrice, room.roomCapacity, accommodationId], (err, resultQuery) => {
-                        if (err) {
-                          connection.rollback(() => {
-                            console.log("Insert Room Error: " + err);
-                            flag = false;
-                          });
-                        } else {
-                                // commit the transaction if all queries were successful
-                                connection.commit((err) => {
-                                  if (err) {
-                                    connection.rollback(() => {
-                                      console.log("Commit Error: " + err);
-                                      flag = false;
-                                    });
-                                  } else {
-                                    console.log("Room successfully inserted!");
-                                    flag = true;
-                                  }
-                                });
-                        }
+                // Commit the transaction
+                  connection.commit((err) => {
+                    if (err) {
+                      connection.rollback(() => {
+                        console.log("Commit Error: " + err);
                       });
                     }
-                    if(flag) {
-                      console.log("Accommodation successfully inserted!");
+                    // return a JSON object indicating success
+                    else{
+                      console.log("Accommodation successfully added!");
                       return res.send({ success: true });
-                    } else {
-                      console.log("Error inserting room.");
-                      return res.send({ success: false });
-                    }
+                    }   
+                  });
                   }
                 });
           } // else when no errors in beginning transaction
         });
       });
     } // else when there's no duplicate
-  }); // end of checkAcc
+  }); // end of checkAccomDupe
 }; // end of addAccommodation
 
 // This function takes a database connection pool, an accommodation name (unique), and a callback function as inputs. 
@@ -815,6 +782,80 @@ exports.deleteAccommodation = (pool) => (req, res) => {
     }});
 };
 
+// The filterUsersByString function takes in a pool object and processes the request object containing a string that is used to filter users.
+// The function uses a LIKE query to determine which rows contain the substring.
+// The function also filters by user type, and depending on the value of the boolean "isStudent", the function may return a table of students or owners.
+// isStudent is true for students, and is false for owners.
+// The function returns a response indicating the success of the query as well as a list of users depending on the filter.
+exports.filterUsersByString = (pool) => (req, res) => {
+  const {name, isStudent} = req.body;
+  const empty=[];
+  // Checks if filter is set as empty.
+  if (!name){
+    pool.getConnection((err, connection) => {
+      if(err){
+        console.log("Error: " + err);
+        return res.send({ success: false, users: empty });
+      }else if (isStudent == true){
+        connection.query('SELECT * FROM user WHERE USER_TYPE = "Student" ORDER BY USER_ID ASC', (err, results) => {
+          if(err){
+            console.log("View All Students Error: " + err);
+            return res.send({ success: false, users: empty });
+          } else {
+            console.log("Students found: " + results.length);
+            return res.send({ success: true, users: results });
+          }
+        });
+      }else if (isStudent == false){
+        connection.query('SELECT * FROM user WHERE USER_TYPE = "Owner" ORDER BY USER_ID ASC', (err, results) => {
+          if(err){
+            console.log("View All Owners Error: " + err);
+            return res.send({ success: false, users: empty });
+          } else {
+            console.log("Owners found: " + results.length);
+            return res.send({ success: true, users: results });
+          }
+        });
+      }else{
+        console.log("Error defining user type.");
+        return res.send({ success: false});
+      }
+    }); // end of pool connection for empty filter.
+  }else if (name){
+    pool.getConnection((err, connection) => {
+      if(err){
+        console.log("Error: " + err);
+        return res.send({ success: false, users: empty });
+      }else if (isStudent == true){
+        connection.query(`SELECT * FROM user WHERE (USER_FNAME LIKE '%${name}%' OR USER_LNAME LIKE '%${name}%' OR USER_USERNAME LIKE '%${name}%' OR USER_EMAIL LIKE '%${name}%') AND USER_TYPE = 'Student' ORDER BY USER_ID ASC`, (err, results) => {
+          if(err){
+            console.log("View Students Error: " + err);
+            return res.send({ success: false, users: empty });
+          } else {
+            console.log("Students found: " + results.length);
+            return res.send({ success: true, users: results });
+          }
+        });
+      }else if (isStudent == false){
+        connection.query(`SELECT * FROM user WHERE (USER_FNAME LIKE '%${name}%' OR USER_LNAME LIKE '%${name}%' OR USER_USERNAME LIKE '%${name}%' OR USER_EMAIL LIKE '%${name}%') AND USER_TYPE = 'Owner' ORDER BY USER_ID ASC`, (err, results) => {
+          if(err){
+            console.log("View Owners Error: " + err);
+            return res.send({ success: false, users: empty });
+          } else {
+            console.log("Owners found: " + results.length);
+            return res.send({ success: true, users: results });
+          }
+        });
+      }else{
+        console.log("Error defining user type.");
+        return res.send({ success: false, users: empty});
+      }
+    });
+  } else{
+    console.log("Error defining string.");
+    return res.send({ success: false, users: empty});
+  }
+}; // end of function.
 
 // The function takes in a database connection pool object and returns a callback function that filters a room based on the user's search criteria specified in the req.query object.
 function filterRooms(pool, priceTo, priceFrom, capacity, callback) {
@@ -1230,14 +1271,14 @@ exports.getUserPic = (pool) => (req, res) => {
 
 // Function to check if a Room Name already exists. Currently not in use
 // TODO: Use for adding rooms! It is for checking if a room name already exists for a specific accommodation. To be implemented in the addNewRoom function in the future.
-function checkRoomIfExists(pool, name, callback) {
+function checkRoomIfExists(pool, name, accommID, callback) {
   pool.getConnection((err, connection) => {
     if (err) {
       console.log("Error: " + err);
       callback(err, null);
     } else {
-      const checkQuery = `SELECT ROOM_ID FROM room WHERE ROOM_NAME = ?`;
-      connection.query(checkQuery, [name], (err, result) => {
+      const checkQuery = `SELECT ROOM_ID FROM room WHERE ROOM_NAME = ? AND ACCOMMODATION_ID = ?`;
+      connection.query(checkQuery, [name, accommID], (err, result) => {
         if (err) {
           console.log("Check Room if Exists error: " + err);
           callback(err, null);
@@ -1261,7 +1302,7 @@ function getRoomIDbyName(pool, name, accomm_name, callback) {
   getAccommodationIdByName(pool, accomm_name, (err, accommodationId) => {
     if (err) {
       console.log("Error: " + err);
-      return res.send({ success: false });
+      callback(err, null);
     } else if (accommodationId > 0 && typeof accommodationId != "undefined") {
       accommid = accommodationId;
 
@@ -1320,44 +1361,52 @@ exports.addNewRoom = (pool) => (req, res) => {
         VALUES
         (?, ?, ?, ?)
           `;
-
-        // Get Pool Connection.
-        pool.getConnection((err, connection) => {
-          if(err) {
-            console.log("Get Connection Error: " + err);
-            return res.send({success:false});
-          }
-            
-        // Begin Transaction
-        connection.beginTransaction((err) => {
-          if(err){
-            console.log("Begin Transaction Error: " + err);
-            return res.send({success:false});
+        checkRoomIfExists(pool, name, id, (err, hasDup) => {
+          if (err){
+            console.log("Error: " + err);
+            return res.send({ success: false });
+          }else if (hasDup){
+            console.log("Room name already exists!");
+            return res.send({ success: false });
           }else{
-            connection.query(addNewRoomQuery, [name, price, capacity, id], (err) => {
-              if(err){  // Failed to insert Room.
-                connection.rollback(() => {
-                  console.log("Insert Room Error: " + err);
-                  res.send({ success:false });
-                });
-              }else{ // Successful Insertion of Room.
-                // Commit insertion.
-                connection.commit((err) => {
-                  if (err) {
-                    connection.rollback(() => {
-                      console.log("Commit Error: " + err);
-                      return res.send({success:false});
-                    });
-                  } else {
-                    console.log("Room successfully inserted!");
-                    return res.send({success:true});
-                  }
-                }); // end of connection.commit.
-              } // end of connection.query else statement.
-            }); // end of connection.query.
-          } // end of transaction else statement.
-        }); // end of transaction.
-      }); // end of pool connection.
+            // Get Pool Connection.
+            pool.getConnection((err, connection) => {
+              if(err) {
+                console.log("Get Connection Error: " + err);
+                return res.send({success:false});
+              }
+              // Begin Transaction
+              connection.beginTransaction((err) => {
+                if(err){
+                  console.log("Begin Transaction Error: " + err);
+                  return res.send({success:false});
+                }else{
+                  connection.query(addNewRoomQuery, [name, price, capacity, id], (err) => {
+                    if(err){  // Failed to insert Room.
+                      connection.rollback(() => {
+                        console.log("Insert Room Error: " + err);
+                        res.send({ success:false });
+                      });
+                    }else{ // Successful Insertion of Room.
+                      // Commit insertion.
+                      connection.commit((err) => {
+                        if (err) {
+                          connection.rollback(() => {
+                            console.log("Commit Error: " + err);
+                            return res.send({success:false});
+                          });
+                        } else {
+                          console.log("Room successfully inserted!");
+                          return res.send({success:true});
+                        }
+                      }); // end of connection.commit.
+                    } // end of connection.query else statement.
+                  }); // end of connection.query.
+                } // end of transaction else statement.
+              }); // end of transaction.
+            }); // end of pool connection.
+          }
+        });
     }else {
       console.log("Accommodation not found! Cannot proceed to adding new room...");
       return res.send({success: false});
@@ -1372,14 +1421,14 @@ exports.addNewRoom = (pool) => (req, res) => {
 // Otherwise, it returns a response indicating the unsuccessful update to the client.
 exports.editRoom = (pool) => (req, res) => {
   const {name, newName, newCapacity, newPrice, accommodationName} = req.body;
-
+  var accommID = null;
   // Check if accommodation exists.
   getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
     if (err) {
       console.log("Error: " + err);
       return res.send({ success: false });
     } else if (accommodationId > 0 && typeof accommodationId != "undefined") {
-
+    accommID = accommodationId;
     // Check if the room ID exists.
     var id = null;
     getRoomIDbyName(pool, name, accommodationName, (err, roomID) => {
@@ -1393,7 +1442,7 @@ exports.editRoom = (pool) => (req, res) => {
           const checkRoomNameDupQuery = `
           SELECT COUNT(*) AS count
           FROM room
-          WHERE ROOM_NAME = ? AND ROOM_ID != ?
+          WHERE ROOM_NAME = ? AND ROOM_ID != ? AND ACCOMMODATION_ID = ?
         `;
 
         // Get Pool Connection
@@ -1410,7 +1459,7 @@ exports.editRoom = (pool) => (req, res) => {
           }
 
           else{
-            connection.query(checkRoomNameDupQuery, [newName, id], (err, result) => {
+            connection.query(checkRoomNameDupQuery, [newName, id, accommID], (err, result) => {
               if (err) {
                 console.log("Error: " + err);
                 return res.send({ success: false });

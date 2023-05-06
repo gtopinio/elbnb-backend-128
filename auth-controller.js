@@ -2184,10 +2184,10 @@ exports.removeUserPicture = (pool) => (req, res) => {
               // update the user picture id in the database to null
               const updatePictureIdQuery = `
                 UPDATE picture
-                SET PICTURE_ID = NULL
+                SET PICTURE_ID = ?
                 WHERE USER_ID = ?
               `;
-              pool.query(updatePictureIdQuery, [userId], (err, results) => {
+              pool.query(updatePictureIdQuery, [userId, userId], (err, results) => {
                 if (err) {
                   console.log("Error updating picture id: " + err);
                   return res.send({ success: false });
@@ -2298,10 +2298,10 @@ exports.removeAccommodationPicture = (pool) => (req, res) => {
               // update the accommodation picture id in the database to null
               const updatePictureIdQuery = `
                 UPDATE picture
-                SET PICTURE_ID = NULL
+                SET PICTURE_ID = ?
                 WHERE ACCOMMODATION_ID = ?
               `;
-              pool.query(updatePictureIdQuery, [accommodationId], (err, results) => {
+              pool.query(updatePictureIdQuery, [accommodationId, accommodationId], (err, results) => {
                 if (err) {
                   console.log("Error updating picture id: " + err);
                   return res.send({ success: false });

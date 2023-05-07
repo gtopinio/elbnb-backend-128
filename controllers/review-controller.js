@@ -223,7 +223,7 @@ getUserIdByUsername(pool, userName, (err, userId) => {
                     console.log("Error: " + err);
                     return res.send({ success: false })
                 }
-                else if(result[0].count>0){
+                else if(result[0].count>0 && !addToFavorite){
                     //remove the favorite
                     const deleteQuery = `DELETE FROM favorite WHERE USER_ID = '?' AND ACCOMMODATION_ID = '?'`;
         
@@ -250,7 +250,7 @@ getUserIdByUsername(pool, userName, (err, userId) => {
                     }
                     })
                 }
-                else{
+                else if(result[0].count === 0 && addToFavorite){
                     //insert to favorites
                     const insertQuery = `INSERT INTO favorite (USER_ID, ACCOMMODATION_ID) VALUES (?, ?)`;
         
@@ -276,8 +276,11 @@ getUserIdByUsername(pool, userName, (err, userId) => {
                         })
                     }
                     })
+                } else {
+                    console.log("Either Add to Favorites Error or Favorite already exists!");
+                    return res.send({ success: false });                  
                 }
-                })
+                });
             }
             })
         });

@@ -295,7 +295,7 @@ exports.removeAccommodationFromFavorite = (pool) => (req, res) => {
                   return res.send({ success: false });
                 }
                 else{
-                  const selectQuery = `SELECT * FROM favorite WHERE USER_ID = ? AND ACCOMMODATION_ID = ?`;
+                  const selectQuery = `SELECT COUNT(*) AS count FROM favorite WHERE USER_ID = ? AND ACCOMMODATION_ID = ?`;
                   connection.query(selectQuery, [userId, accommodationId], (err, result) => {
                     if(err){
                       console.log("Error: " + err);

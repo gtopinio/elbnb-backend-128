@@ -587,7 +587,13 @@ getUserIdByUsername(pool, username, (err, userId) => {
             console.log("Error checking if favorite: " + err);
             return res.send({ success: false, isFavorite: false });
             } else {
-            return res.send({ success: true, isFavorite: true });
+              // check the result of the query to see if there is a match
+              if (result.length > 0) {
+                return res.send({ success: true, isFavorite: true });
+              }
+              else {
+                return res.send({ success: true, isFavorite: false });
+              }
             }
         });
         }

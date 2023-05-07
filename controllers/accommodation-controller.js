@@ -733,24 +733,34 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
           console.log("Error: " + err);
           callback(err, null);
         } else {
-  
-        // Upload the image to Cloudinary
-        try {
-          const result = await cloudinary.uploader.upload(imageDataUrl, { upload_preset: 'mockup_setup' });
-          const accommodationPictureId = result.public_id;
-          
-          // Update the picture table
-          const insertAccommodationPictureQuery = `INSERT INTO picture (PICTURE_ID, ACCOMMODATION_ID) VALUES ('${accommodationPictureId}', ${accommodationId})`;
-          await connection.query(insertAccommodationPictureQuery);
-          
-          // Return success response
-          console.log("Successfully uploaded the accommodation image to cloudinary!");
-          return res.send({ success: true });
-        } catch (error) {
-          console.error(error);
-          return res.send({ success: false, message: 'Error uploading image' });
-        }
-      }
+          // check if the accommodation has a picture
+          connection.query(`SELECT * FROM accommodation_pictures WHERE ACCOMMODATION_ID = ${accommodationId}`, async (err, results) => {
+            if (err) {
+              console.log("Error: " + err);
+              return res.send({ success: false });
+            } else if (results.length > 0) {
+              console.log("Accommodation already has a picture");
+              return res.send({ success: false });
+            } else {
+                // Upload the image to Cloudinary
+                try {
+                  const result = await cloudinary.uploader.upload(imageDataUrl, { upload_preset: 'mockup_setup' });
+                  const accommodationPictureId = result.public_id;
+                  
+                  // Update the picture table
+                  const insertAccommodationPictureQuery = `INSERT INTO picture (PICTURE_ID, ACCOMMODATION_ID) VALUES ('${accommodationPictureId}', ${accommodationId})`;
+                  await connection.query(insertAccommodationPictureQuery);
+                  
+                  // Return success response
+                  console.log("Successfully uploaded the accommodation image to cloudinary!");
+                  return res.send({ success: true });
+                } catch (error) {
+                  console.error(error);
+                  return res.send({ success: false, message: 'Error uploading image' });
+                }
+            }
+          }
+      );}
     });
   } else {
     console.log("Full upload error");

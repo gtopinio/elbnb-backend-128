@@ -521,23 +521,35 @@ exports.uploadUserPic = (pool) => async (req, res) => {
           callback(err, null);
         } else {
   
-        // Upload the image to Cloudinary
-        try {
-          const result = await cloudinary.uploader.upload(imageDataUrl, { upload_preset: 'mockup_setup' });
-          const userPictureId = result.public_id;
-          
-          // Update the picture table
-          const insertUserPictureQuery = `INSERT INTO picture (PICTURE_ID, USER_ID) VALUES ('${userPictureId}', ${user.USER_ID})`;
-          await connection.query(insertUserPictureQuery);
-          
-          // Return success response
-          console.log("Successfully uploaded the user image to cloudinary!");
-          return res.send({ success: true });
-        } catch (error) {
-          console.error(error);
-          return res.send({ success: false, message: 'Error uploading image' });
+        // check if user already has a picture
+        connection.query(`SELECT * FROM picture WHERE USER_ID = ${user.USER_ID}`, async (err, results) => {
+          if (err) {
+            console.log("Error: " + err);
+            return res.send({ success: false });
+          } else if (results.length > 0) {
+            console.log("User already has a picture");
+            return res.send({ success: false });
+          } else {
+            console.log("User does not have a picture");
+            // Upload the image to Cloudinary
+            try {
+              const result = await cloudinary.uploader.upload(imageDataUrl, { upload_preset: 'mockup_setup' });
+              const userPictureId = result.public_id;
+              
+              // Update the picture table
+              const insertUserPictureQuery = `INSERT INTO picture (PICTURE_ID, USER_ID) VALUES ('${userPictureId}', ${user.USER_ID})`;
+              await connection.query(insertUserPictureQuery);
+              
+              // Return success response
+              console.log("Successfully uploaded the user image to cloudinary!");
+              return res.send({ success: true });
+            } catch (error) {
+              console.error(error);
+              return res.send({ success: false, message: 'Error uploading image' });
+            }
+          }
         }
-      }
+      )}
     });
   } else {
     console.log("No user found with username: " + username); // add this line

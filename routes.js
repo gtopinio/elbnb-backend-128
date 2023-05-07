@@ -49,8 +49,8 @@ module.exports = (app, pool) => {
     app.post("/accommodation/add-review", reviewController.addReview(pool));
     app.post("/accommodation/edit-review", reviewController.editReview(pool));
     app.post("/accommodation/delete-review", reviewController.deleteReview(pool));
-    app.post("/accommodation/add-to-favorites", reviewController.triggerFavorite(pool));
-    app.post("/accommodation/remove-from-favorites", reviewController.triggerFavorite(pool));
+    app.post("/accommodation/add-to-favorites", reviewController.addAccommodationToFavorite(pool));
+    app.post("/accommodation/remove-from-favorites", reviewController.removeAccommodationFromFavorite(pool));
     app.post("/accommodation/is-favorite", reviewController.isAccommodationFavorited(pool));
     app.post("/accommodation/get-reviews", reviewController.getAccommodationReviews(pool));
     app.post("/accommodation/get-ratings", reviewController.getAccommodationAverageRating(pool));

@@ -171,139 +171,184 @@ exports.addReview = (pool) => (req, res) => {
     })
   }
   
-/*
-This function adds an accomodation to the favorites of the user. It finds the userid by using the username of the user and the accommodation id using the accommodation
-name. After getting the connect established after finding the user id and accommodation id, it will then do a select query to see if the favorite already exists. If it
-does, it will perform a delete and if it does not exists, it will perform insert instead.
-*/
-exports.triggerFavorite = (pool) => (req, res) => {
-const {userName, accommName, addToFavorite} = req.body;
 
-console.log("----------Favorite----------");
-console.log("username: " + userName);
-console.log("accommodation name: " + accommName);
-console.log("add to favorite: " + addToFavorite);
-
-var uId = null;
-var aId = null;
-
-getUserIdByUsername(pool, userName, (err, userId) => {
-    if(err){
-    console.log("Error: " + err);
-    return res.send({ success: false });
-    }
-    else if(userId>0){
-    uId = userId;
-    // print out user id
-    console.log("User Id: " + uId);
-
-    // Get Accommodation Id
-    getAccommodationIdByName(pool, accommName, (err, accommodationId) => {
-        if(err){
+  // This function adds an accommodation to a user's favorites list using the favorite table. It takes a database connection pool as input, along with the username and accommodation name.
+// It then queries the database to retrieve the user ID and accommodation ID for the provided username and accommodation name.
+// If the user ID and accommodation ID are found, it inserts the favorite into the database only if it does not already exist.
+// Otherwise, it returns a response indicating the unsuccessful operation to the client.
+exports.addAccommodationToFavorite = (pool) => (req, res) => {
+    const{userName, accommName} = req.body;
+    console.log("----------Add Accommodation to Favorite----------");
+    console.log("Username: " + userName);
+    console.log("Accommodation Name: " + accommName);
+    // check if user exist
+    getUserIdByUsername(pool, userName, (err, userId) => {
+      if(err){
         console.log("Error: " + err);
         return res.send({ success: false });
-        }
-        else if(accommodationId>0){
-        aId = accommodationId;
-        // print out accommodation id
-        console.log("Accommodation Id: " + aId);
-
-        // Begin Transaction for Favorite (either insert or delete)
-        pool.getConnection((err, connection) => {
-            if(err){
-            console.log("Get Connection Error" + err);
+      }
+      else if(userId>0){
+        // check if accommodation exist
+        getAccommodationIdByName(pool, accommName, (err, accommodationId) => {
+          if(err){
+            console.log("Error: " + err);
             return res.send({ success: false });
-            }
-        
-            connection.beginTransaction((err) => {
-            if(err){
-                console.log("Error: " + err);
+          }
+          else if(accommodationId>0){
+            // begin transaction
+            pool.getConnection((err, connection) => {
+              if(err){
+                console.log("Get Connection Error" + err);
                 return res.send({ success: false });
-            }
-            else{
-                const selectQuery = `SELECT COUNT(*) AS count FROM favorite WHERE USER_ID = ? AND ACCOMMODATION_ID = ?`;
-                
-                connection.query(selectQuery, [uId, aId], (err, result) => {
+              }
+              connection.beginTransaction((err) => {
                 if(err){
-                    console.log("Error: " + err);
-                    return res.send({ success: false })
+                  console.log("Error: " + err);
+                  return res.send({ success: false });
                 }
-                else if(result[0].count>0 && addToFavorite === false){
-                    //remove the favorite
-                    const deleteQuery = `DELETE FROM favorite WHERE USER_ID = '?' AND ACCOMMODATION_ID = '?'`;
-        
-                    connection.query(deleteQuery, [uId, aId], (err, result) => {
+                else{
+                  const selectQuery = `SELECT COUNT(*) AS count FROM favorite WHERE USER_ID = ? AND ACCOMMODATION_ID = ?`;
+                  connection.query(selectQuery, [userId, accommodationId], (err, result) => {
                     if(err){
-                        connection.rollback(() => {
-                        console.log("Insert favorite error: " + err);
-                        return res.send({ success: false });
-                        })
+                      console.log("Error: " + err);
+                      return res.send({ success: false })
+                    }
+                    else if(result[0].count>0){
+                      console.log("Favorite from user already exist");
+                      return res.send({ success: false })
                     }
                     else{
-                        connection.commit((err) => {
+                      const insertQuery = `INSERT INTO favorite (USER_ID, ACCOMMODATION_ID) VALUES (?, ?)`;
+                      connection.query(insertQuery, [userId, accommodationId], (err, result1) => {
                         if(err){
-                            connection.rollback(() => {
-                            console.log("Commit error: " + err);
+                          connection.rollback(() => {
+                            console.log("Insert favorite error: " + err);
                             return res.send({ success: false });
-                            })
+                          })
                         }
                         else{
-                            console.log("Favorite has been removed!");
-                            return res.send({ success: true });
+                          connection.commit((err) => {
+                            if(err){
+                              connection.rollback(() => {
+                                console.log("Commit error: " + err);
+                                return res.send({ success: false });
+                              })
+                            }
+                            else{
+                              console.log("Favorite has been inserted!");
+                              return res.send({ success: true });
+                            }
+                          })
                         }
-                        })
+                      })
                     }
-                    })
+                  })
                 }
-                else if(result[0].count === 0 && addToFavorite){
-                    //insert to favorites
-                    const insertQuery = `INSERT INTO favorite (USER_ID, ACCOMMODATION_ID) VALUES (?, ?)`;
-        
-                    connection.query(insertQuery, [uId, aId], (err, result1) => {
-                    if(err){
-                        connection.rollback(() => {
-                        console.log("Insert favorite error: " + err);
-                        return res.send({ success: false });
-                        })
-                    }
-                    else{
-                        connection.commit((err) => {
-                        if(err){
-                            connection.rollback(() => {
-                            console.log("Commit error: " + err);
-                            return res.send({ success: false });
-                            })
-                        }
-                        else{
-                            console.log("Favorite has been inserted!");
-                            return res.send({ success: true });
-                        }
-                        })
-                    }
-                    })
-                } else {
-                    console.log("result: " + result[0].count);
-                    console.log("Either Add to Favorites Error or Favorite already exists!");
-                    return res.send({ success: false });                  
-                }
-                });
-            }
-            })
-        });
-        }
-        else{
-        console.log("Accommodation not found! Cannot be added to favorites");
+              })
+            });
+          }
+          else{
+            console.log("Accomodation not found! Cannot add favorite");
+            return res.send({ success: false });
+          }
+        })
+      }
+      else{
+        console.log("User not found! Cannot add favorite");
         return res.send({ success: false });
-        }
-    });
+      }
+    })
+  }
 
-    }
-    else{
-    console.log("User not found! Cannot be added to favorites");
-    return res.send({ success: false });
-    }
-});
-}
+// Function to remove an accommodation from a user's favorites list. It takes a database connection pool as input, along with the username and accommodation name.
+// It then queries the database to retrieve the user ID and accommodation ID for the provided username and accommodation name.
+// If the user ID and accommodation ID are found, it deletes the favorite from the database only if it exists.
+// Otherwise, it returns a response indicating the unsuccessful operation to the client.
+exports.removeAccommodationFromFavorite = (pool) => (req, res) => {
+    const{userName, accommName} = req.body;
+    console.log("----------Remove Accommodation from Favorite----------");
+    console.log("Username: " + userName);
+    console.log("Accommodation Name: " + accommName);
+    // check if user exist
+    getUserIdByUsername(pool, userName, (err, userId) => {
+      if(err){
+        console.log("Error: " + err);
+        return res.send({ success: false });
+      }
+      else if(userId>0){
+        // check if accommodation exist
+        getAccommodationIdByName(pool, accommName, (err, accommodationId) => {
+          if(err){
+            console.log("Error: " + err);
+            return res.send({ success: false });
+          }
+          else if(accommodationId>0){
+            // begin transaction
+            pool.getConnection((err, connection) => {
+              if(err){
+                console.log("Get Connection Error" + err);
+                return res.send({ success: false });
+              }
+              connection.beginTransaction((err) => {
+                if(err){
+                  console.log("Error: " + err);
+                  return res.send({ success: false });
+                }
+                else{
+                  const selectQuery = `SELECT COUNT(*) AS count FROM favorite WHERE USER_ID = ? AND ACCOMMODATION_ID = ?`;
+                  connection.query(selectQuery, [userId, accommodationId], (err, result) => {
+                    if(err){
+                      console.log("Error: " + err);
+                      return res.send({ success: false })
+                    }
+                    else if(result[0].count==0){
+                      console.log("Favorite from user does not exist");
+                      return res.send({ success: false })
+                    }
+                    else{
+                      const deleteQuery = `DELETE FROM favorite WHERE USER_ID = ? AND ACCOMMODATION_ID = ?`;
+                      connection.query(deleteQuery, [userId, accommodationId], (err, result1) => {
+                        if(err){
+                          connection.rollback(() => {
+                            console.log("Delete favorite error: " + err);
+                            return res.send({ success: false });
+                          })
+                        }
+                        else{
+                          connection.commit((err) => {
+                            if(err){
+                              connection.rollback(() => {
+                                console.log("Commit error: " + err);
+                                return res.send({ success: false });
+                              })
+                            }
+                            else{
+                              console.log("Favorite has been deleted!");
+                              return res.send({ success: true });
+                            }
+                          })
+                        }
+                      })
+                    }
+                  })
+                }
+              })
+            });
+          }
+          else{
+            console.log("Accomodation not found! Cannot delete favorite");
+            return res.send({ success: false });
+          }
+        })
+      }
+      else{
+        console.log("User not found! Cannot delete favorite");
+        return res.send({ success: false });
+      }
+    })
+  }
+
+
 
 /*
 This function lets the user edit the review that they gave to an accommodation. It uses the username, the accomodation name, and the

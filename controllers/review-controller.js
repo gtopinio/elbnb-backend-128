@@ -278,6 +278,7 @@ getUserIdByUsername(pool, userName, (err, userId) => {
                     }
                     })
                 } else {
+                    console.log("result: " + result[0].count);
                     console.log("Either Add to Favorites Error or Favorite already exists!");
                     return res.send({ success: false });                  
                 }

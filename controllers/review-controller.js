@@ -224,7 +224,7 @@ getUserIdByUsername(pool, userName, (err, userId) => {
                     console.log("Error: " + err);
                     return res.send({ success: false })
                 }
-                else if(result[0].count>0 && addToFavorite == false){
+                else if(result[0].count>0 && addToFavorite === false){
                     //remove the favorite
                     const deleteQuery = `DELETE FROM favorite WHERE USER_ID = '?' AND ACCOMMODATION_ID = '?'`;
         

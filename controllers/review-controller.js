@@ -295,17 +295,19 @@ exports.removeAccommodationFromFavorite = (pool) => (req, res) => {
                   return res.send({ success: false });
                 }
                 else{
-                  const selectQuery = `SELECT EXISTS(SELECT 1 FROM favorite WHERE USER_ID = ? AND ACCOMMODATION_ID = ?) AS exists`;
+                  const selectQuery = `SELECT * FROM favorite WHERE USER_ID = ? AND ACCOMMODATION_ID = ?`;
                   connection.query(selectQuery, [userId, accommodationId], (err, result) => {
                     if(err){
                       console.log("Error: " + err);
                       return res.send({ success: false })
                     }
-                    else if(result[0].exists == false){
+                    else if(typeof(result[0].FAVORITE_ID)==="undefined"){
+                      console.log("Result: " + result[0].FAVORITE_ID + " " + result[0].USER_ID + " " + result[0].ACCOMMODATION_ID + " " + result[0].CREATED_AT + " " + result[0].UPDATED_AT + "");
                       console.log("Favorite from user does not exist");
                       return res.send({ success: false })
                     }
                     else{
+                      console.log("Result: " + result[0].FAVORITE_ID + " " + result[0].USER_ID + " " + result[0].ACCOMMODATION_ID + " " + result[0].CREATED_AT + " " + result[0].UPDATED_AT + "");
                       const deleteQuery = `DELETE FROM favorite WHERE USER_ID = ? AND ACCOMMODATION_ID = ?`;
                       connection.query(deleteQuery, [userId, accommodationId], (err, result1) => {
                         if(err){

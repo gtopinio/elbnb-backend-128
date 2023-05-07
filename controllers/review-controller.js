@@ -301,13 +301,11 @@ exports.removeAccommodationFromFavorite = (pool) => (req, res) => {
                       console.log("Error: " + err);
                       return res.send({ success: false })
                     }
-                    else if(typeof(result[0].FAVORITE_ID)==="undefined"){
-                      console.log("Result: " + result[0].FAVORITE_ID + " " + result[0].USER_ID + " " + result[0].ACCOMMODATION_ID + " " + result[0].CREATED_AT + " " + result[0].UPDATED_AT + "");
+                    else if(result[0].count==0){
                       console.log("Favorite from user does not exist");
                       return res.send({ success: false })
                     }
                     else{
-                      console.log("Result: " + result[0].FAVORITE_ID + " " + result[0].USER_ID + " " + result[0].ACCOMMODATION_ID + " " + result[0].CREATED_AT + " " + result[0].UPDATED_AT + "");
                       const deleteQuery = `DELETE FROM favorite WHERE USER_ID = ? AND ACCOMMODATION_ID = ?`;
                       connection.query(deleteQuery, [userId, accommodationId], (err, result1) => {
                         if(err){

@@ -734,7 +734,7 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
           callback(err, null);
         } else {
           // check if the accommodation has a picture
-          connection.query(`SELECT * FROM accommodation_pictures WHERE ACCOMMODATION_ID = ${accommodationId}`, async (err, results) => {
+          connection.query(`SELECT * FROM picture WHERE ACCOMMODATION_ID = ${accommodationId}`, async (err, results) => {
             if (err) {
               console.log("Error: " + err);
               return res.send({ success: false });

@@ -295,13 +295,13 @@ exports.removeAccommodationFromFavorite = (pool) => (req, res) => {
                   return res.send({ success: false });
                 }
                 else{
-                  const selectQuery = `SELECT COUNT(*) AS count FROM favorite WHERE USER_ID = ? AND ACCOMMODATION_ID = ?`;
+                  const selectQuery = `SELECT EXISTS(SELECT 1 FROM favorite WHERE USER_ID = ? AND ACCOMMODATION_ID = ?) AS exists`;
                   connection.query(selectQuery, [userId, accommodationId], (err, result) => {
                     if(err){
                       console.log("Error: " + err);
                       return res.send({ success: false })
                     }
-                    else if(result[0].count==0){
+                    else if(result[0].exists == false){
                       console.log("Favorite from user does not exist");
                       return res.send({ success: false })
                     }

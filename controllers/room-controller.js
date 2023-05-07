@@ -54,7 +54,7 @@ exports.getRoomsByAccommodationName = (pool) => (req, res) => {
       } else if (accommodationId > 0) {
         id = accommodationId;
         // Get the rooms by the accommodation id
-        const query = `SELECT * FROM room WHERE ACCOMMODATION_ID = ${id}`;
+        const query = `SELECT * FROM room WHERE ROOM_ISARCHIVED = 0 AND ACCOMMODATION_ID = ${id}`;
         pool.query(query, (err, results) => {
           if (err) {
             console.log("Error: " + err);

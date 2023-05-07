@@ -177,7 +177,7 @@ name. After getting the connect established after finding the user id and accomm
 does, it will perform a delete and if it does not exists, it will perform insert instead.
 */
 exports.triggerFavorite = (pool) => (req, res) => {
-const {userName, accommName} = req.body;
+const {userName, accommName, addToFavorite} = req.body;
 
 console.log("----------Favorite----------");
 console.log("username: " + userName);

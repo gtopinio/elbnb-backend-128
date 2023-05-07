@@ -345,7 +345,7 @@ exports.deleteAccommodation = (pool) => (req, res) => {
                 console.log("Error deleting accommodation room(s): " + err);
                 res.send({success:false});
               });
-            } else if (deleteRoomResult.affectedRows > 0 || result.affectedRows == 0) {
+            } else if (deleteRoomResult.affectedRows > 0 || deleteRoomResult.affectedRows == 0) {
 
               connection.commit((err) => {
                 if(err){

@@ -3,6 +3,7 @@ const authController = require("./auth-controller");
 module.exports = (app, pool) => {
     // endpoints with GET method
     app.get("/view-all-students", authController.viewAllStudents(pool));
+    app.get("/view-all-owners", authController.viewAllOwners(pool));
     app.get("/get-top-five-accommodations", authController.getFeaturedAccommodations(pool));
 
     // endpoints with POST method

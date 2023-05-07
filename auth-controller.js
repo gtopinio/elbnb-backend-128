@@ -462,6 +462,31 @@ exports.viewAllStudents = (pool) => (req, res) => {
   });
 };
 
+// The viewAllOwners function takes a database connection pool, and gets all
+// entries in the user table whose USER_TYPE is a "Owners"
+exports.viewAllOwners = (pool) => (req, res) => {
+  console.log("Viewing All Owners");
+
+  pool.getConnection((err, connection) => {
+    if(err){
+      console.log("Error: " + err);
+      const empty = [];
+      return res.send({ success: false, owners: empty });
+    } else {
+      connection.query('SELECT * FROM user WHERE USER_TYPE = "Owner"', (err, results) => {
+        if(err){
+          const empty=[];
+          console.log("View All Owners Error: " + err);
+          return res.send({ success: false, owners: empty });
+        } else {
+          console.log("Owners found: " + results.length);
+          return res.send({ success: true, owners: results });
+        }
+      });
+    }
+  });
+}
+
 // This is a function that uploads an image to Cloudinary and updates the picture table in
 // the SQL database with the user picture ID and user ID. It first extracts the image data from the request body,
 // converts the buffer to a base64 data URL, and finds the user ID from the request parameters.

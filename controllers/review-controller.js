@@ -194,6 +194,8 @@ getUserIdByUsername(pool, userName, (err, userId) => {
     }
     else if(userId>0){
     uId = userId;
+    // print out user id
+    console.log("User Id: " + uId);
 
     // Get Accommodation Id
     getAccommodationIdByName(pool, accommName, (err, accommodationId) => {
@@ -203,6 +205,8 @@ getUserIdByUsername(pool, userName, (err, userId) => {
         }
         else if(accommodationId>0){
         aId = accommodationId;
+        // print out accommodation id
+        console.log("Accommodation Id: " + aId);
 
         // Begin Transaction for Favorite (either insert or delete)
         pool.getConnection((err, connection) => {

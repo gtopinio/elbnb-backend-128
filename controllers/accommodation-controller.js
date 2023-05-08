@@ -651,7 +651,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
   
   } else {
 
-    let query = 'SELECT * FROM accommodation';
+    let query = 'SELECT *, (SELECT MAX(ROOM_PRICE) FROM room WHERE ACCOMMODATION_ID = accommodation.ACCOMMODATION_ID) AS MAX_PRICE FROM accommodation';
 
       if (name || address || location || type ) {
         query += ' WHERE ACCOMMODATION_ISARCHIVED = false AND';

@@ -46,7 +46,7 @@ exports.generateReport = (pool) => (req, res) => {
           console.log("Error: " + err);
           return res.send({ message: "An error occured. PDF Cannot be generated" });
         } else {
-          connection.query('SELECT * FROM accommodation WHERE ACCOMMODATION_ISARCHIVED = false ORDER BY ACCOMMODATION_NAME', (err, results) => {
+          connection.query('SELECT *, (SELECT MAX(ROOM_PRICE) FROM room WHERE ACCOMMODATION_ID = accommodation.ACCOMMODATION_ID) AS MAX_PRICE FROM accommodation WHERE ACCOMMODATION_ISARCHIVED = false ORDER BY ACCOMMODATION_NAME', (err, results) => {
             if (err) {
               console.log("Error: " + err);
               return res.send({ message: "An error occured. PDF Cannot be generated" });
@@ -97,7 +97,7 @@ exports.generateReport = (pool) => (req, res) => {
           return res.send({ message: "An error occured. PDF Cannot be generated" });
         } else {
           // Creating query 
-          let query = 'SELECT * FROM accommodation';
+          let query = 'SELECT *, (SELECT MAX(ROOM_PRICE) FROM room WHERE ACCOMMODATION_ID = accommodation.ACCOMMODATION_ID) AS MAX_PRICE FROM accommodation';
           let whereClause = '';
           if (name || address || location || type || ids.length > 0) {
             whereClause += ' WHERE ACCOMMODATION_ISARCHIVED = false AND';
@@ -193,7 +193,7 @@ exports.generateReport = (pool) => (req, res) => {
       });
     } else {
       // Creating query
-      let query = 'SELECT * FROM accommodation';
+      let query = 'SELECT *, (SELECT MAX(ROOM_PRICE) FROM room WHERE ACCOMMODATION_ID = accommodation.ACCOMMODATION_ID) AS MAX_PRICE FROM accommodation';
       if (name || address || location || type ) {
         query += ' WHERE ACCOMMODATION_ISARCHIVED = false AND';
         if (name) {

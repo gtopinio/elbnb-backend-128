@@ -572,7 +572,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
         const empty = []
         return res.send({ message: "No accommodations found...", accommodations: empty });
       } else {
-        connection.query('SELECT * FROM accommodation WHERE ACCOMMODATION_ISARCHIVED = false ORDER BY ACCOMMODATION_NAME', (err, results) => {
+        connection.query('SELECT *, (SELECT MAX(ROOM_PRICE) FROM room WHERE ACCOMMODATION_ID = accommodation.ACCOMMODATION_ID) AS MAX_PRICE FROM accommodation WHERE ACCOMMODATION_ISARCHIVED = false ORDER BY ACCOMMODATION_NAME', (err, results) => {
           if (err) {
             console.log("Error: " + err);
             const empty = []
@@ -597,7 +597,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
     } else {
       // Now that we caught the ids, we can filter the accommodations by their ids and the other filters, namely name, address, location, and/or type
 
-      let query = 'SELECT * FROM accommodation';
+      let query = 'SELECT *, (SELECT MAX(ROOM_PRICE) FROM room WHERE ACCOMMODATION_ID = accommodation.ACCOMMODATION_ID) AS MAX_PRICE FROM accommodation';
       let whereClause = '';
 
       if (name || address || location || type || ids.length > 0) {

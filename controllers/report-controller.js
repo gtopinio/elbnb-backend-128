@@ -75,6 +75,7 @@ exports.generateReport = (pool) => (req, res) => {
                 const location = accom.ACCOMMODATION_LOCATION;
                 const description = accom.ACCOMMODATION_DESCRIPTION;
                 const amenities = accom.ACCOMMODATION_AMENITIES;
+                const maxPrice = accom.MAX_PRICE;
   
                 pdfDoc.fontSize(12).text(`Name: ${name}`)
                       .text(`Type: ${type}`)
@@ -82,6 +83,7 @@ exports.generateReport = (pool) => (req, res) => {
                       .text(`Location: ${location}`)
                       .text(`Description: ${description}`)
                       .text(`Ameneties: ${amenities}`)
+                      .text(`Max Price: ${maxPrice}`)
                       .moveDown();
               }
               pdfDoc.end();
@@ -174,6 +176,7 @@ exports.generateReport = (pool) => (req, res) => {
                       const location = accom.ACCOMMODATION_LOCATION;
                       const description = accom.ACCOMMODATION_DESCRIPTION;
                       const amenities = accom.ACCOMMODATION_AMENITIES;
+                      const maxPrice = accom.MAX_PRICE;
         
                       pdfDoc.fontSize(12).text(`Name: ${name}`)
                             .text(`Type: ${type}`)
@@ -181,6 +184,7 @@ exports.generateReport = (pool) => (req, res) => {
                             .text(`Location: ${location}`)
                             .text(`Description: ${description}`)
                             .text(`Ameneties: ${amenities}`)
+                            .text(`Max Price: ${maxPrice}`)
                             .moveDown();
                     }
                     pdfDoc.end();
@@ -264,6 +268,7 @@ exports.generateReport = (pool) => (req, res) => {
                   const location = accom.ACCOMMODATION_LOCATION;
                   const description = accom.ACCOMMODATION_DESCRIPTION;
                   const amenities = accom.ACCOMMODATION_AMENITIES;
+                  const maxPrice = accom.MAX_PRICE;
     
                   pdfDoc.fontSize(12).text(`Name: ${name}`)
                         .text(`Type: ${type}`)
@@ -271,6 +276,7 @@ exports.generateReport = (pool) => (req, res) => {
                         .text(`Location: ${location}`)
                         .text(`Description: ${description}`)
                         .text(`Ameneties: ${amenities}`)
+                        .text(`Max Price: ${maxPrice}`)
                         .moveDown();
                 }
                 pdfDoc.end();

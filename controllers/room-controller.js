@@ -610,9 +610,17 @@ exports.getRoomImage = (pool) => (req, res) => {
 /* This function updates the image of a room in a database. It takes in the pool
 object as a parameter and returns a function that takes in a request and response object. The
 request object should contain the room name, accommodation name, and the new image. */
-exports.editRoomImage = (pool) => (req, res) => {
-    const { roomName, accommodationName, image } = req.body;
+exports.updateRoomImage = (pool) => (req, res) => {
+    // Extract the image data from the request body
+    const imageData = req.files.data[0].buffer;
+
+    // Convert the buffer to a base64 data URL
+    const mimeType = req.files.data[0].mimetype;
+    const imageDataUrl = `data:${mimeType};base64,${imageData.toString('base64')}`;
+
+    const { roomName, accommodationName } = req.body;
     var accommID = null;
+    // Get the accommodation ID from the accommodation name.
     getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
         if (err) {
             console.log("Error: " + err);
@@ -627,18 +635,46 @@ exports.editRoomImage = (pool) => (req, res) => {
                     return res.send({ success: false });
                 } else if (roomID > 0 && typeof roomID !== "undefined") {
                     id = roomID;
-                    const updateImageQuery = `
-                        UPDATE picture
-                        SET PICTURE_ID = ?
+                    const getImageIdQuery = `
+                        SELECT PICTURE_ID
+                        FROM picture
                         WHERE ACCOMMODATION_ID = ? AND ROOM_ID = ?
                     `;
-                    pool.query(updateImageQuery, [image, accommID, id], (err) => {
+                    pool.query(getImageIdQuery, [accommID, id], (err, result) => {  // Get the image ID of the room.
                         if (err) {
-                            console.log("Error updating image: " + err);
+                            console.log("Error getting image ID: " + err);
                             return res.send({ success: false });
                         } else {
-                            console.log("Successfully updated image!");
-                            return res.send({ success: true });
+                            // Delete the old image from cloudinary.
+                            cloudinary.uploader.destroy(result[0].PICTURE_ID, (err) => {
+                                if (err) {
+                                    console.log("Error deleting image: " + err);
+                                    return res.send({ success: false });
+                                } else {
+                                    // Upload the new image to cloudinary.
+                                    cloudinary.uploader.upload(imageDataUrl, {upload_preset: "room_pictures"}, (err, result) => {
+                                        if (err) {
+                                            console.log("Error uploading image: " + err);
+                                            return res.send({ success: false });
+                                        } else {
+                                            const updateImageQuery = `
+                                                UPDATE picture
+                                                SET PICTURE_ID = ?
+                                                WHERE ACCOMMODATION_ID = ? AND ROOM_ID = ?
+                                            `;
+                                            pool.query(updateImageQuery, [result.public_id, accommID, id], (err) => {
+                                                if (err) {
+                                                    console.log("Error updating image: " + err);
+                                                    return res.send({ success: false });
+                                                } else {
+                                                    console.log("Successfully updated image!");
+                                                    return res.send({ success: true });
+                                                }
+                                            });
+                                        }
+                                    });
+                                }
+                            });
                         }
                     });
                 } else {

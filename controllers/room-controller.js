@@ -620,3 +620,45 @@ exports.editRoomImage = (pool) => (req, res) => {
         }
     });
 }
+
+exports.deleteRoomImage = (pool) => (req, res) => {
+    const { roomName, accommodationName, image } = req.body;
+    var accommID = null;
+    getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+        if (err) {
+            console.log("Error: " + err);
+            return res.send({ success: false });
+        } else if (accommodationId > 0 && typeof accommodationId != "undefined") {
+            accommID = accommodationId;
+            // Check if the room ID exists.
+            var id = null;
+            getRoomIDbyName(pool, roomName, accommodationName, (err, roomID) => {
+                if (err) {
+                    console.log("Error: " + err);
+                    return res.send({ success: false });
+                } else if (roomID > 0 && typeof roomID !== "undefined") {
+                    id = roomID;
+                    const deleteImageQuery = `
+                        DELETE FROM picture
+                        WHERE ACCOMMODATION_ID = ? AND ROOM_ID = ? AND PICTURE_ID = ?
+                    `;
+                    pool.query(deleteImageQuery, [accommID, id, image], (err) => {
+                        if (err) {
+                            console.log("Error deleting image: " + err);
+                            return res.send({ success: false });
+                        } else {
+                            console.log("Successfully deleted image!");
+                            return res.send({ success: true });
+                        }
+                    });
+                } else {
+                    console.log("Room not found! Cannot proceed to deleting image...");
+                    return res.send({ success: false });
+                }
+            });
+        } else {
+            console.log("Accommodation not found! Cannot proceed to deleting image...");
+            return res.send({ success: false });
+        }
+    });
+}

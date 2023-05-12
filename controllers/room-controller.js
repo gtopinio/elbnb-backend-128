@@ -483,7 +483,8 @@ getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
 /* This function takes a database connection pool as input and returns a function that handles HTTP requests.
 The function is responsible for adding animage to a room in a given accommodation.
 It first extracts the room name, accommodation name, and image data from the request body.
-It then retrieves the ID of the accommodation using its name, and the ID of the room using its name and the name of the accommodation it belongs to.
+It then retrieves the ID of the accommodation using its name, and the ID
+of the room using its name and the name of the accommodation it belongs to.
 If both IDs arefound, the function inserts the image data, accommodation ID, and room ID into the `picture` table */
 exports.addRoomImage = (pool) => (req, res) => {
     const { roomName, accommodationName, image } = req.body;
@@ -524,6 +525,54 @@ exports.addRoomImage = (pool) => (req, res) => {
             });
         } else {
             console.log("Accommodation not found! Cannot proceed to adding image...");
+            return res.send({ success: false });
+        }
+    });
+}
+
+/* This function takes a database connection pool as input and returns a function that handles HTTP requests.
+The function retrieves the images associated with a specific room in a specific accommodation from the database.
+It first extracts the room name and accommodation name from the request body, then uses helper functions
+`getAccommodationIdByName` and `getRoomIDbyName` to retrieve the corresponding IDs from the database.
+If the IDs are found, it executes a SQL query to retrieve the picture IDs
+associated with the room and accommodation, and returns them in the response */
+exports.getRoomImages = (pool) => (req, res) => {
+    const { roomName, accommodationName } = req.body;
+    var accommID = null;
+    getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+        if (err) {
+            console.log("Error: " + err);
+            return res.send({ success: false });
+        } else if (accommodationId > 0 && typeof accommodationId != "undefined") {
+            accommID = accommodationId;
+            // Check if the room ID exists.
+            var id = null;
+            getRoomIDbyName(pool, roomName, accommodationName, (err, roomID) => {
+                if (err) {
+                    console.log("Error: " + err);
+                    return res.send({ success: false });
+                } else if (roomID > 0 && typeof roomID !== "undefined") {
+                    id = roomID;
+                    const getImagesQuery = `
+                        SELECT PICTURE_ID
+                        FROM picture
+                        WHERE ACCOMMODATION_ID = ? AND ROOM_ID = ?
+                    `;
+                    pool.query(getImagesQuery, [accommID, id], (err, result) => {
+                        if (err) {
+                            console.log("Error getting images: " + err);
+                            return res.send({ success: false });
+                        } else {
+                            return res.send({ success: true, images: result });
+                        }
+                    });
+                } else {
+                    console.log("Room not found! Cannot proceed to getting images...");
+                    return res.send({ success: false });
+                }
+            });
+        } else {
+            console.log("Accommodation not found! Cannot proceed to getting images...");
             return res.send({ success: false });
         }
     });

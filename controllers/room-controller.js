@@ -480,12 +480,12 @@ getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
   
 // ===================================== END OF ROOM MANAGEMENT FEATURES =====================================
 
-/* This function takes a database connection pool as input and returns a function that handles HTTP requests.
-The function is responsible for adding animage to a room in a given accommodation.
-It first extracts the room name, accommodation name, and image data from the request body.
-It then retrieves the ID of the accommodation using its name, and the ID
-of the room using its name and the name of the accommodation it belongs to.
-If both IDs arefound, the function inserts the image data, accommodation ID, and room ID into the `picture` table */
+/* This function takes a database connection pool as input and returns a function that handles HTTP
+requests. The function is responsible for adding an image to a room in a given accommodation. It
+first extracts the room name, accommodation name, and image data from the request body. It then
+retrieves the ID of the accommodation using its name, and the ID of the room using its name and the
+name of the accommodation it belongs to. If both IDs are found, the function inserts the image data,
+accommodation ID, and room ID into the `picture` table */
 exports.addRoomImage = (pool) => (req, res) => {
     const { roomName, accommodationName, image } = req.body;
     var accommID = null;
@@ -530,11 +530,12 @@ exports.addRoomImage = (pool) => (req, res) => {
     });
 }
 
-/* This function takes a database connection pool as input and returns a function that handles HTTP requests.
-The function retrieves the images associated with a specific room in a specific accommodation from the database.
-It first extracts the room name and accommodation name from the request body, then uses helper functions
-`getAccommodationIdByName` and `getRoomIDbyName` to retrieve the corresponding IDs from the database.
-If the IDs are found, it executes a SQL query to retrieve the picture IDs
+
+/* This function takes a database connection pool as input and returns a function that handles HTTP
+requests. The function retrieves the images associated with a specific room in a specific accommodation
+from the database. It first extracts the room name and accommodation name from the request body, then
+uses helper functions `getAccommodationIdByName` and `getRoomIDbyName` to retrieve the corresponding
+IDs from the database. If the IDs are found, it executes a SQL query to retrieve the picture IDs
 associated with the room and accommodation, and returns them in the response */
 exports.getRoomImages = (pool) => (req, res) => {
     const { roomName, accommodationName } = req.body;
@@ -578,6 +579,9 @@ exports.getRoomImages = (pool) => (req, res) => {
     });
 }
 
+/* This function updates the image of a room in a database. It takes in the pool
+object as a parameter and returns a function that takes in a request and response object. The
+request object should contain the room name, accommodation name, and the new image. */
 exports.editRoomImage = (pool) => (req, res) => {
     const { roomName, accommodationName, image } = req.body;
     var accommID = null;
@@ -621,6 +625,9 @@ exports.editRoomImage = (pool) => (req, res) => {
     });
 }
 
+/* This function handles a request to delete an image associated with a room in a
+specific accommodation. It takes in the pool object for database connection, and expects the request
+body to contain the room name, accommodation name, and the image ID to be deleted. */
 exports.deleteRoomImage = (pool) => (req, res) => {
     const { roomName, accommodationName, image } = req.body;
     var accommID = null;

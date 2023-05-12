@@ -563,7 +563,7 @@ from the database. It first extracts the room name and accommodation name from t
 uses helper functions `getAccommodationIdByName` and `getRoomIDbyName` to retrieve the corresponding
 IDs from the database. If the IDs are found, it executes a SQL query to retrieve the picture IDs
 associated with the room and accommodation, and returns them in the response */
-exports.getRoomImages = (pool) => (req, res) => {
+exports.getRoomImage = (pool) => (req, res) => {
     const { roomName, accommodationName } = req.body;
     var accommID = null;
     getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
@@ -590,7 +590,9 @@ exports.getRoomImages = (pool) => (req, res) => {
                             console.log("Error getting images: " + err);
                             return res.send({ success: false });
                         } else {
-                            return res.send({ success: true, images: result });
+                            const imageId = result[0].PICTURE_ID;
+                            const imageUrl = cloudinary.url(imageId, {secure: true});
+                            return res.send({ success: true, imageUrl: imageUrl });
                         }
                     });
                 } else {

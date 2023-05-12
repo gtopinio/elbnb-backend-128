@@ -1,3 +1,5 @@
+const e = require("express");
+
 // Imports
 const cloudinary = require("cloudinary").v2;
 
@@ -693,7 +695,7 @@ exports.updateRoomImage = (pool) => (req, res) => {
 specific accommodation. It takes in the pool object for database connection, and expects the request
 body to contain the room name, accommodation name, and the image ID to be deleted. */
 exports.deleteRoomImage = (pool) => (req, res) => {
-    const { roomName, accommodationName, image } = req.body;
+    const { roomName, accommodationName } = req.body;
     var accommID = null;
     getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
         if (err) {
@@ -709,17 +711,37 @@ exports.deleteRoomImage = (pool) => (req, res) => {
                     return res.send({ success: false });
                 } else if (roomID > 0 && typeof roomID !== "undefined") {
                     id = roomID;
-                    const deleteImageQuery = `
-                        DELETE FROM picture
-                        WHERE ACCOMMODATION_ID = ? AND ROOM_ID = ? AND PICTURE_ID = ?
+                    const getImageIdQuery = `
+                        SELECT PICTURE_ID
+                        FROM picture
+                        WHERE ACCOMMODATION_ID = ? AND ROOM_ID = ?
                     `;
-                    pool.query(deleteImageQuery, [accommID, id, image], (err) => {
+                    pool.query(getImageIdQuery, [accommID, id], (err, result) => {  // Get the image ID of the room.
                         if (err) {
-                            console.log("Error deleting image: " + err);
+                            console.log("Error getting image ID: " + err);
                             return res.send({ success: false });
                         } else {
-                            console.log("Successfully deleted image!");
-                            return res.send({ success: true });
+                            cloudinary.uploader.destroy(result[0].PICTURE_ID, (err) => {
+                                if (err) {
+                                    console.log("Error deleting image: " + err);
+                                    return res.send({ success: false });
+                                } else {
+                                    const deleteImageQuery = `
+                                        UPDATE picture
+                                        SET PICTURE_ID = NULL
+                                        WHERE ACCOMMODATION_ID = ? AND ROOM_ID = ?
+                                    `;
+                                    pool.query(deleteImageQuery, [accommID, id], (err) => {
+                                        if (err) {
+                                            console.log("Error deleting image: " + err);
+                                            return res.send({ success: false });
+                                        } else {
+                                            console.log("Successfully deleted image!");
+                                            return res.send({ success: true });
+                                        }
+                                    });
+                                }
+                            });
                         }
                     });
                 } else {

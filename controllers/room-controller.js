@@ -479,3 +479,52 @@ getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
 }
   
 // ===================================== END OF ROOM MANAGEMENT FEATURES =====================================
+
+/* This function takes a database connection pool as input and returns a function that handles HTTP requests.
+The function is responsible for adding animage to a room in a given accommodation.
+It first extracts the room name, accommodation name, and image data from the request body.
+It then retrieves the ID of the accommodation using its name, and the ID of the room using its name and the name of the accommodation it belongs to.
+If both IDs arefound, the function inserts the image data, accommodation ID, and room ID into the `picture` table */
+exports.addRoomImage = (pool) => (req, res) => {
+    const { roomName, accommodationName, image } = req.body;
+    var accommID = null;
+    getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+        if (err) {
+            console.log("Error: " + err);
+            return res.send({ success: false });
+        } else if (accommodationId > 0 && typeof accommodationId != "undefined") {
+            accommID = accommodationId;
+            // Check if the room ID exists.
+            var id = null;
+            getRoomIDbyName(pool, roomName, accommodationName, (err, roomID) => {
+                if (err) {
+                    console.log("Error: " + err);
+                    return res.send({ success: false });
+                } else if (roomID > 0 && typeof roomID !== "undefined") {
+                    id = roomID;
+                    const addImageQuery = `
+                        INSERT INTO picture
+                        (PICTURE_ID, ACCOMMODATION_ID, ROOM_ID)
+                        VALUES
+                        (?, ?, ?)
+                    `;
+                    pool.query(addImageQuery, [image, accommID, id], (err) => {
+                        if (err) {
+                            console.log("Error adding image: " + err);
+                            return res.send({ success: false });
+                        } else {
+                            console.log("Successfully added image!");
+                            return res.send({ success: true });
+                        }
+                    });
+                } else {
+                    console.log("Room not found! Cannot proceed to adding image...");
+                    return res.send({ success: false });
+                }
+            });
+        } else {
+            console.log("Accommodation not found! Cannot proceed to adding image...");
+            return res.send({ success: false });
+        }
+    });
+}

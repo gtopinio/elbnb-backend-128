@@ -494,8 +494,15 @@ first extracts the room name, accommodation name, and image data from the reques
 retrieves the ID of the accommodation using its name, and the ID of the room using its name and the
 name of the accommodation it belongs to. If both IDs are found, the function inserts the image data,
 accommodation ID, and room ID into the `picture` table */
-exports.addRoomImage = (pool) => (req, res) => {
-    const { roomName, accommodationName, image } = req.body;
+exports.addRoomImage = (pool) => async (req, res) => {
+    // Extract the image data from the request body
+    const imageData = req.files.data[0].buffer;
+
+    // Convert the buffer to a base64 data URL
+    const mimeType = req.files.data[0].mimetype;
+    const imageDataUrl = `data:${mimeType};base64,${imageData.toString("base64")}`;
+
+    const { roomName, accommodationName } = req.body;
     var accommID = null;
     getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
         if (err) {
@@ -511,19 +518,30 @@ exports.addRoomImage = (pool) => (req, res) => {
                     return res.send({ success: false });
                 } else if (roomID > 0 && typeof roomID !== "undefined") {
                     id = roomID;
-                    const addImageQuery = `
-                        INSERT INTO picture
-                        (PICTURE_ID, ACCOMMODATION_ID, ROOM_ID)
-                        VALUES
-                        (?, ?, ?)
-                    `;
-                    pool.query(addImageQuery, [image, accommID, id], (err) => {
+                    pool.query(`SELECT * FROM picture WHERE ACCOMMODATION_ID = ? AND ROOM_ID = ?`, [accommID, id], async (err, results) => {
                         if (err) {
-                            console.log("Error adding image: " + err);
+                            console.log("Error: " + err);
+                            return res.send({ success: false });
+                        } else if (results.length > 0) {
+                            console.log("Room already has an image! Cannot proceed to adding image...");
                             return res.send({ success: false });
                         } else {
-                            console.log("Successfully added image!");
-                            return res.send({ success: true });
+                            console.log("Room has no image yet! Proceeding to adding image...");
+                            // Upload the image to cloudinary
+                            try {
+                                const result = await cloudinary.uploader.upload(imageDataUrl, {upload_preset: "room_pictures"});
+                                const imageId = result.public_id;
+
+                                // Insert the image ID, accommodation ID, and room ID into the database
+                                const addImageQuery = `INSERT INTO picture (PICTURE_ID, ACCOMMODATION_ID, ROOM_ID) VALUES ('${imageId}', ${accommID}, ${id})`;
+                                await pool.query(addImageQuery);
+
+                                console.log("Successfully added image!");
+                                return res.send({ success: true });
+                            } catch (err) {
+                                console.log("Error uploading image: " + err);
+                                return res.send({ success: false });
+                            }
                         }
                     });
                 } else {

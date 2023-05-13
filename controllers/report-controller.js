@@ -81,7 +81,7 @@ exports.generateReport = (pool) => (req, res) => {
       }
       if (capacity) {
         filter += `Capacity: ${capacity}\n`
-        query += `MAX(room.ROOM_CAPACITY) >= ${capacity} AND `
+        query += `(MAX(room.ROOM_CAPACITY) = ${capacity} OR MIN(room.ROOM_CAPACITY) = ${capacity}) AND `
       }
       query = query.slice(0, -4);
     }

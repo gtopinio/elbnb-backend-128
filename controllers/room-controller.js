@@ -496,7 +496,7 @@ first extracts the room name, accommodation name, and image data from the reques
 retrieves the ID of the accommodation using its name, and the ID of the room using its name and the
 name of the accommodation it belongs to. If both IDs are found, the function inserts the image data,
 accommodation ID, and room ID into the `picture` table */
-exports.addRoomImage = (pool) => async (req, res) => {
+exports.uploadRoomPic = (pool) => async (req, res) => {
     // Extract the image data from the request body
     const imageData = req.files.data[0].buffer;
 
@@ -565,7 +565,7 @@ from the database. It first extracts the room name and accommodation name from t
 uses helper functions `getAccommodationIdByName` and `getRoomIDbyName` to retrieve the corresponding
 IDs from the database. If the IDs are found, it executes a SQL query to retrieve the picture IDs
 associated with the room and accommodation, and returns them in the response */
-exports.getRoomImage = (pool) => (req, res) => {
+exports.getRoomPic = (pool) => (req, res) => {
     const { roomName, accommodationName } = req.body;
     var accommID = null;
     getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
@@ -612,7 +612,7 @@ exports.getRoomImage = (pool) => (req, res) => {
 /* This function updates the image of a room in a database. It takes in the pool
 object as a parameter and returns a function that takes in a request and response object. The
 request object should contain the room name, accommodation name, and the new image. */
-exports.updateRoomImage = (pool) => (req, res) => {
+exports.updateRoomPicture = (pool) => (req, res) => {
     // Extract the image data from the request body
     const imageData = req.files.data[0].buffer;
 
@@ -694,7 +694,7 @@ exports.updateRoomImage = (pool) => (req, res) => {
 /* This function handles a request to delete an image associated with a room in a
 specific accommodation. It takes in the pool object for database connection, and expects the request
 body to contain the room name, accommodation name, and the image ID to be deleted. */
-exports.deleteRoomImage = (pool) => (req, res) => {
+exports.deleteRoomPicture = (pool) => (req, res) => {
     const { roomName, accommodationName } = req.body;
     var accommID = null;
     getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {

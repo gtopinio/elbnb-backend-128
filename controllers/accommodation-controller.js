@@ -33,7 +33,87 @@ function checkAccommDup(pool, name, callback) {
       }
     });
   }
-  
+ 
+// This function takes a database connection pool, an accommodation name (unique), and a callback function as inputs. 
+// It queries the database to retrieve the accommodation ID for the provided name and passes the result to the callback function. 
+// If there is an error in the database query or connection, it logs the error and passes it to the callback function as the first parameter.
+function getAccommodationIdByName(pool, name, callback) {
+  pool.getConnection((err, connection) => {
+    if (err) {
+      console.log("Error: " + err);
+      callback(err, null);
+    } else {
+      const checkQuery = `SELECT ACCOMMODATION_ID FROM accommodation WHERE ACCOMMODATION_NAME = ?`;
+      connection.query(checkQuery, [name], (err, result) => {
+        if (err) {
+          console.log("Get Accomm Id Error: " + err);
+          callback(err, null);
+        } else {
+          try{
+            if(typeof result[0].ACCOMMODATION_ID === "undefined") {
+              console.log("Get Accom Id: Undefined Object");
+              callback(null, 0);
+            }
+            else {
+              console.log("Get Accom Id: Defined Object");
+              callback(null, result[0].ACCOMMODATION_ID);
+            }
+          } catch (err) {
+            console.log("Accommodation Not Found...");
+            callback(err, null);
+          }
+        }
+      });
+    }
+  });
+}
+
+function getHighestRoomPrice(pool, name, callback){
+  pool.getConnection((err, connection) => {
+    if (err) {
+      console.log("Error: " + err);
+      callback(err, null);
+    } else {
+      getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+        if (err) {
+          console.log("Error: " + err);
+          callback(err, null);
+        } else if (accommodationId > 0) {
+          id = accommodationId;
+          // Get the rooms by the accommodation id
+          const query = `SELECT * FROM room WHERE ROOM_ISARCHIVED = 0 AND ACCOMMODATION_ID = ${id} ORDER BY ROOM_PRICE DESC`;
+          connection.query(query, (err, results) => {
+            if (err) {
+              console.log("Error getting Highest Room Price: " + err);
+              callback(err, null);
+            } else {
+              // If room price is undefined.
+              try{
+                if(typeof result[0].ROOM_PRICE === "undefined") {
+                  console.log("Get Room Price: Undefined Object");
+                  callback(null, 0);
+                }
+              // If room price is defined.
+                else {
+                  console.log("Get Room Price: Defined Object");
+                  callback(null, results[0].ROOM_PRICE);
+                }
+              // Catch Errors.
+              } catch (err) {
+                console.log("No Rooms...");
+                callback(err, null);
+              }
+            }
+          });
+        } else {
+          // No accommodation found with the accommodationName
+          console.log("No accommodation found with the name: " + accommodationName);
+          return res.send({ success: false });
+        }
+      });
+    }
+  });
+}  
   
 // This function is used to add a new accommodation to the database. 
 // It takes in a pool object as input, which is used to establish a database connection. 
@@ -110,41 +190,6 @@ exports.addAccommodation = (pool) => (req, res) => {
     } // else when there's no duplicate
   }); // end of checkAccomDupe
 }; // end of addAccommodation
-
-// This function takes a database connection pool, an accommodation name (unique), and a callback function as inputs. 
-// It queries the database to retrieve the accommodation ID for the provided name and passes the result to the callback function. 
-// If there is an error in the database query or connection, it logs the error and passes it to the callback function as the first parameter.
-function getAccommodationIdByName(pool, name, callback) {
-  pool.getConnection((err, connection) => {
-    if (err) {
-      console.log("Error: " + err);
-      callback(err, null);
-    } else {
-      const checkQuery = `SELECT ACCOMMODATION_ID FROM accommodation WHERE ACCOMMODATION_NAME = ?`;
-      connection.query(checkQuery, [name], (err, result) => {
-        if (err) {
-          console.log("Get Accomm Id Error: " + err);
-          callback(err, null);
-        } else {
-          try{
-            if(typeof result[0].ACCOMMODATION_ID === "undefined") {
-              console.log("Get Accom Id: Undefined Object");
-              callback(null, 0);
-            }
-            else {
-              console.log("Get Accom Id: Defined Object");
-              callback(null, result[0].ACCOMMODATION_ID);
-            }
-          } catch (err) {
-            console.log("Accommodation Not Found...");
-            callback(err, null);
-          }
-          
-        }
-      });
-    }
-  });
-}
 
 // The editAccommodation function takes a MySQL connection pool as input and returns a callback function that handles an POST request for editing an accommodation. 
 // The function first extracts the updated accommodation details from the request body. It then tries to retrieve the ID of the accommodation to be updated by its name. 
@@ -550,6 +595,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
   const address = filters.address;
   const location = filters.location;
   const type = filters.type;
+  const owner = filters.owner;
   const maxPrice = filters.maxPrice;
   //const priceTo = filters.priceTo;
   const capacity = filters.capacity;
@@ -585,7 +631,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
       }
     });
 
-  }    // If the priceFrom, priceTo, or capacity are not empty, we should find the accommodations that match the criteria
+  }    // If the maxPrice, or capacity are not empty, we should find the accommodations that match the criteria
   else if(maxPrice || capacity){
 
   // check if there's an accommodation that already has the same name

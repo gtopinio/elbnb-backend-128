@@ -90,7 +90,7 @@ function getOwnerIdByUname(pool, uname, callback) {
               callback(null, result[0].USER_ID);
             }
           } catch (err) {
-            console.log("Accommodation Not Found...");
+            console.log("Owner Not Found...");
             callback(err, null);
           }
         }
@@ -579,6 +579,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
   const location = filters.location;
   const type = filters.type;
   const owner = filters.owner;
+  const rating = filters.rating;
   const maxPrice = filters.maxPrice;
   //const priceTo = filters.priceTo;
   const capacity = filters.capacity;
@@ -589,12 +590,14 @@ exports.filterAccommodations = (pool) => (req, res) => {
   console.log("Address: " + address);
   console.log("Location: " + location);
   console.log("Type: " + type);
+  console.log("Owner: " + owner);
+  console.log("Rating: " + rating);
   console.log("Max Price: " + maxPrice);
   // console.log("Price To: " + priceTo);
   console.log("Capacity: " + capacity);
 
     // If all filters are undefined, we should return all accommodations
-  if (!name && !address && !location && !type && !maxPrice && !capacity) {
+  if (!name && !address && !location && !type && !owner && !maxPrice && !capacity) {
     pool.getConnection((err, connection) => {
       if (err) {
         console.log("Error: " + err);
@@ -652,6 +655,18 @@ exports.filterAccommodations = (pool) => (req, res) => {
         whereClause += ` ACCOMMODATION_ID IN (${ids.join(',')}) AND`;
       }
 
+      if (owner){
+        getOwnerIdByUname(pool, name, (err, accommodationId) => {
+          if (err) {
+            console.log("Error: " + err);
+            return res.send({ success: false });
+          } else{
+            id = ownerId;
+          }
+        });
+        whereClause += ` OWNER_ID = '${id}' AND`;
+      }
+
       // Remove the extra 'AND' at the end of the WHERE clause
       whereClause = whereClause.slice(0, -4);
 
@@ -699,6 +714,18 @@ exports.filterAccommodations = (pool) => (req, res) => {
     
         if (type) {
           query += ` ACCOMMODATION_TYPE = '${type}' AND`;
+        }
+
+        if (owner){
+          getOwnerIdByUname(pool, name, (err, accommodationId) => {
+            if (err) {
+              console.log("Error: " + err);
+              return res.send({ success: false });
+            } else{
+              id = ownerId;
+            }
+          });
+          whereClause += ` OWNER_ID = '${id}' AND`;
         }
 
         // remove the last 'AND' if present

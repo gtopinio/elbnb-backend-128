@@ -701,6 +701,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
           }
       });
   } else if ((maxPrice || capacity) && (owner === "" && owner === undefined)){
+    console.log("Filtering accommodations...Block 2");
         // filter using the max price and capacity first
         filterRooms(pool, maxPrice, capacity, (err, roomIds) => {
           if(err) {
@@ -770,6 +771,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
           }
         });
   } else {
+    console.log("Filtering accommodations...Block 3");
       let query = 'SELECT * FROM accommodation';
       let whereClause = '';
 

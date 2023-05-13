@@ -550,8 +550,8 @@ exports.filterAccommodations = (pool) => (req, res) => {
   const address = filters.address;
   const location = filters.location;
   const type = filters.type;
-  const priceFrom = filters.priceFrom;
-  const priceTo = filters.priceTo;
+  const maxPrice = filters.maxPrice;
+  //const priceTo = filters.priceTo;
   const capacity = filters.capacity;
 
   // Print the filters
@@ -560,12 +560,12 @@ exports.filterAccommodations = (pool) => (req, res) => {
   console.log("Address: " + address);
   console.log("Location: " + location);
   console.log("Type: " + type);
-  console.log("Price From: " + priceFrom);
-  console.log("Price To: " + priceTo);
+  console.log("Max Price: " + maxPrice);
+  // console.log("Price To: " + priceTo);
   console.log("Capacity: " + capacity);
 
     // If all filters are undefined, we should return all accommodations
-  if (!name && !address && !location && !type && !priceFrom && !priceTo && !capacity) {
+  if (!name && !address && !location && !type && !maxPrice && !capacity) {
     pool.getConnection((err, connection) => {
       if (err) {
         console.log("Error: " + err);
@@ -586,10 +586,10 @@ exports.filterAccommodations = (pool) => (req, res) => {
     });
 
   }    // If the priceFrom, priceTo, or capacity are not empty, we should find the accommodations that match the criteria
-  else if(priceFrom || priceTo || capacity){
+  else if(maxPrice || capacity){
 
   // check if there's an accommodation that already has the same name
-  filterRooms(pool, priceTo, priceFrom, capacity, (err, ids) => {
+  filterRooms(pool, maxPrice, capacity, (err, ids) => {
     if (err) {
       console.log("Error: " + err);
       const empty = []

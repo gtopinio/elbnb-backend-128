@@ -673,6 +673,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
       query += whereClause;
       
       query += ' ORDER BY ACCOMMODATION_NAME';
+      console.log("Query: " + query);
 
         pool.getConnection((err, connection) => {
           if (err) {
@@ -732,6 +733,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
         query = query.replace(/AND\s*$/, '');
 
         query += ' ORDER BY ACCOMMODATION_NAME';
+        console.log("Query: " + query);
 
         pool.getConnection((err, connection) => {
           if (err) {

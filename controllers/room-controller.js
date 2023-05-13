@@ -582,7 +582,7 @@ exports.getRoomPic = (pool) => (req, res) => {
                     console.log("Error: " + err);
                     return res.send({ success: false });
                 } else if (result.length !== 0) {
-                    id = roomID;
+                    id = result.ROOM_ID;
                     const getImagesQuery = `
                         SELECT PICTURE_ID
                         FROM picture

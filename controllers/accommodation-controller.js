@@ -82,7 +82,11 @@ function getOwnerIdByUsername(pool, uname, callback) {
           console.log("Get Owner Id Error: " + err);
           callback(err, null);
         } else if (results.length > 0) {
+          console.log("Owner Found...");
           callback(null, results[0].USER_ID);
+        } else {
+          console.log("Owner Not Found...");
+          callback(null, null);
         }
       });
     }
@@ -692,6 +696,8 @@ exports.filterAccommodations = (pool) => (req, res) => {
             });
           }
       });
+  } else if (maxPrice || capacity || (owner === "" && owner === undefined)){
+
   }
 };
 

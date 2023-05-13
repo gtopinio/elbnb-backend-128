@@ -656,7 +656,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
       }
 
       if (owner){
-        getOwnerIdByUname(pool, name, (err, ownerId) => {
+        getOwnerIdByUname(pool, owner, (err, ownerId) => {
           if (err) {
             console.log("Error: " + err);
             return res.send({ success: false });
@@ -717,7 +717,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
         }
 
         if (owner){
-          getOwnerIdByUname(pool, name, (err, ownerId) => {
+          getOwnerIdByUname(pool, owner, (err, ownerId) => {
             if (err) {
               console.log("Error: " + err);
               return res.send({ success: false });

@@ -576,13 +576,12 @@ exports.getRoomPic = (pool) => (req, res) => {
             accommID = accommodationId;
             // Check if the room ID exists.
             var id = null;
-            const getRoomIDQuery = `SELECT ROOM_ID FROM room WHERE ROOM_NAME = ? AND ACCOMMODATION_ID = ?`;
-           pool.query(getRoomIDQuery, [roomName, accommID], (err, result) => {
+            getRoomIDbyName(pool, roomName, accommodationName, (err, roomID) => {
                 if (err) {
                     console.log("Error: " + err);
                     return res.send({ success: false });
-                } else if (result.length !== 0) {
-                    id = result.ROOM_ID;
+                } else if (roomID) {
+                    id = roomID;
                     const getImagesQuery = `
                         SELECT PICTURE_ID
                         FROM picture

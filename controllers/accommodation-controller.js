@@ -75,7 +75,7 @@ function getOwnerIdByUsername(pool, uname, callback) {
       console.log("Error: " + err);
       callback(err, null);
     } else {
-      const checkQuery = `SELECT USER_ID FROM user WHERE USER_TYPE = "Owner" AND USER_USERNAME LIKE ?`;
+      const checkQuery = `SELECT USER_ID FROM user WHERE USER_TYPE = 'Owner' AND USER_USERNAME LIKE CONCAT('%', ?, '%')`;
       connection.query(checkQuery, [uname], (err, results) => {
         if (err) {
           console.log("Get Owner Id Error: " + err);

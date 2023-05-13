@@ -86,7 +86,7 @@ function getOwnerIdByUname(pool, uname, callback) {
               callback(null, 0);
             }
             else {
-              console.log("Get User Id: Defined Object");
+              console.log("Get User Id: Defined Object :" + result[0].USER_ID);
               callback(null, result[0].USER_ID);
             }
           } catch (err) {

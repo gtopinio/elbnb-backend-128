@@ -789,17 +789,20 @@ exports.getAccommodationPic = (pool) => (req, res) => {
         if (err) {
           console.log("Error: " + err);
           return res.send({ success: false });
-        } else if(results.length == 0) {
-          // No picture found with the accommodation id
-          console.log("No picture found with the accommodation id: " + id);
+        } else if (results.length === 0){
+          console.log("No accommodation image found!");
           return res.send({ success: false });
+        } else {
+          // check if result[0].PICTURE_ID has "mockup-128" in its string
+          if(results[0].PICTURE_ID.includes("mockup-128")){
+            const imageId = results[0].PICTURE_ID;
+            const imageUrl = cloudinary.url(imageId, {secure: true});
+            return res.send({ success: true, imageUrl: imageUrl });
+        } else { // if not, then it is not a real image
+            console.log("No accommodation image found!");
+            return res.send({ success: false });
         }
-        else {
-          // Get the image url from Cloudinary
-          const pictureId = results[0].PICTURE_ID;
-          const imageUrl = cloudinary.url(pictureId, { secure: true });
-          return res.send({ success: true, imageUrl: imageUrl });
-        }
+      }
       });
     } else {
       // No accommodation found with the accommodationName
@@ -836,6 +839,10 @@ exports.removeAccommodationPicture = (pool) => (req, res) => {
             if (err) {
               console.log("Error deleting picture from cloudinary: " + err);
               return res.send({ success: false });
+            } // check if result[0].PICTURE_ID has "mockup-128" in its string
+            else if(!results[0].PICTURE_ID.includes("mockup-128")){
+                console.log("No user image found!");
+                return res.send({ success: false });
             } else {
               // update the accommodation picture id in the database to null
               const updatePictureIdQuery = `

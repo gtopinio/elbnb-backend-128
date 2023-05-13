@@ -662,7 +662,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
               }
 
               if(ownerIds.length > 0){
-                whereClause += ` ACCOMMODATION_OWNERID IN (${ownerIds.join(',')}) AND`;
+                whereClause += ` ACCOMMODATION_OWNER_ID IN (${ownerIds.join(',')}) AND`;
               }
 
                     // Remove the extra 'AND' at the end of the WHERE clause

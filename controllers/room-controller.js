@@ -591,7 +591,11 @@ exports.getRoomPic = (pool) => (req, res) => {
                         if (err) {
                             console.log("Error getting images: " + err);
                             return res.send({ success: false });
-                        } else {
+                        } else if (result.length === 0){
+                            console.log("No room image found!");
+                            return res.send({ success: false });
+                        }
+                        else {
                             const imageId = result[0].PICTURE_ID;
                             const imageUrl = cloudinary.url(imageId, {secure: true});
                             return res.send({ success: true, imageUrl: imageUrl });

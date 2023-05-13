@@ -75,14 +75,13 @@ function getOwnerIdByUsername(pool, uname, callback) {
       console.log("Error: " + err);
       callback(err, null);
     } else {
-      const checkQuery = `SELECT USER_ID FROM user WHERE USER_TYPE = 'Owner' AND USER_USERNAME LIKE CONCAT('%', ?, '%')`;
+      const checkQuery = `SELECT USER_ID FROM user WHERE USER_TYPE = 'Owner' AND USER_USERNAME = ?`;
       connection.query(checkQuery, [uname], (err, results) => {
         if (err) {
           console.log("Get Owner Id Error: " + err);
           callback(err, null);
-        } else {
-          const ids = results.map(result => result.USER_ID);
-          callback(null, ids);
+        } else if (results.length > 0) {
+          callback(null, results[0].USER_ID);
         }
       });
     }

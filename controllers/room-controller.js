@@ -531,7 +531,7 @@ exports.uploadRoomPic = (pool) => async (req, res) => {
                             console.log("Room has no image yet! Proceeding to adding image...");
                             // Upload the image to cloudinary
                             try {
-                                const result = await cloudinary.uploader.upload(imageDataUrl, {upload_preset: "room_pictures"});
+                                const result = await cloudinary.uploader.upload(imageDataUrl, {upload_preset: "mockup_setup"});
                                 const imageId = result.public_id;
 
                                 // Insert the image ID, accommodation ID, and room ID into the database
@@ -654,7 +654,7 @@ exports.updateRoomPicture = (pool) => (req, res) => {
                                     return res.send({ success: false });
                                 } else {
                                     // Upload the new image to cloudinary.
-                                    cloudinary.uploader.upload(imageDataUrl, {upload_preset: "room_pictures"}, (err, result) => {
+                                    cloudinary.uploader.upload(imageDataUrl, {upload_preset: "mockup_setup"}, (err, result) => {
                                         if (err) {
                                             console.log("Error uploading image: " + err);
                                             return res.send({ success: false });

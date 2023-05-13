@@ -70,6 +70,7 @@ function getAccommodationIdByName(pool, name, callback) {
 }
 
 function getOwnerIdByUsername(pool, uname, callback) {
+  console.log("Getting Owner Id: " + uname);
   pool.getConnection((err, connection) => {
     if (err) {
       console.log("Error: " + err);
@@ -608,6 +609,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
 
   }
   else if(maxPrice || capacity || (name !== "" && name !== undefined)){
+    console.log("Filtering accommodations...Block 1");
         // see if owner name exists in database
         getOwnerIdByUsername(pool, name, (err, ownerId) => {
           if(err){
@@ -637,7 +639,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
                 let query = 'SELECT * FROM accommodation';
                 let whereClause = '';
   
-                if (address || location || type || roomIds.length > 0 || ownerId.length != null) {
+                if (address || location || type || roomIds.length > 0 || ownerId !== null) {
                   whereClause += ' WHERE ACCOMMODATION_ISARCHIVED = false AND';
   
                 if (address) {

@@ -563,16 +563,15 @@ exports.viewAccommodation = (pool) => (req, res) => {
 }
 
 // The function takes in a database connection pool object and returns a callback function that filters a room based on the user's search criteria specified in the req.query object.
-function filterRooms(pool, priceTo, priceFrom, capacity, callback) {
+function filterRooms(pool, maxPrice, capacity, callback) {
   const query = `
     SELECT DISTINCT ACCOMMODATION_ID FROM room
     WHERE 
       (ROOM_PRICE <= ? OR ? IS NULL)
-      AND (ROOM_PRICE >= ? OR ? IS NULL)
       AND (ROOM_CAPACITY = ? OR ? IS NULL)
   `;
   
-  pool.query(query, [priceTo, priceTo, priceFrom, priceFrom, capacity, capacity], (err, results) => {
+  pool.query(query, [maxPrice, maxPrice, capacity, capacity], (err, results) => {
     if (err) {
       callback(err, null);
     } else {

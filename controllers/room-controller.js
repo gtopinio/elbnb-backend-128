@@ -728,10 +728,10 @@ exports.removeRoomPicture = (pool) => (req, res) => {
                                 } else {
                                     const deleteImageQuery = `
                                         UPDATE picture
-                                        SET PICTURE_ID = NULL
+                                        SET PICTURE_ID = ?
                                         WHERE ACCOMMODATION_ID = ? AND ROOM_ID = ?
                                     `;
-                                    pool.query(deleteImageQuery, [accommID, id], (err) => {
+                                    pool.query(deleteImageQuery, [id, accommID, id], (err) => {
                                         if (err) {
                                             console.log("Error deleting image: " + err);
                                             return res.send({ success: false });

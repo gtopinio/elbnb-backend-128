@@ -637,7 +637,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
                 let query = 'SELECT * FROM accommodation';
                 let whereClause = '';
   
-                if (address || location || type || roomIds.length > 0 || ownerIds.length > 0) {
+                if (address || location || type || roomIds.length > 0 || ownerId.length != null) {
                   whereClause += ' WHERE ACCOMMODATION_ISARCHIVED = false AND';
   
                 if (address) {
@@ -657,7 +657,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
                 }
   
                 if(ownerId){
-                  whereClause += ` ACCOMMODATION_OWNER_ID = (${ownerId}) AND`;
+                  whereClause += ` ACCOMMODATION_OWNER_ID = '${ownerId}' AND`;
                 }
   
                       // Remove the extra 'AND' at the end of the WHERE clause

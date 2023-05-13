@@ -40,6 +40,7 @@ exports.generateReport = (pool) => (req, res) => {
     const capacity = filters.capacity;
   
     // Building the query
+    let filter = ""
     let query = 'SELECT accommodation.*, MAX(room.ROOM_PRICE) AS max_price, user.USER_USERNAME, AVG(review.REVIEW_RATING) AS rating, MIN(room.ROOM_CAPACITY) AS min_capacity, MAX(room.ROOM_CAPACITY) as max_capacity ' +
                 'FROM user INNER JOIN accommodation ON user.USER_ID = accommodation.ACCOMMODATION_OWNER_ID ' + 
                 'INNER JOIN review ON accommodation.ACCOMMODATION_ID = review.ACCOMMODATION_ID ' +
@@ -47,18 +48,23 @@ exports.generateReport = (pool) => (req, res) => {
                 'WHERE accommodation.ACCOMMODATION_ISARCHIVED = false AND room.ROOM_ISARCHIVED = false AND '
 
     if (name) {
+      filter += `Name: ${name}\n`
       query += `accommodation.ACCOMMODATION_NAME LIKE '%${name}%' AND `
     }
     if (address) {
+      filter += `Address: ${address}\n`
       query += `accommodation.ACCOMMODATION_ADDRESS LIKE '%${address}%' AND `
     }
     if (location) {
+      filter += `Address: ${location}\n`
       query += `accommodation.ACCOMMODATION_LOCATION = '${location}' AND `
     }
     if (type) {
+      filter += `Type: ${type}\n`
       query += `accommodation.ACCOMMODATION_TYPE = '${type}' AND `
     }
     if (owner) {
+      filter += `Owner: ${owner}\n`
       query += `user.USER_USERNAME = '${owner}' AND `
     }
     query = query.slice(0, -4);
@@ -66,12 +72,15 @@ exports.generateReport = (pool) => (req, res) => {
     if (rating || maxPrice || capacity) {
       query += 'HAVING '
       if (rating) {
+        filter += `Rating: ${rating}\n`
         query += `AVG(review.REVIEW_RATING) >= '${rating}' AND `
       }
       if (maxPrice) {
+        filter += `Max Price: ${maxPrice}\n`
         query += `MAX(room.ROOM_PRICE) <= ${maxPrice} AND `
       }
       if (capacity) {
+        filter += `Capacity: ${capacity}\n`
         query += `MAX(room.ROOM_CAPACITY) >= ${capacity} AND `
       }
       query = query.slice(0, -4);
@@ -101,8 +110,12 @@ exports.generateReport = (pool) => (req, res) => {
             pdfDoc.pipe(res);
 
             pdfDoc.fontSize(25).text("Search Results for");
-            pdfDoc.fontSize(12).text("No filters specified")
+            if (!filter) {
+              pdfDoc.fontSize(12).text("No filters specified")
                   .moveDown();
+            } else {
+              pdfDoc.fontSize(12).text(filter).moveDown();
+            }
             pdfDoc.fontSize(18).text("Showing " + results.length + " results");
 
             accoms = JSON.parse(JSON.stringify(results));

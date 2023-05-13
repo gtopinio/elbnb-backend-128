@@ -180,6 +180,15 @@ exports.login = (pool) => (req, res) => {
 // It also verifies the user type and checks if the user exists in the database for that user type. It returns a JSON object containing 'isLoggedIn',
 // which could either be true or false depending if the user is really logged in or not.
 exports.checkIfLoggedIn = (pool) => (req, res) => {
+
+
+  try {
+    console.log("Req: " + req);
+    console.log("Req.body: " + req.body);
+  } catch (error) {
+    
+  }
+
   // Checking if cookies/authToken cookie exists
   if (!req.cookies.authToken) {
     console.log("failed")

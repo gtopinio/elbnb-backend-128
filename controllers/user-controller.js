@@ -183,10 +183,10 @@ exports.checkIfLoggedIn = (pool) => (req, res) => {
 
 
   try {
-    console.log("Req: " + req);
-    console.log("Req.body: " + req.body);
+    console.dir(req);
+    console.dir(req.body);
   } catch (error) {
-    
+    // Handle the error if any
   }
 
   // Checking if cookies/authToken cookie exists

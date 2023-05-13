@@ -616,6 +616,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
           return res.send({ success: false });
         } // else if owner does not exist
         else if(ownerIds <= 0 || ownerIds == null || typeof ownerIds === "undefined"){
+          const empty = []
           console.log("Owner does not exist! Cannot proceed to filtering...");
           return res.send({ message: "No accommodations found...", accommodations: empty });
         } // else if owner exists

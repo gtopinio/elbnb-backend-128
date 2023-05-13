@@ -1,3 +1,4 @@
+const { get } = require('needle');
 
 // Imports
 const cloudinary = require('cloudinary').v2;
@@ -68,31 +69,20 @@ function getAccommodationIdByName(pool, name, callback) {
   });
 }
 
-function getOwnerIdByUname(pool, uname, callback) {
+function getOwnerIdByUsername(pool, uname, callback) {
   pool.getConnection((err, connection) => {
     if (err) {
       console.log("Error: " + err);
       callback(err, null);
     } else {
-      const checkQuery = `SELECT USER_ID FROM user WHERE USER_TYPE = "Owner" AND USER_USERNAME = ?`;
-      connection.query(checkQuery, [uname], (err, result) => {
+      const checkQuery = `SELECT USER_ID FROM user WHERE USER_TYPE = "Owner" AND USER_USERNAME LIKE ?`;
+      connection.query(checkQuery, [uname], (err, results) => {
         if (err) {
           console.log("Get Owner Id Error: " + err);
           callback(err, null);
         } else {
-          try{
-            if(typeof result[0].USER_ID === "undefined") {
-              console.log("Get User Id: Undefined Object");
-              callback(null, 0);
-            }
-            else {
-              console.log("Get User Id: Defined Object :" + result[0].USER_ID);
-              callback(null, result[0].USER_ID);
-            }
-          } catch (err) {
-            console.log("Owner Not Found...");
-            callback(err, null);
-          }
+          const ids = results.map(result => result.ACCOMMODATION_ID);
+          callback(null, ids);
         }
       });
     }
@@ -617,143 +607,93 @@ exports.filterAccommodations = (pool) => (req, res) => {
       }
     });
 
-  }    // If the maxPrice, or capacity are not empty, we should find the accommodations that match the criteria
-  else if(maxPrice || capacity){
-
-  // check if there's an accommodation that already has the same name
-  filterRooms(pool, maxPrice, capacity, (err, ids) => {
-    if (err) {
-      console.log("Error: " + err);
-      const empty = []
-      return res.send({ message: "No accommodations found...", accommodations: empty });
-    } else {
-      // Now that we caught the ids, we can filter the accommodations by their ids and the other filters, namely name, address, location, and/or type
-
-      let query = 'SELECT * FROM accommodation';
-      let whereClause = '';
-
-      if (name || address || location || type || ids.length > 0) {
-        whereClause += ' WHERE ACCOMMODATION_ISARCHIVED = false AND';
-
-      if (name) {
-        whereClause += ` ACCOMMODATION_NAME LIKE '%${name}%' AND`;
-      }
-
-      if (address) {
-        whereClause += ` ACCOMMODATION_ADDRESS LIKE '%${address}%' AND`;
-      }
-
-      if (location) {
-        whereClause += ` ACCOMMODATION_LOCATION = '${location}' AND`;
-      }
-
-      if (type) {
-        whereClause += ` ACCOMMODATION_TYPE = '${type}' AND`;
-      }
-
-      if (ids.length > 0) {
-        whereClause += ` ACCOMMODATION_ID IN (${ids.join(',')}) AND`;
-      }
-
-      if (owner){
-        getOwnerIdByUname(pool, owner, (err, ownerId) => {
-          if (err) {
-            console.log("Error: " + err);
-            return res.send({ success: false });
-          } else{
-            const id = ownerId;
-            whereClause += ` ACCOMMODATION_OWNER_ID = '${id}' AND`;
-          }
-        });
-      }
-
-      // Remove the extra 'AND' at the end of the WHERE clause
-      whereClause = whereClause.slice(0, -4);
-
-      query += whereClause;
-      
-      query += ' ORDER BY ACCOMMODATION_NAME';
-      console.log("Query: " + query);
-
-        pool.getConnection((err, connection) => {
-          if (err) {
-            console.log("Error: " + err);
-            return res.send({ message: "No accommodations found..." });
-          } else {
-            connection.query(query, (err, results) => {
-              if (err) {
-                console.log("Error: " + err);
-                return res.send({ message: "No accommodations found..." });
-              } else {
-                console.log("Accommodations found: " + results.length);
-                return res.send({ message: "Accommodations found!", accommodations: results });
-              }
-            });
-          }
-        });
-      }
-    }});
-  
-  } else {
-
-    let query = 'SELECT * FROM accommodation';
-
-      if (name || address || location || type ) {
-        query += ' WHERE ACCOMMODATION_ISARCHIVED = false AND';
-
-        if (name) {
-          query += ` ACCOMMODATION_NAME LIKE '%${name}%' AND`;
-        }
-
-        if (address) {
-          query += ` ACCOMMODATION_ADDRESS LIKE '%${address}%' AND`;
-        }
-    
-        if (location) {
-          query += ` ACCOMMODATION_LOCATION = '${location}' AND`;
-        }
-    
-        if (type) {
-          query += ` ACCOMMODATION_TYPE = '${type}' AND`;
-        }
-
-        if (owner){
-          getOwnerIdByUname(pool, owner, (err, ownerId) => {
-            if (err) {
+  }
+  else if(maxPrice || capacity || name) {
+    // see if owner name exists in database
+    getOwnerIdByUsername(pool, name, (err, ownerIds) => {
+        if(err){
+          console.log("Error: " + err);
+          return res.send({ success: false });
+        } // else if owner does not exist
+        else if(ownerIds <= 0 || ownerIds == null || typeof ownerIds === "undefined"){
+          console.log("Owner does not exist! Cannot proceed to filtering...");
+          return res.send({ message: "No accommodations found...", accommodations: empty });
+        } // else if owner exists
+        else {
+          // filter using the max price and capacity first
+          filterRooms(pool, maxPrice, capacity, (err, roomIds) => {
+            if(err) {
               console.log("Error: " + err);
-              return res.send({ success: false });
-            } else{
-              const id = ownerId;
-              query += ` ACCOMMODATION_OWNER_ID = '${id}' AND`;
+              const empty = []
+              return res.send({ message: "No accommodations found...", accommodations: empty });
+            } // if ids is empty, no rooms were found
+            else if(roomIds.length == 0) {
+              console.log("No rooms found! Cannot proceed to filtering...");
+              return res.send({ message: "No accommodations found...", accommodations: empty });
+            } // if ids is not empty, rooms were found
+            else {
+              // Now that we caught the ids, we can filter the accommodations by their ids and the other filters, namely name, address, location, and/or type
+
+              let query = 'SELECT * FROM accommodation';
+              let whereClause = '';
+
+              if (address || location || type || roomIds.length > 0 || ownerIds.length > 0) {
+                whereClause += ' WHERE ACCOMMODATION_ISARCHIVED = false AND';
+
+              if (name) {
+                whereClause += ` ACCOMMODATION_NAME LIKE '%${name}%' AND`;
+              }
+
+              if (address) {
+                whereClause += ` ACCOMMODATION_ADDRESS LIKE '%${address}%' AND`;
+              }
+
+              if (location) {
+                whereClause += ` ACCOMMODATION_LOCATION = '${location}' AND`;
+              }
+
+              if (type) {
+                whereClause += ` ACCOMMODATION_TYPE = '${type}' AND`;
+              }
+
+              if (roomIds.length > 0) {
+                whereClause += ` ACCOMMODATION_ID IN (${ids.join(',')}) AND`;
+              }
+
+              if(ownerIds.length > 0){
+                whereClause += ` ACCOMMODATION_OWNERID IN (${ownerIds.join(',')}) AND`;
+              }
+
+                    // Remove the extra 'AND' at the end of the WHERE clause
+              whereClause = whereClause.slice(0, -4);
+
+              query += whereClause;
+              
+              query += ' ORDER BY ACCOMMODATION_NAME';
+              console.log("Query: " + query);
+
+                pool.getConnection((err, connection) => {
+                  if (err) {
+                    console.log("Error: " + err);
+                    return res.send({ message: "No accommodations found..." });
+                  } else {
+                    connection.query(query, (err, results) => {
+                      if (err) {
+                        console.log("Error: " + err);
+                        return res.send({ message: "No accommodations found..." });
+                      } else {
+                        console.log("Accommodations found: " + results.length);
+                        return res.send({ message: "Accommodations found!", accommodations: results });
+                      }
+                    });
+                  }
+                });
+
+              }
             }
           });
         }
-
-        // remove the last 'AND' if present
-        query = query.replace(/AND\s*$/, '');
-
-        query += ' ORDER BY ACCOMMODATION_NAME';
-        console.log("Query: " + query);
-
-        pool.getConnection((err, connection) => {
-          if (err) {
-            console.log("Error: " + err);
-                const empty = []
-                return res.send({ message: "No accommodations found...", accommodations: empty });
-          } else {
-            connection.query(query, (err, results) => {
-              if (err) {
-                console.log("Error: " + err);
-                const empty = []
-                return res.send({ message: "No accommodations found...", accommodations: empty });
-              } else {
-                console.log("Accommodations found: " + results.length);
-                return res.send({ message: "Accommodations found!", accommodations: results });
-              }
-            });
-          }
-        });
-      }
+    });
   }
 };
 

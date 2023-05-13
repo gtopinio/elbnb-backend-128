@@ -596,9 +596,15 @@ exports.getRoomPic = (pool) => (req, res) => {
                             return res.send({ success: false });
                         }
                         else {
-                            const imageId = result[0].PICTURE_ID;
-                            const imageUrl = cloudinary.url(imageId, {secure: true});
-                            return res.send({ success: true, imageUrl: imageUrl });
+                            // check if result[0].PICTURE_ID has "mockup-128" in its string
+                            if(result[0].PICTURE_ID.includes("mockup-128")){
+                                const imageId = result[0].PICTURE_ID;
+                                const imageUrl = cloudinary.url(imageId, {secure: true});
+                                return res.send({ success: true, imageUrl: imageUrl });
+                            } else { // if not, then it is not a real image
+                                console.log("No room image found!");
+                                return res.send({ success: false });
+                            }
                         }
                     });
                 } else {
@@ -729,8 +735,13 @@ exports.removeRoomPicture = (pool) => (req, res) => {
                             console.log("Error getting image ID: " + err);
                             return res.send({ success: false });
                         } else if (result.length === 0){
-
-                        } else {
+                            console.log("No room image found!");
+                            return res.send({ success: false });
+                        } // check if result[0].PICTURE_ID has "mockup-128" in its string
+                        else if(!result[0].PICTURE_ID.includes("mockup-128")){
+                            console.log("No room image found!");
+                            return res.send({ success: false });
+                        }else {
                             cloudinary.uploader.destroy(result[0].PICTURE_ID, (err) => {
                                 if (err) {
                                     console.log("Error deleting image: " + err);

@@ -67,53 +67,6 @@ function getAccommodationIdByName(pool, name, callback) {
     }
   });
 }
-
-function getHighestRoomPrice(pool, name, callback){
-  pool.getConnection((err, connection) => {
-    if (err) {
-      console.log("Error: " + err);
-      callback(err, null);
-    } else {
-      getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
-        if (err) {
-          console.log("Error: " + err);
-          callback(err, null);
-        } else if (accommodationId > 0) {
-          id = accommodationId;
-          // Get the rooms by the accommodation id
-          const query = `SELECT * FROM room WHERE ROOM_ISARCHIVED = 0 AND ACCOMMODATION_ID = ${id} ORDER BY ROOM_PRICE DESC`;
-          connection.query(query, (err, results) => {
-            if (err) {
-              console.log("Error getting Highest Room Price: " + err);
-              callback(err, null);
-            } else {
-              // If room price is undefined.
-              try{
-                if(typeof result[0].ROOM_PRICE === "undefined") {
-                  console.log("Get Room Price: Undefined Object");
-                  callback(null, 0);
-                }
-              // If room price is defined.
-                else {
-                  console.log("Get Room Price: Defined Object");
-                  callback(null, results[0].ROOM_PRICE);
-                }
-              // Catch Errors.
-              } catch (err) {
-                console.log("No Rooms...");
-                callback(err, null);
-              }
-            }
-          });
-        } else {
-          // No accommodation found with the accommodationName
-          console.log("No accommodation found with the name: " + accommodationName);
-          return res.send({ success: false });
-        }
-      });
-    }
-  });
-}  
   
 // This function is used to add a new accommodation to the database. 
 // It takes in a pool object as input, which is used to establish a database connection. 

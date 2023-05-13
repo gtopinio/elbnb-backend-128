@@ -609,12 +609,12 @@ exports.filterAccommodations = (pool) => (req, res) => {
   }
   else if(maxPrice || capacity || (name !== "" && name !== undefined)){
         // see if owner name exists in database
-        getOwnerIdByUsername(pool, name, (err, ownerIds) => {
+        getOwnerIdByUsername(pool, name, (err, ownerId) => {
           if(err){
             console.log("Error: " + err);
             return res.send({ success: false });
           } // else if owner does not exist
-          else if(ownerIds <= 0 || ownerIds == null || typeof ownerIds === "undefined"){
+          else if(ownerId <= 0 || ownerId == null || typeof ownerId === "undefined"){
             const empty = []
             console.log("Owner does not exist! Cannot proceed to filtering...");
             return res.send({ message: "No accommodations found...", accommodations: empty });
@@ -656,8 +656,8 @@ exports.filterAccommodations = (pool) => (req, res) => {
                   whereClause += ` ACCOMMODATION_ID IN (${roomIds.join(',')}) AND`;
                 }
   
-                if(ownerIds.length > 0){
-                  whereClause += ` ACCOMMODATION_OWNER_ID IN (${ownerIds.join(',')}) AND`;
+                if(ownerId){
+                  whereClause += ` ACCOMMODATION_OWNER_ID = (${ownerId}) AND`;
                 }
   
                       // Remove the extra 'AND' at the end of the WHERE clause

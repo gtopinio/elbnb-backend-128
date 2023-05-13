@@ -612,7 +612,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
     });
 
   }
-  else if(maxPrice || capacity || (owner !== "" && owner !== undefined)){
+  else if((maxPrice || capacity) && (owner !== "" && owner !== undefined)){
     console.log("Filtering accommodations...Block 1");
         // see if owner name exists in database
         getOwnerIdByUsername(pool, owner, (err, ownerId) => {
@@ -700,7 +700,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
             });
           }
       });
-  } else if (maxPrice || capacity || (owner === "" && owner === undefined)){
+  } else if ((maxPrice || capacity) && (owner === "" && owner === undefined)){
         // filter using the max price and capacity first
         filterRooms(pool, maxPrice, capacity, (err, roomIds) => {
           if(err) {

@@ -81,7 +81,7 @@ function getOwnerIdByUsername(pool, uname, callback) {
           console.log("Get Owner Id Error: " + err);
           callback(err, null);
         } else {
-          const ids = results.map(result => result.ACCOMMODATION_ID);
+          const ids = results.map(result => result.USER_ID);
           callback(null, ids);
         }
       });
@@ -658,7 +658,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
               }
 
               if (roomIds.length > 0) {
-                whereClause += ` ACCOMMODATION_ID IN (${ids.join(',')}) AND`;
+                whereClause += ` ACCOMMODATION_ID IN (${roomIds.join(',')}) AND`;
               }
 
               if(ownerIds.length > 0){

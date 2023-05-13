@@ -661,10 +661,10 @@ exports.filterAccommodations = (pool) => (req, res) => {
             console.log("Error: " + err);
             return res.send({ success: false });
           } else{
-            id = ownerId;
+            const id = ownerId;
+            whereClause += ` ACCOMMODATION_OWNER_ID = '${id}' AND`;
           }
         });
-        whereClause += ` ACCOMMODATION_OWNER_ID = '${id}' AND`;
       }
 
       // Remove the extra 'AND' at the end of the WHERE clause
@@ -722,10 +722,10 @@ exports.filterAccommodations = (pool) => (req, res) => {
               console.log("Error: " + err);
               return res.send({ success: false });
             } else{
-              id = ownerId;
+              const id = ownerId;
+              query += ` ACCOMMODATION_OWNER_ID = '${id}' AND`;
             }
           });
-          query += ` ACCOMMODATION_OWNER_ID = '${id}' AND`;
         }
 
         // remove the last 'AND' if present

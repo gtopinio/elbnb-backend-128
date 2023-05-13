@@ -181,14 +181,6 @@ exports.login = (pool) => (req, res) => {
 // which could either be true or false depending if the user is really logged in or not.
 exports.checkIfLoggedIn = (pool) => (req, res) => {
 
-
-  try {
-    console.dir(req);
-    console.dir(req.body);
-  } catch (error) {
-    // Handle the error if any
-  }
-
   // Checking if cookies/authToken cookie exists
   if (!req.cookies.authToken) {
     console.log("failed")

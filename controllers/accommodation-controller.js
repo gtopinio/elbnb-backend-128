@@ -608,10 +608,10 @@ exports.filterAccommodations = (pool) => (req, res) => {
     });
 
   }
-  else if(maxPrice || capacity || (name !== "" && name !== undefined)){
+  else if(maxPrice || capacity || (owner !== "" && owner !== undefined)){
     console.log("Filtering accommodations...Block 1");
         // see if owner name exists in database
-        getOwnerIdByUsername(pool, name, (err, ownerId) => {
+        getOwnerIdByUsername(pool, owner, (err, ownerId) => {
           if(err){
             console.log("Error: " + err);
             return res.send({ success: false });

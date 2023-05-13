@@ -792,10 +792,6 @@ exports.filterAccommodations = (pool) => (req, res) => {
         whereClause += ` ACCOMMODATION_TYPE = '${type}' AND`;
       }
 
-      if (roomIds.length > 0) {
-        whereClause += ` ACCOMMODATION_ID IN (${roomIds.join(',')}) AND`;
-      }
-
             // Remove the extra 'AND' at the end of the WHERE clause
       whereClause = whereClause.slice(0, -4);
 

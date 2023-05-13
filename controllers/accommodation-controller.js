@@ -572,7 +572,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
   const address = filters.address;
   const location = filters.location;
   const type = filters.type;
-  const owner = filters.owner;
+  const owner = filters.ownerUsername;
   const rating = filters.rating;
   const maxPrice = filters.maxPrice;
   //const priceTo = filters.priceTo;
@@ -643,8 +643,12 @@ exports.filterAccommodations = (pool) => (req, res) => {
                 let query = 'SELECT * FROM accommodation';
                 let whereClause = '';
   
-                if (address || location || type || roomIds.length > 0 || ownerId !== null) {
+                if (name || address || location || type || roomIds.length > 0 || ownerId !== null) {
                   whereClause += ' WHERE ACCOMMODATION_ISARCHIVED = false AND';
+
+                if (name) {
+                  whereClause += ` ACCOMMODATION_NAME LIKE '%${name}%' AND`;
+                }
   
                 if (address) {
                   whereClause += ` ACCOMMODATION_ADDRESS LIKE '%${address}%' AND`;
@@ -697,7 +701,127 @@ exports.filterAccommodations = (pool) => (req, res) => {
           }
       });
   } else if (maxPrice || capacity || (owner === "" && owner === undefined)){
+        // filter using the max price and capacity first
+        filterRooms(pool, maxPrice, capacity, (err, roomIds) => {
+          if(err) {
+            console.log("Error: " + err);
+            const empty = []
+            return res.send({ message: "No accommodations found...", accommodations: empty });
+          } // if ids is empty, no rooms were found
+          else if(roomIds.length == 0) {
+            console.log("No rooms found! Cannot proceed to filtering...");
+            return res.send({ message: "No accommodations found...", accommodations: empty });
+          } // if ids is not empty, rooms were found
+          else {
+            // Now that we caught the ids, we can filter the accommodations by their ids and the other filters, namely name, address, location, and/or type
 
+            let query = 'SELECT * FROM accommodation';
+            let whereClause = '';
+
+            if (name || address || location || type || roomIds.length > 0) {
+              whereClause += ' WHERE ACCOMMODATION_ISARCHIVED = false AND';
+            
+            if (name) {
+              whereClause += ` ACCOMMODATION_NAME LIKE '%${name}%' AND`;
+            }
+
+            if (address) {
+              whereClause += ` ACCOMMODATION_ADDRESS LIKE '%${address}%' AND`;
+            }
+
+            if (location) {
+              whereClause += ` ACCOMMODATION_LOCATION = '${location}' AND`;
+            }
+
+            if (type) {
+              whereClause += ` ACCOMMODATION_TYPE = '${type}' AND`;
+            }
+
+            if (roomIds.length > 0) {
+              whereClause += ` ACCOMMODATION_ID IN (${roomIds.join(',')}) AND`;
+            }
+
+                  // Remove the extra 'AND' at the end of the WHERE clause
+            whereClause = whereClause.slice(0, -4);
+
+            query += whereClause;
+            
+            query += ' ORDER BY ACCOMMODATION_NAME';
+            console.log("Query: " + query);
+
+              pool.getConnection((err, connection) => {
+                if (err) {
+                  console.log("Error: " + err);
+                  return res.send({ message: "No accommodations found..." });
+                } else {
+                  connection.query(query, (err, results) => {
+                    if (err) {
+                      console.log("Error: " + err);
+                      return res.send({ message: "No accommodations found..." });
+                    } else {
+                      console.log("Accommodations found: " + results.length);
+                      return res.send({ message: "Accommodations found!", accommodations: results });
+                    }
+                  });
+                }
+              });
+
+            }
+          }
+        });
+  } else {
+      let query = 'SELECT * FROM accommodation';
+      let whereClause = '';
+
+      if (name || address || location || type) {
+        whereClause += ' WHERE ACCOMMODATION_ISARCHIVED = false AND';
+
+      if (name) {
+        whereClause += ` ACCOMMODATION_NAME LIKE '%${name}%' AND`;
+      }
+
+      if (address) {
+        whereClause += ` ACCOMMODATION_ADDRESS LIKE '%${address}%' AND`;
+      }
+
+      if (location) {
+        whereClause += ` ACCOMMODATION_LOCATION = '${location}' AND`;
+      }
+
+      if (type) {
+        whereClause += ` ACCOMMODATION_TYPE = '${type}' AND`;
+      }
+
+      if (roomIds.length > 0) {
+        whereClause += ` ACCOMMODATION_ID IN (${roomIds.join(',')}) AND`;
+      }
+
+            // Remove the extra 'AND' at the end of the WHERE clause
+      whereClause = whereClause.slice(0, -4);
+
+      query += whereClause;
+      
+      query += ' ORDER BY ACCOMMODATION_NAME';
+      console.log("Query: " + query);
+
+        pool.getConnection((err, connection) => {
+          if (err) {
+            console.log("Error: " + err);
+            return res.send({ message: "No accommodations found..." });
+          } else {
+            connection.query(query, (err, results) => {
+              if (err) {
+                console.log("Error: " + err);
+                return res.send({ message: "No accommodations found..." });
+              } else {
+                console.log("Accommodations found: " + results.length);
+                return res.send({ message: "Accommodations found!", accommodations: results });
+              }
+            });
+          }
+        });
+
+      }
   }
 };
 

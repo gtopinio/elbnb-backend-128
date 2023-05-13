@@ -650,7 +650,11 @@ exports.updateRoomPicture = (pool) => (req, res) => {
                         if (err) {
                             console.log("Error getting image ID: " + err);
                             return res.send({ success: false });
-                        } else {
+                        } else if (result.length === 0) {
+                            console.log("No room image found!");
+                            return res.send({ success: false });
+                        }
+                        else {
                             // Delete the old image from cloudinary.
                             cloudinary.uploader.destroy(result[0].PICTURE_ID, (err) => {
                                 if (err) {
@@ -724,6 +728,8 @@ exports.removeRoomPicture = (pool) => (req, res) => {
                         if (err) {
                             console.log("Error getting image ID: " + err);
                             return res.send({ success: false });
+                        } else if (result.length === 0){
+
                         } else {
                             cloudinary.uploader.destroy(result[0].PICTURE_ID, (err) => {
                                 if (err) {

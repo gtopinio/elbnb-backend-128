@@ -725,7 +725,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
               id = ownerId;
             }
           });
-          whereClause += ` ACCOMMODATION_OWNER_ID = '${id}' AND`;
+          query += ` ACCOMMODATION_OWNER_ID = '${id}' AND`;
         }
 
         // remove the last 'AND' if present

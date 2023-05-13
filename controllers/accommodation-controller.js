@@ -664,7 +664,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
             id = ownerId;
           }
         });
-        whereClause += ` OWNER_ID = '${id}' AND`;
+        whereClause += ` ACCOMMODATION_OWNER_ID = '${id}' AND`;
       }
 
       // Remove the extra 'AND' at the end of the WHERE clause
@@ -725,7 +725,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
               id = ownerId;
             }
           });
-          whereClause += ` OWNER_ID = '${id}' AND`;
+          whereClause += ` ACCOMMODATION_OWNER_ID = '${id}' AND`;
         }
 
         // remove the last 'AND' if present

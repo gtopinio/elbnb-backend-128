@@ -12,43 +12,6 @@ cloudinary.config({
 
   // ===================================== START OF USER MANAGEMENT FEATURES =====================================
 
-/*
-This function takes a database connection pool, an accommodation name (unique), and a callback function as inputs. 
-It queries the database to retrieve the user ID for the provided name and passes the result to the callback function. 
-If there is an error in the database query or connection, it logs the error and passes it to the callback function as the first parameter.
-*/
-function getUserIdByUsername(pool, name, callback) {
-    pool.getConnection((err, connection) => {
-      if (err) {
-        console.log("Error: " + err);
-        callback(err, null);
-      } else {
-        const checkQuery = `SELECT USER_ID FROM user WHERE USER_USERNAME = ?`;
-        connection.query(checkQuery, [name], (err, result) => {
-          if (err) {
-            console.log("Get User Id Error: " + err);
-            callback(err, null);
-          } else {
-            try{
-              if(typeof result[0].USER_ID === "undefined") {
-                console.log("Get User Id: Undefined Object");
-                callback(null, 0);
-              }
-              else {
-                console.log("Get User Id: Defined Object");
-                callback(null, result[0].USER_ID);
-              }
-            } catch (err) {
-              console.log("User Not Found...");
-              callback(err, null);
-            }
-            
-          }
-        });
-      }
-    });
-  }
-  
 // This signup function takes a connection pool as a parameter and handles signup requests for admins, owners, and students.
 // It extracts the user information from the request body, checks if the email already exists in the user table, and creates a new user in the user table.
 // It then checks which user type to create and creates a new user in the corresponding table.

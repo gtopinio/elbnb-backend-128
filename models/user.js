@@ -24,12 +24,22 @@ const User = {
     const sql = `SELECT * FROM user WHERE ${field} = ?`;
     connection.query(sql, [value], (error, results) => {
       if (error) {
-        return callback(error);
-      } // check if results is empty
-      else if (results.length === 0) {
-        return callback(null, null);
+        return callback(error, null);
+      } else{
+        try{
+          if(typeof results[0].USER_ID === "undefined") {
+            console.log("Getting User: Undefined Object...");
+            callback(null, 0);
+          }
+          else {
+            console.log("Getting User: Defined Object...");
+            callback(null, results[0]);
+          }
+        } catch (err) {
+          console.log("User Not Found...");
+          callback(err, null);
+        }
       }
-      else return callback(null, results[0]);
     });
   },
   comparePassword: (password, hash, callback) => {

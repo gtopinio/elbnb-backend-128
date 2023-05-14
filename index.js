@@ -28,7 +28,7 @@ const pool = mysql.createPool({
   user: dbUrl.auth.split(':')[0],
   password: dbUrl.auth.split(':')[1],
   database: dbUrl.pathname.substring(1),
-  connectionLimit: 10,
+  connectionLimit: 30,
 });
 
 pool.getConnection((err, connection) => {

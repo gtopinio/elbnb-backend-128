@@ -143,41 +143,6 @@ exports.addAccommodation = (pool) => (req, res) => {
   }); // end of checkAccomDupe
 }; // end of addAccommodation
 
-// This function takes a database connection pool, an accommodation name (unique), and a callback function as inputs. 
-// It queries the database to retrieve the accommodation ID for the provided name and passes the result to the callback function. 
-// If there is an error in the database query or connection, it logs the error and passes it to the callback function as the first parameter.
-function getAccommodationIdByName(pool, name, callback) {
-  pool.getConnection((err, connection) => {
-    if (err) {
-      console.log("Error: " + err);
-      callback(err, null);
-    } else {
-      const checkQuery = `SELECT ACCOMMODATION_ID FROM accommodation WHERE ACCOMMODATION_NAME = ?`;
-      connection.query(checkQuery, [name], (err, result) => {
-        if (err) {
-          console.log("Get Accomm Id Error: " + err);
-          callback(err, null);
-        } else {
-          try{
-            if(typeof result[0].ACCOMMODATION_ID === "undefined") {
-              console.log("Get Accom Id: Undefined Object");
-              callback(null, 0);
-            }
-            else {
-              console.log("Get Accom Id: Defined Object");
-              callback(null, result[0].ACCOMMODATION_ID);
-            }
-          } catch (err) {
-            console.log("Accommodation Not Found...");
-            callback(err, null);
-          }
-          
-        }
-      });
-    }
-  });
-}
-
 // This function is used to query all of the accommodations by a single owner. It takes the ownerName from the request body, then checks first if the owner exists in the database.
 // If the owner is not found or there are errors in connecting to the database, the response will return a JSON object indicating failure.
 // If the owner is found, it will return all of accommodations created by the owner with the given owner username.

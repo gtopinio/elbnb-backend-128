@@ -35,21 +35,13 @@ const Accommodation = {
             if (err) {
                 console.log("Get Accomm Id Error: " + err);
                 callback(err, null);
-            } else {
-                try{
-                if(typeof result[0].ACCOMMODATION_ID === "undefined") {
+            } else if(typeof result[0].ACCOMMODATION_ID === "undefined") {
                     console.log("Get Accom Id: Undefined Object");
                     callback(null, 0);
-                }
-                else {
-                    console.log("Get Accom Id: Defined Object");
-                    callback(null, result[0].ACCOMMODATION_ID);
-                }
-                } catch (err) {
-                console.log("Accommodation Not Found...");
-                callback(err, null);
-                }
-                
+            }
+            else {
+                console.log("Get Accom Id: Defined Object");
+                callback(null, result[0].ACCOMMODATION_ID);
             }
             });
         }

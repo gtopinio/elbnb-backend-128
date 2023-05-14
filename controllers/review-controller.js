@@ -1,78 +1,8 @@
-
+// Import the necessary models.
+const { Accommodation: ReviewController_Accommodation } = require("../models/accommodation");
+const { User: ReviewController_User } = require("../models/user");
 
 // ===================================== START OF REVIEW + FAVORITE + RATING MANAGEMENT FEATURES =====================================
-
-/*
-This function takes a database connection pool, an accommodation name (unique), and a callback function as inputs. 
-It queries the database to retrieve the user ID for the provided name and passes the result to the callback function. 
-If there is an error in the database query or connection, it logs the error and passes it to the callback function as the first parameter.
-*/
-function getUserIdByUsername(pool, name, callback) {
-    pool.getConnection((err, connection) => {
-      if (err) {
-        console.log("Error: " + err);
-        callback(err, null);
-      } else {
-        const checkQuery = `SELECT USER_ID FROM user WHERE USER_USERNAME = ?`;
-        connection.query(checkQuery, [name], (err, result) => {
-          if (err) {
-            console.log("Get User Id Error: " + err);
-            callback(err, null);
-          } else {
-            try{
-              if(typeof result[0].USER_ID === "undefined") {
-                console.log("Get User Id: Undefined Object");
-                callback(null, 0);
-              }
-              else {
-                console.log("Get User Id: Defined Object");
-                callback(null, result[0].USER_ID);
-              }
-            } catch (err) {
-              console.log("User Not Found...");
-              callback(err, null);
-            }
-            
-          }
-        });
-      }
-    });
-  }
-
-// This function takes a database connection pool, an accommodation name (unique), and a callback function as inputs. 
-// It queries the database to retrieve the accommodation ID for the provided name and passes the result to the callback function. 
-// If there is an error in the database query or connection, it logs the error and passes it to the callback function as the first parameter.
-function getAccommodationIdByName(pool, name, callback) {
-    pool.getConnection((err, connection) => {
-      if (err) {
-        console.log("Error: " + err);
-        callback(err, null);
-      } else {
-        const checkQuery = `SELECT ACCOMMODATION_ID FROM accommodation WHERE ACCOMMODATION_NAME = ?`;
-        connection.query(checkQuery, [name], (err, result) => {
-          if (err) {
-            console.log("Get Accomm Id Error: " + err);
-            callback(err, null);
-          } else {
-            try{
-              if(typeof result[0].ACCOMMODATION_ID === "undefined") {
-                console.log("Get Accom Id: Undefined Object");
-                callback(null, 0);
-              }
-              else {
-                console.log("Get Accom Id: Defined Object");
-                callback(null, result[0].ACCOMMODATION_ID);
-              }
-            } catch (err) {
-              console.log("Accommodation Not Found...");
-              callback(err, null);
-            }
-            
-          }
-        });
-      }
-    });
-  }
 
 // This is a function that allows the user to leave a rating and review an accomodation.
 // It takes a database connection pool as input, along with the rating, comment, username, timestamp and accommodation name.
@@ -89,14 +19,14 @@ exports.addReview = (pool) => (req, res) => {
     var uid = null;
     var accomid = null;
   
-    getUserIdByUsername(pool, userName, (err, userId) => {
+    ReviewController_User.getUserIdByUsername(pool, userName, (err, userId) => {
       if(err){
         console.log("Error: " + err);
         return res.send({ success: false });
       }
       else if(userId>0){
         uid = userId;
-        getAccommodationIdByName(pool, accommName, (err, accommodationId) => {
+        ReviewController_Accommodation.getAccommodationIdByName(pool, accommName, (err, accommodationId) => {
           if(err){
             console.log("Error: " + err);
             return res.send({ success: false });
@@ -182,14 +112,14 @@ exports.addAccommodationToFavorite = (pool) => (req, res) => {
     console.log("Username: " + userName);
     console.log("Accommodation Name: " + accommName);
     // check if user exist
-    getUserIdByUsername(pool, userName, (err, userId) => {
+    ReviewController_User.getUserIdByUsername(pool, userName, (err, userId) => {
       if(err){
         console.log("Error: " + err);
         return res.send({ success: false });
       }
       else if(userId>0){
         // check if accommodation exist
-        getAccommodationIdByName(pool, accommName, (err, accommodationId) => {
+        ReviewController_Accommodation.getAccommodationIdByName(pool, accommName, (err, accommodationId) => {
           if(err){
             console.log("Error: " + err);
             return res.send({ success: false });
@@ -270,14 +200,14 @@ exports.removeAccommodationFromFavorite = (pool) => (req, res) => {
     console.log("Username: " + userName);
     console.log("Accommodation Name: " + accommName);
     // check if user exist
-    getUserIdByUsername(pool, userName, (err, userId) => {
+    ReviewController_User.getUserIdByUsername(pool, userName, (err, userId) => {
       if(err){
         console.log("Error: " + err);
         return res.send({ success: false });
       }
       else if(userId>0){
         // check if accommodation exist
-        getAccommodationIdByName(pool, accommName, (err, accommodationId) => {
+        ReviewController_Accommodation.getAccommodationIdByName(pool, accommName, (err, accommodationId) => {
           if(err){
             console.log("Error: " + err);
             return res.send({ success: false });
@@ -367,14 +297,14 @@ console.log("Accommodation Name: " + accommName);
 var uId = null;
 var aId = null;
 
-getUserIdByUsername(pool, userName, (err, userId) => {
+ReviewController_User.getUserIdByUsername(pool, userName, (err, userId) => {
     if(err){
     console.log("Error: " + err);
     return res.send({ success: false });
     }
     else if(userId>0){
     uId = userId;
-    getAccommodationIdByName(pool, accommName, (err, accommodationId) => {
+    ReviewController_Accommodation.getAccommodationIdByName(pool, accommName, (err, accommodationId) => {
         if(err){
         console.log("Error: " + err);
         return res.send({ success: false });
@@ -443,86 +373,86 @@ getUserIdByUsername(pool, userName, (err, userId) => {
 
 // This function lets the user delete a review that they gave to an accommodation.
 exports.deleteReview = (pool) => (req, res) => {
-const {userName, accommName} = req.body;
+    const {userName, accommName} = req.body;
 
-console.log("----------Delete----------");
-console.log("username: " + userName);
-console.log("accommodation name: " + accommName);
+    console.log("----------Delete----------");
+    console.log("username: " + userName);
+    console.log("accommodation name: " + accommName);
 
-var uId = null;
-var aId = null;
+    var uId = null;
+    var aId = null;
 
-getUserIdByUsername(pool, userName, (err, userId) => {
-    if(err){
-    console.log("Error: " + err);
-    return res.send({ success: false });
-    }
-    else if(userId>0){
-    uId = userId;
-    getAccommodationIdByName(pool, accommName, (err, accommodationId) => {
+    ReviewController_User.getUserIdByUsername(pool, userName, (err, userId) => {
         if(err){
         console.log("Error: " + err);
         return res.send({ success: false });
         }
-        else if(accommodationId>0){
-        aId = accommodationId;
-
-        pool.getConnection((err, connection) => {
+        else if(userId>0){
+        uId = userId;
+        ReviewController_Accommodation.getAccommodationIdByName(pool, accommName, (err, accommodationId) => {
             if(err){
-            console.log("Get Connection Error" + err);
+            console.log("Error: " + err);
             return res.send({ success: false });
             }
+            else if(accommodationId>0){
+            aId = accommodationId;
 
-            connection.beginTransaction((err) => {
-            if(err){
-                console.log("Error: " + err);
-                return res.send({ success: false });
-            }
-            else{
-                const deleteQuery = `DELETE FROM review WHERE USER_ID = '?' AND ACCOMMODATION_ID = '?'`;
-
-                connection.query(deleteQuery, [uId, aId], (err, result) => {
+            pool.getConnection((err, connection) => {
                 if(err){
-                    connection.rollback(() => {
-                    console.log("Delete review error: " + err);
-                    return res.send({ success: false });
-                    })
+                console.log("Get Connection Error" + err);
+                return res.send({ success: false });
                 }
-                else if (result.affectedRows == 0){
-                    connection.rollback(() => {
-                    console.log("Review not found! Cannot be deleted");
+
+                connection.beginTransaction((err) => {
+                if(err){
+                    console.log("Error: " + err);
                     return res.send({ success: false });
-                    });
-                } else {
-                    connection.commit((err) => {
+                }
+                else{
+                    const deleteQuery = `DELETE FROM review WHERE USER_ID = '?' AND ACCOMMODATION_ID = '?'`;
+
+                    connection.query(deleteQuery, [uId, aId], (err, result) => {
                     if(err){
                         connection.rollback(() => {
-                        console.log("Commit error: " + err);
+                        console.log("Delete review error: " + err);
                         return res.send({ success: false });
                         })
                     }
-                    else{
-                        console.log("Review has been deleted!");
-                        return res.send({ success: true });
+                    else if (result.affectedRows == 0){
+                        connection.rollback(() => {
+                        console.log("Review not found! Cannot be deleted");
+                        return res.send({ success: false });
+                        });
+                    } else {
+                        connection.commit((err) => {
+                        if(err){
+                            connection.rollback(() => {
+                            console.log("Commit error: " + err);
+                            return res.send({ success: false });
+                            })
+                        }
+                        else{
+                            console.log("Review has been deleted!");
+                            return res.send({ success: true });
+                        }
+                        })
                     }
                     })
                 }
                 })
+            });
             }
-            })
-        });
+            else{
+            console.log("Accommodation not found! Review cannot be deleted");
+            return res.send({ success: false });
+            }
+        })
         }
         else{
-        console.log("Accommodation not found! Review cannot be deleted");
+        console.log("User not found! Review cannot be deleted");
         return res.send({ success: false });
         }
-    })
-    }
-    else{
-    console.log("User not found! Review cannot be deleted");
-    return res.send({ success: false });
-    }
-})
+    });
 }
 
 /* This code exports a function that retrieves the top 5 featured accommodation based on their
@@ -534,27 +464,27 @@ query, the function returns a response with success set to false. Otherwise, it 
 with success set to true and the list of featured accommodation. */
 exports.getFeaturedAccommodations = (pool) => (req, res) => {
 
-// Query that gets the top 5 featured accommodation based on their average review rating
-const query = `
-SELECT a.ACCOMMODATION_ID, a.ACCOMMODATION_NAME, a.ACCOMMODATION_TYPE, a.ACCOMMODATION_DESCRIPTION, a.ACCOMMODATION_AMENITIES, a.ACCOMMODATION_ADDRESS, a.ACCOMMODATION_LOCATION, a.ACCOMMODATION_OWNER_ID, AVG(r.REVIEW_RATING) AS AVERAGE_RATING
-FROM accommodation a
-JOIN review r ON a.ACCOMMODATION_ID = r.ACCOMMODATION_ID
-GROUP BY a.ACCOMMODATION_ID
-ORDER BY AVERAGE_RATING DESC
-LIMIT 5
-`;
+    // Query that gets the top 5 featured accommodation based on their average review rating
+    const query = `
+    SELECT a.ACCOMMODATION_ID, a.ACCOMMODATION_NAME, a.ACCOMMODATION_TYPE, a.ACCOMMODATION_DESCRIPTION, a.ACCOMMODATION_AMENITIES, a.ACCOMMODATION_ADDRESS, a.ACCOMMODATION_LOCATION, a.ACCOMMODATION_OWNER_ID, AVG(r.REVIEW_RATING) AS AVERAGE_RATING
+    FROM accommodation a
+    JOIN review r ON a.ACCOMMODATION_ID = r.ACCOMMODATION_ID
+    GROUP BY a.ACCOMMODATION_ID
+    ORDER BY AVERAGE_RATING DESC
+    LIMIT 5
+    `;
 
-// Printing the query
-console.log("Query: " + query);
+    // Printing the query
+    console.log("Query: " + query);
 
-pool.query(query, (err, results) => {
-    if (err) {
-    console.log("Featured Accommodations Error: " + err);
-    return res.send({ success: false });
-    } else {
-    return res.send({ success: true, accommodation: results });
-    }
-});
+    pool.query(query, (err, results) => {
+        if (err) {
+        console.log("Featured Accommodations Error: " + err);
+        return res.send({ success: false });
+        } else {
+        return res.send({ success: true, accommodation: results });
+        }
+    });
 };
 
 /* This code is a function that checks if a given accommodation is favorited by a given user. It
@@ -565,80 +495,112 @@ is a record in the "favorite" table that matches the user ID and accommodation I
 match, it returns a response indicating that the accommodation is favorited by the user, otherwise
 it returns a response indicating that it is not */
 exports.isAccommodationFavorited = (pool) => (req, res) => {
-const {username, accommodationName} = req.body;
+  const {username, accommodationName} = req.body;
 
-getUserIdByUsername(pool, username, (err, userId) => {
-    if (err) {
-    console.log("Error: " + err);
-    return res.send({ success: false });
-    } else if (userId > 0 && typeof userId !== 'undefined') {
-    getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
-        if (err) {
-        console.log("Error: " + err);
-        return res.send({ success: false });
-        } else if (accommodationId > 0 && typeof accommodationId !== 'undefined') {
-        const isFavoriteQuery = `
-            SELECT *
-            FROM favorite
-            WHERE USER_ID = ? AND ACCOMMODATION_ID = ?
-        `;
-        pool.query(isFavoriteQuery, [userId, accommodationId], (err, result) => {
-            if (err) {
-            console.log("Error checking if favorite: " + err);
-            return res.send({ success: false, isFavorite: false });
-            } else {
-              // check the result of the query to see if there is a match
-              if (result.length > 0) {
-                return res.send({ success: true, isFavorite: true });
+  ReviewController_User.getUserIdByUsername(pool, username, (err, userId) => {
+      if (err) {
+      console.log("Error: " + err);
+      return res.send({ success: false });
+      } else if (userId > 0 && typeof userId !== 'undefined') {
+      ReviewController_Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+          if (err) {
+          console.log("Error: " + err);
+          return res.send({ success: false });
+          } else if (accommodationId > 0 && typeof accommodationId !== 'undefined') {
+          const isFavoriteQuery = `
+              SELECT *
+              FROM favorite
+              WHERE USER_ID = ? AND ACCOMMODATION_ID = ?
+          `;
+          pool.query(isFavoriteQuery, [userId, accommodationId], (err, result) => {
+              if (err) {
+              console.log("Error checking if favorite: " + err);
+              return res.send({ success: false, isFavorite: false });
+              } else {
+                // check the result of the query to see if there is a match
+                if (result.length > 0) {
+                  return res.send({ success: true, isFavorite: true });
+                }
+                else {
+                  return res.send({ success: true, isFavorite: false });
+                }
               }
-              else {
-                return res.send({ success: true, isFavorite: false });
-              }
-            }
-        });
-        }
-    });
-    }
-});
+          });
+          }
+      });
+      }
+  });
 };
 
 /* This code is defining a function that retrieves the reviews of an accommodation from a MySQL
 database using a pool connection. The function takes in a pool connection as a parameter and returns
 a middleware function that handles a POST request with an accommodation name in the request body.
-The function first retrieves the ID of the accommodation using the getAccommodationIdByName
+The function first retrieves the ID of the accommodation using the ReviewController_Accommodation.getAccommodationIdByName
 function. If the ID is found, it then executes a SQL query to retrieve all reviews for that
 accommodation and sends the results back in the response. If there is an error at any point, the
 function sends a response with success set to false. */
 exports.getAccommodationReviews = (pool) => (req, res) => {
-const {accommodationName} = req.body;
+  const {accommodationName} = req.body;
 
-getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
-    if (err) {
-    console.log("Error: " + err);
-    return res.send({ success: false });
-    } else if (accommodationId > 0 && typeof accommodationId !== 'undefined') {
-    const ratingsQuery = `
-        SELECT *
-        FROM review
-        WHERE ACCOMMODATION_ID = ?
-    `;
-    pool.query(ratingsQuery, [accommodationId], (err, results) => {
-        if (err) {
-        console.log("Error getting ratings: " + err);
-        return res.send({ success: false });
-        } else {
-        return res.send({ success: true, reviews: results });
-        }
-    });
-    }
-});
+  ReviewController_Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+      if (err) {
+      console.log("Error: " + err);
+      return res.send({ success: false });
+      } else if (accommodationId > 0 && typeof accommodationId !== 'undefined') {
+      const ratingsQuery = `
+          SELECT *
+          FROM review
+          WHERE ACCOMMODATION_ID = ?
+      `;
+      pool.query(ratingsQuery, [accommodationId], (err, results) => {
+          if (err) {
+          console.log("Error getting ratings: " + err);
+          return res.send({ success: false });
+          } else {
+          return res.send({ success: true, reviews: results });
+          }
+      });
+      }
+  });
 }
+
+/* This code is defining a function that retrieves the filtered reviews of an accommodation from a MySQL
+database using a pool connection. The function takes in a pool connection as a parameter and returns
+a middleware function that handles a POST request with an accommodation name in the request body.
+The function first retrieves the ID of the accommodation using the ReviewController_Accommodation.getAccommodationIdByName
+function. If the ID is found, it then executes a SQL query to retrieve all reviews based on a filter for that
+accommodation and sends the results back in the response. If there is an error at any point, the
+function sends a response with success set to false. */
+exports.getFilteredAccommodationReviews = (pool) => (req, res) => {
+  const {accommodationName, filter} = req.body;
+  
+  ReviewController_Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+      if (err) {
+      console.log("Error: " + err);
+      return res.send({ success: false });
+      } else if (accommodationId > 0 && typeof accommodationId !== 'undefined') {
+      const ratingsQuery = `
+          SELECT *
+          FROM review
+          WHERE ACCOMMODATION_ID = ? AND (REVIEW_RATING=? OR REVIEW_RATING=?+0.5)
+      `;
+      pool.query(ratingsQuery, [accommodationId, filter, filter], (err, results) => {
+          if (err) {
+          console.log("Error getting ratings: " + err);
+          return res.send({ success: false });
+          } else {
+          return res.send({ success: true, reviews: results });
+          }
+      });
+      }
+  });
+  }
 
 // This function takes a database connection pool, an accommodation name and gets the average rating for that accommodation.
 exports.getAccommodationAverageRating = (pool) => (req, res) => {
 const {accommodationName} = req.body;
 
-getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+ReviewController_Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
     if (err) {
     console.log("Error: " + err);
     return res.send({ success: false });

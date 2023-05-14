@@ -1,9 +1,7 @@
-const e = require("express");
-
 // Imports
-const cloudinary = require("cloudinary").v2;
+const cloudinary = require('cloudinary').v2;
 
-// Configuration for cloudinary (cloud for uploading unstructured files)
+// Configuration for cloudinary (cloud for uploading unstructured files) 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_API_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
@@ -474,12 +472,24 @@ getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
             FROM room
             WHERE ROOM_ID = ? AND ACCOMMODATION_ID = ?
         `;
-        pool.query(roomQuery, [roomID, accommodationId], (err, result) => {
+        pool.query(roomQuery, [roomID, accommodationId], (err, roomResult) => {
             if (err) {
-            console.log("Error getting room: " + err);
-            return res.send({ success: false });
+                console.log("Error getting room: " + err);
+                return res.send({ success: false });
             } else {
-            return res.send({ success: true, room: result });
+                // Get Room Picture
+                const pictureQuery = `SELECT PICTURE_ID FROM picture WHERE ROOM_ID = ?`;
+                pool.query(pictureQuery, roomID, (err, pictureResult) => {
+                    if (err) {
+                        console.log("Error: " + err);
+                        return res.send({ success: false });
+                      } else {
+                        // Get the image url from Cloudinary
+                        const pictureId = pictureResult[0].PICTURE_ID;
+                        const imageUrl = cloudinary.url(pictureId, { secure: true });
+                        return res.send({ success: true, room: roomResult, imageUrl: imageUrl });
+                      }
+                });
             }
         });
         }

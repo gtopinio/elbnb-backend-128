@@ -1,5 +1,5 @@
 // Import the Accommodation model.
-const Accommodation = require("./accommodation");
+const { Accommodation: RoomModel_Accommodation } = require("./accommodation");
 
 const Room = {
     // Function to check if a Room Name already exists. Used in adding rooms.
@@ -31,7 +31,7 @@ const Room = {
 
     // Get accommodation ID from accommodation name.
     var accommid = null;
-    Accommodation.getAccommodationIdByName(pool, accomm_name, (err, accommodationId) => {
+    RoomModel_Accommodation.getAccommodationIdByName(pool, accomm_name, (err, accommodationId) => {
         if (err) {
         console.log("Error: " + err);
         callback(err, null);

@@ -25,8 +25,11 @@ const User = {
     connection.query(sql, [value], (error, results) => {
       if (error) {
         return callback(error);
+      } // check if results is empty
+      else if (results.length === 0) {
+        return callback(null, null);
       }
-      return callback(null, results[0]);
+      else return callback(null, results[0]);
     });
   },
   comparePassword: (password, hash, callback) => {

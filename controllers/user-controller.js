@@ -636,6 +636,8 @@ exports.removeUserPicture = (pool) => (req, res) => {
   // get the username from the request body
   const {username} = req.body;
 
+  console.log("Username: " + username);
+
   // see if the user exists
   User.findBy(pool, "USER_USERNAME", username, (err, user) => {
     if (err) {

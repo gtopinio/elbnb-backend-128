@@ -722,7 +722,7 @@ exports.getOwnerAverageRating = (pool) => (req, res) => {
       const selectQuery = `
         SELECT AVG(REVIEW_RATING) AS AVG_RATING
         FROM review 
-        WHERE ACCOMMODATION_ID = ANY(SELECT ACCOMODATION_ID FROM accommodation WHERE ACCOMMODATION_OWNER_ID = ?)
+        WHERE ACCOMMODATION_ID = ANY(SELECT ACCOMMODATION_ID FROM accommodation WHERE ACCOMMODATION_OWNER_ID = ?)
       `;
 
       pool.query(selectQuery, [userId], (err, results) => {

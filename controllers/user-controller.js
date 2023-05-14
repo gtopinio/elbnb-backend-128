@@ -1,7 +1,7 @@
 // Imports
 const jwt = require("jsonwebtoken");
 const cloudinary = require('cloudinary').v2;
-const { User } = require('../models/user');
+const { User: UserController_User } = require('../models/user');
 
 // Configuration for cloudinary (cloud for uploading unstructured files) 
 cloudinary.config({
@@ -39,7 +39,7 @@ exports.signUp = (pool) => (req, res) => {
             }
         
             // Check first if email already exists
-            User.checkIfEmailExists(pool, email, (error, result) => {
+            UserController_User.checkIfEmailExists(pool, email, (error, result) => {
               // If an error occured or user is not found
               if (error) {
                 console.log(error);
@@ -47,7 +47,7 @@ exports.signUp = (pool) => (req, res) => {
               }
               if (!result) {
                 console.log("Email is unique! Creating user...");
-                user = User.create(connection, email, password, username, firstName, lastName, contactNum, userType, (error, userId) => {
+                user = UserController_User.create(connection, email, password, username, firstName, lastName, contactNum, userType, (error, userId) => {
                   if (error) {
                     console.log(error);
                     connection.rollback();
@@ -85,7 +85,7 @@ exports.login = (pool) => (req, res) => {
       return res.send({success: false});
     } else{
         // Check if email exists in the user table
-      User.checkIfEmailExists(connection, email, (error, results) => {
+      UserController_User.checkIfEmailExists(connection, email, (error, results) => {
     if (error) {
       console.log(error);
       return res.send({ success: false });
@@ -93,7 +93,7 @@ exports.login = (pool) => (req, res) => {
     if (results) {
       // After finding out that the user exists, we find the user
       var user;
-      User.findBy(connection, "USER_EMAIL", email, (err, result) => {
+      UserController_User.findBy(connection, "USER_EMAIL", email, (err, result) => {
         if(err){
           console.log(err);
           return res.send({success: false});
@@ -102,7 +102,7 @@ exports.login = (pool) => (req, res) => {
           console.log("User does not exist.");
         } else {// user exists
           user = result;
-          User.comparePassword(password, user.USER_PASSWORD, (error, isMatch) => {
+          UserController_User.comparePassword(password, user.USER_PASSWORD, (error, isMatch) => {
             if (error) {
               console.log(error);
               return res.send({ success: false });
@@ -169,7 +169,7 @@ exports.checkIfLoggedIn = (pool) => (req, res) => {
 
       // Find the user based on the user type and id
       else {
-        User.findBy(pool, "user_id", user_id, (error, result) => {
+        UserController_User.findBy(pool, "user_id", user_id, (error, result) => {
           // If an error occured or user is not found
           if (error) {
             console.log(error);
@@ -206,14 +206,14 @@ exports.deleteUserByEmail = (pool) => (req, res) => {
           console.log(err);
         } else {
           // Check if email exists in the user table
-          User.findBy(connection, "USER_EMAIL", email, (error, user) => {
+          UserController_User.findBy(connection, "USER_EMAIL", email, (error, user) => {
             if (error) {
               console.log(error);
               connection.rollback();
               return res.send({success:false});
             }
             if (user) {
-              User.delete(connection, user.USER_ID, (error) => {
+              UserController_User.delete(connection, user.USER_ID, (error) => {
                 if (error) {
                   console.log(error);
                   connection.rollback();
@@ -257,14 +257,14 @@ exports.editUserByEmail = (pool) => (req, res) => {
           return res.send({success:false});
         } else {
           // Check if email exists in any of the tables
-          User.findBy(connection, "USER_EMAIL", email, (error, user) => {
+          UserController_User.findBy(connection, "USER_EMAIL", email, (error, user) => {
             if (error) {
               console.log(error);
               connection.rollback();
               return res.send({success:false});
             }
             if (user) {
-              User.edit(connection, user.USER_ID, newPassword, newUsername, newFirstName, newLastName, newContactNum, (error) => {
+              UserController_User.edit(connection, user.USER_ID, newPassword, newUsername, newFirstName, newLastName, newContactNum, (error) => {
                 if (error) {
                   console.log(error);
                   connection.rollback();
@@ -301,7 +301,7 @@ exports.viewProfile = (pool) => (req, res) => {
       console.log(err);
     } else {
         // Check if email exists in any of the tables
-        User.findBy(connection, "USER_EMAIL", email, (error, user) => {
+        UserController_User.findBy(connection, "USER_EMAIL", email, (error, user) => {
           if (error) {
             console.log(error);
             return res.send({success:false, message: "Error finding user"});
@@ -478,7 +478,7 @@ exports.uploadUserPic = (pool) => async (req, res) => {
     
     // get the user id
 
-    User.findBy(pool, "USER_USERNAME", username, (err, user) => {
+    UserController_User.findBy(pool, "USER_USERNAME", username, (err, user) => {
       if (err) {
         console.log("Error: " + err);
         return res.send({ success: false , message: "Error finding user."});
@@ -560,14 +560,14 @@ exports.uploadUserPic = (pool) => async (req, res) => {
   } // end of else
 };
 
-// Function to fetch a user's picture url from Cloudinary using the username and accessing it using the User.findBy function.
+// Function to fetch a user's picture url from Cloudinary using the username and accessing it using the UserController_User.findBy function.
 // After getting the id, we look through the picture table for the picture with the same user id and get the picture id and use it to access the image url from Cloudinary.
 // If there is an error, it logs the error and sends a response with a success value of false and a message indicating an error occurred.
 // If there is no error, it sends a response with a success value of true and the image url
 exports.getUserPic = (pool) => (req, res) => {
   const username = req.body.username;
 
-  User.findBy(pool, "USER_USERNAME", username, (err, user) => {
+  UserController_User.findBy(pool, "USER_USERNAME", username, (err, user) => {
     if(err){
       console.log("Error: " + err);
       return res.send({ success: false , message: "Error finding user."});
@@ -603,7 +603,7 @@ exports.removeUserPicture = (pool) => (req, res) => {
   console.log("Username: " + username);
 
   // see if the user exists
-  User.findBy(pool, "USER_USERNAME", username, (err, user) => {
+  UserController_User.findBy(pool, "USER_USERNAME", username, (err, user) => {
     if (err) {
       console.log("Error: " + err);
       return res.send({ success: false , message: "Error finding user."});

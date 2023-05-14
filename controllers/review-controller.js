@@ -1,6 +1,6 @@
 // Import the necessary models.
-const { Accommodation } = require("../models/accommodation");
-const { User } = require("../models/user");
+const { Accommodation: ReviewController_Accommodation } = require("../models/accommodation");
+const { User: ReviewController_User } = require("../models/user");
 
 // ===================================== START OF REVIEW + FAVORITE + RATING MANAGEMENT FEATURES =====================================
 
@@ -19,14 +19,14 @@ exports.addReview = (pool) => (req, res) => {
     var uid = null;
     var accomid = null;
   
-    User.getUserIdByUsername(pool, userName, (err, userId) => {
+    ReviewController_User.getUserIdByUsername(pool, userName, (err, userId) => {
       if(err){
         console.log("Error: " + err);
         return res.send({ success: false });
       }
       else if(userId>0){
         uid = userId;
-        Accommodation.getAccommodationIdByName(pool, accommName, (err, accommodationId) => {
+        ReviewController_Accommodation.getAccommodationIdByName(pool, accommName, (err, accommodationId) => {
           if(err){
             console.log("Error: " + err);
             return res.send({ success: false });
@@ -112,14 +112,14 @@ exports.addAccommodationToFavorite = (pool) => (req, res) => {
     console.log("Username: " + userName);
     console.log("Accommodation Name: " + accommName);
     // check if user exist
-    User.getUserIdByUsername(pool, userName, (err, userId) => {
+    ReviewController_User.getUserIdByUsername(pool, userName, (err, userId) => {
       if(err){
         console.log("Error: " + err);
         return res.send({ success: false });
       }
       else if(userId>0){
         // check if accommodation exist
-        Accommodation.getAccommodationIdByName(pool, accommName, (err, accommodationId) => {
+        ReviewController_Accommodation.getAccommodationIdByName(pool, accommName, (err, accommodationId) => {
           if(err){
             console.log("Error: " + err);
             return res.send({ success: false });
@@ -200,14 +200,14 @@ exports.removeAccommodationFromFavorite = (pool) => (req, res) => {
     console.log("Username: " + userName);
     console.log("Accommodation Name: " + accommName);
     // check if user exist
-    User.getUserIdByUsername(pool, userName, (err, userId) => {
+    ReviewController_User.getUserIdByUsername(pool, userName, (err, userId) => {
       if(err){
         console.log("Error: " + err);
         return res.send({ success: false });
       }
       else if(userId>0){
         // check if accommodation exist
-        Accommodation.getAccommodationIdByName(pool, accommName, (err, accommodationId) => {
+        ReviewController_Accommodation.getAccommodationIdByName(pool, accommName, (err, accommodationId) => {
           if(err){
             console.log("Error: " + err);
             return res.send({ success: false });
@@ -297,14 +297,14 @@ console.log("Accommodation Name: " + accommName);
 var uId = null;
 var aId = null;
 
-User.getUserIdByUsername(pool, userName, (err, userId) => {
+ReviewController_User.getUserIdByUsername(pool, userName, (err, userId) => {
     if(err){
     console.log("Error: " + err);
     return res.send({ success: false });
     }
     else if(userId>0){
     uId = userId;
-    Accommodation.getAccommodationIdByName(pool, accommName, (err, accommodationId) => {
+    ReviewController_Accommodation.getAccommodationIdByName(pool, accommName, (err, accommodationId) => {
         if(err){
         console.log("Error: " + err);
         return res.send({ success: false });
@@ -382,14 +382,14 @@ exports.deleteReview = (pool) => (req, res) => {
     var uId = null;
     var aId = null;
 
-    User.getUserIdByUsername(pool, userName, (err, userId) => {
+    ReviewController_User.getUserIdByUsername(pool, userName, (err, userId) => {
         if(err){
         console.log("Error: " + err);
         return res.send({ success: false });
         }
         else if(userId>0){
         uId = userId;
-        Accommodation.getAccommodationIdByName(pool, accommName, (err, accommodationId) => {
+        ReviewController_Accommodation.getAccommodationIdByName(pool, accommName, (err, accommodationId) => {
             if(err){
             console.log("Error: " + err);
             return res.send({ success: false });
@@ -497,12 +497,12 @@ it returns a response indicating that it is not */
 exports.isAccommodationFavorited = (pool) => (req, res) => {
   const {username, accommodationName} = req.body;
 
-  User.getUserIdByUsername(pool, username, (err, userId) => {
+  ReviewController_User.getUserIdByUsername(pool, username, (err, userId) => {
       if (err) {
       console.log("Error: " + err);
       return res.send({ success: false });
       } else if (userId > 0 && typeof userId !== 'undefined') {
-      Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+      ReviewController_Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
           if (err) {
           console.log("Error: " + err);
           return res.send({ success: false });
@@ -535,14 +535,14 @@ exports.isAccommodationFavorited = (pool) => (req, res) => {
 /* This code is defining a function that retrieves the reviews of an accommodation from a MySQL
 database using a pool connection. The function takes in a pool connection as a parameter and returns
 a middleware function that handles a POST request with an accommodation name in the request body.
-The function first retrieves the ID of the accommodation using the Accommodation.getAccommodationIdByName
+The function first retrieves the ID of the accommodation using the ReviewController_Accommodation.getAccommodationIdByName
 function. If the ID is found, it then executes a SQL query to retrieve all reviews for that
 accommodation and sends the results back in the response. If there is an error at any point, the
 function sends a response with success set to false. */
 exports.getAccommodationReviews = (pool) => (req, res) => {
   const {accommodationName} = req.body;
 
-  Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+  ReviewController_Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
       if (err) {
       console.log("Error: " + err);
       return res.send({ success: false });
@@ -567,14 +567,14 @@ exports.getAccommodationReviews = (pool) => (req, res) => {
 /* This code is defining a function that retrieves the filtered reviews of an accommodation from a MySQL
 database using a pool connection. The function takes in a pool connection as a parameter and returns
 a middleware function that handles a POST request with an accommodation name in the request body.
-The function first retrieves the ID of the accommodation using the Accommodation.getAccommodationIdByName
+The function first retrieves the ID of the accommodation using the ReviewController_Accommodation.getAccommodationIdByName
 function. If the ID is found, it then executes a SQL query to retrieve all reviews based on a filter for that
 accommodation and sends the results back in the response. If there is an error at any point, the
 function sends a response with success set to false. */
 exports.getFilteredAccommodationReviews = (pool) => (req, res) => {
   const {accommodationName, filter} = req.body;
   
-  Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+  ReviewController_Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
       if (err) {
       console.log("Error: " + err);
       return res.send({ success: false });
@@ -600,7 +600,7 @@ exports.getFilteredAccommodationReviews = (pool) => (req, res) => {
 exports.getAccommodationAverageRating = (pool) => (req, res) => {
 const {accommodationName} = req.body;
 
-Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+ReviewController_Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
     if (err) {
     console.log("Error: " + err);
     return res.send({ success: false });

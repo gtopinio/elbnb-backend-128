@@ -1,6 +1,6 @@
 // Imports
 const cloudinary = require('cloudinary').v2;
-const { Accommodation } = require('../models/accommodation');
+const { Accommodation: AccommodationController_Accommodation } = require('../models/accommodation');
 
 // Configuration for cloudinary (cloud for uploading unstructured files) 
 cloudinary.config({
@@ -31,7 +31,7 @@ exports.addAccommodation = (pool) => (req, res) => {
   console.log("Owner ID: " + userId);
 
   // check if there's an accommodation that already has the same name
-  Accommodation.checkAccommDup(pool, name, (err, hasDup) => {
+  AccommodationController_Accommodation.checkAccommDup(pool, name, (err, hasDup) => {
     if (err) {
       console.log("Error: " + err);
       return res.send({ success: false });
@@ -144,7 +144,7 @@ exports.editAccommodation = (pool) => (req, res) => {
   // Try to get the id first if accommodation exists
   // check if there's an accommodation that has the same name
   var id = null;
-  Accommodation.getAccommodationIdByName(pool, name, (err, accommodationId) => {
+  AccommodationController_Accommodation.getAccommodationIdByName(pool, name, (err, accommodationId) => {
     if (err) {
       console.log("Error: " + err);
       return res.send({ success: false });
@@ -224,7 +224,7 @@ exports.editAccommodation = (pool) => (req, res) => {
 
 // This function, archiveAccommodation, takes in a MySQL connection pool object as input and returns an Express request handler function. 
 // This function handles a POST request that receives the name of an accommodation and a boolean value that represents whether it should be archived or unarchived. 
-// It uses the Accommodation.getAccommodationIdByName helper function to get the ID of the specified accommodation, and then archives or unarchives it using a SQL UPDATE query. 
+// It uses the AccommodationController_Accommodation.getAccommodationIdByName helper function to get the ID of the specified accommodation, and then archives or unarchives it using a SQL UPDATE query. 
 // If the query is successful, it sends a response with a boolean value of true, indicating that the accommodation has been successfully archived or unarchived. 
 // If any errors occur during the process, it sends a response with a boolean value of false, and logs the error to the console.
 exports.archiveAccommodation = (pool) => (req, res) => {
@@ -232,7 +232,7 @@ exports.archiveAccommodation = (pool) => (req, res) => {
 
   // Try to get the id first if accommodation exists using the name
   var id = null;
-  Accommodation.getAccommodationIdByName(pool, name, (err, accommodationId) => {
+  AccommodationController_Accommodation.getAccommodationIdByName(pool, name, (err, accommodationId) => {
     if (err) {
       console.log("Error: " + err);
       return res.send({ success: false });
@@ -297,7 +297,7 @@ exports.deleteAccommodation = (pool) => (req, res) => {
   // Try to get the id first if accommodation exists
   // check if there's an accommodation that has the same name
   var id = null;
-  Accommodation.getAccommodationIdByName(pool, name, (err, accommodationId) => {
+  AccommodationController_Accommodation.getAccommodationIdByName(pool, name, (err, accommodationId) => {
     if (err) {
       console.log("Error: " + err);
       return res.send({ success: false });
@@ -466,7 +466,7 @@ exports.viewAccommodation = (pool) => (req, res) => {
 
   var accomid = null;
 
-  Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) =>{
+  AccommodationController_Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) =>{
     if(err){
       console.log("Error: " + err);
       return res.send({ success: false });
@@ -584,7 +584,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
 // This is a function that uploads/updates an image to Cloudinary and updates the accommodation_pictures table in 
 // a database with the accommodation picture ID and accommodation ID. It first extracts the image data from the request body, 
 // converts the buffer to a base64 data URL, and finds the accommodation ID from the request parameters. 
-// It then checks if there is an accommodation with the same name and gets the accommodation ID using the Accommodation.getAccommodationIdByName function.
+// It then checks if there is an accommodation with the same name and gets the accommodation ID using the AccommodationController_Accommodation.getAccommodationIdByName function.
 // If there is no error and the accommodation ID is greater than 0, it establishes a connection to the database and uploads the image to Cloudinary using the cloudinary.uploader.upload method. 
 // It then inserts a new row in the accommodation_pictures table with the accommodation picture ID and accommodation ID using an SQL INSERT statement.
 // If there is an error, it logs the error and sends a response with a success value of false and a message indicating an error occurred.
@@ -610,7 +610,7 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
     console.log("Accommodation Name: " + accommodationName);
     
     // check if there's an accommodation that has the same name
-    Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+    AccommodationController_Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
       if (err) {
         console.log("Error: " + err);
         return res.send({ success: false , message: "Error occurred while uploading the picture."});
@@ -673,7 +673,7 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
   }
 }
 
-// Function to fetch an accommodation's picture url from Cloudinary using the accommodation name and accessing it using the Accommodation.getAccommodationIdByName function. 
+// Function to fetch an accommodation's picture url from Cloudinary using the accommodation name and accessing it using the AccommodationController_Accommodation.getAccommodationIdByName function. 
 // After getting the id, we look through the picture table for the picture with the same accommodation id and get the picture id and use it to access the image url from Cloudinary.
 // If there is an error, it logs the error and sends a response with a success value of false and a message indicating an error occurred.
 // If there is no error, it sends a response with a success value of true and the image url
@@ -681,7 +681,7 @@ exports.getAccommodationPic = (pool) => (req, res) => {
   const accommodationName = req.body.accommodationName;
 
   var id = null;
-  Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+  AccommodationController_Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
     if (err) {
       console.log("Error: " + err);
       return res.send({ success: false, message: "Error occurred while fetching the picture." });
@@ -717,7 +717,7 @@ exports.removeAccommodationPicture = (pool) => (req, res) => {
   const {accommodationName} = req.body;
 
   // see if the accommodation exists
-  Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+  AccommodationController_Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
     if (err) {
       console.log("Error: " + err);
       return res.send({ success: false , message: "Error occurred while deleting the picture."});

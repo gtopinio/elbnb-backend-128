@@ -1,7 +1,7 @@
 // Imports
 const cloudinary = require('cloudinary').v2;
-const { Accommodation } = require('../models/accommodation');
-const { Room } = require('../models/room');
+const { Accommodation: RoomController_Accommodation } = require('../models/accommodation');
+const { Room: RoomController_Room } = require('../models/room');
 
 // Configuration for cloudinary (cloud for uploading unstructured files) 
 cloudinary.config({
@@ -22,7 +22,7 @@ exports.getRoomsByAccommodationName = (pool) => (req, res) => {
     const accommodationName = req.body.accommodationName;
   
     var id = null;
-    Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+    RoomController_Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
       if (err) {
         console.log("Error: " + err);
         return res.send({ success: false });
@@ -48,12 +48,12 @@ exports.getRoomsByAccommodationName = (pool) => (req, res) => {
 
   
 // This function takes a database connection pool, the room name, its capacity, its price, and the accommodation name as inputs.
-// It uses the Accommodation.getAccommodationIdByName to retrieve the Accommodation ID associated with the accommodation name.
+// It uses the RoomController_Accommodation.getAccommodationIdByName to retrieve the Accommodation ID associated with the accommodation name.
 // It queries the database to insert a new room with the room name, capacity, price, and accommodation ID in the parameter input.
 exports.addNewRoom = (pool) => (req, res) => {
 const { name, capacity, price, accommodationName } = req.body;
 var id = null;
-Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+RoomController_Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
     if (err) {
     console.log("Error: " + err);
     return res.send({ success: false });
@@ -66,7 +66,7 @@ Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodat
         VALUES
         (?, ?, ?, ?)
         `;
-        Room.checkRoomIfExists(pool, name, id, (err, hasDup) => {
+        RoomController_Room.checkRoomIfExists(pool, name, id, (err, hasDup) => {
         if (err){
             console.log("Error: " + err);
             return res.send({ success: false });
@@ -87,12 +87,12 @@ Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodat
                 return res.send({success:false});
                 }else{
                 connection.query(addNewRoomQuery, [name, price, capacity, id], (err) => {
-                    if(err){  // Failed to insert Room.
+                    if(err){  // Failed to insert RoomController_Room.
                     connection.rollback(() => {
                         console.log("Insert Room Error: " + err);
                         res.send({ success:false });
                     });
-                    }else{ // Successful Insertion of Room.
+                    }else{ // Successful Insertion of RoomController_Room.
                     // Commit insertion.
                     connection.commit((err) => {
                         if (err) {
@@ -116,11 +116,11 @@ Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodat
     console.log("Accommodation not found! Cannot proceed to adding new room...");
     return res.send({success: false});
     } // Accommodation does not Exist.
-}); // end of Accommodation.getAccommodationIdByName function
+}); // end of RoomController_Accommodation.getAccommodationIdByName function
 }; // end of function
 
 // The editRoom function takes a database connection pool as input and returns a callback function that handles a POST request for editing a room.
-// The function takes the information in the request body which it will use to identify the Room ID, that is associated with the current room name and accommodation name provided, through the Room.getRoomIDbyName helper function.
+// The function takes the information in the request body which it will use to identify the Room ID, that is associated with the current room name and accommodation name provided, through the RoomController_Room.getRoomIDbyName helper function.
 // If the room exists, it checks if the updated name already exists within the database.
 // If the updated name doesn't exist, the function updates the room's details according to the request body and returns a response indicating the successful update to the client.
 // Otherwise, it returns a response indicating the unsuccessful update to the client.
@@ -128,7 +128,7 @@ exports.editRoom = (pool) => (req, res) => {
 const {name, newName, newCapacity, newPrice, accommodationName} = req.body;
 var accommID = null;
 // Check if accommodation exists.
-Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+RoomController_Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
     if (err) {
     console.log("Error: " + err);
     return res.send({ success: false });
@@ -136,7 +136,7 @@ Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodat
     accommID = accommodationId;
     // Check if the room ID exists.
     var id = null;
-    Room.getRoomIDbyName(pool, name, accommodationName, (err, roomID) => {
+    RoomController_Room.getRoomIDbyName(pool, name, accommodationName, (err, roomID) => {
     if (err) {
         console.log("Error: " + err);
         return res.send({ success: false });
@@ -213,11 +213,11 @@ Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodat
 } else {
     console.log("Accommodation not found! Cannot proceed to editing...");
     return res.send({success: false});
-}}); // end of Accommodation.getAccommodationIdByName function
+}}); // end of RoomController_Accommodation.getAccommodationIdByName function
 };
 
 // The deleteRoom function takes a database connection pool as input and returns a callback function that handles a POST request for deleting a room.
-// The function takes the information in the request body which it will use to identify the Room ID , that is associated with the current room name and accommodation name provided, through the Room.getRoomIDbyName helper function.
+// The function takes the information in the request body which it will use to identify the Room ID , that is associated with the current room name and accommodation name provided, through the RoomController_Room.getRoomIDbyName helper function.
 // If the room exists, it removes the room from the database and returns a response indicating the successful deletion to the client.
 // Otherwise, it returns a response indicating the unsuccessful deletion to the client.
 exports.deleteRoom = (pool) => (req, res) => {
@@ -225,13 +225,13 @@ const {name, accommodationName} = req.body;
 
 // Get the ID of the room if the name exists.
 var id = null;
-Room.getRoomIDbyName(pool, name, accommodationName, (err, roomID) => {
+RoomController_Room.getRoomIDbyName(pool, name, accommodationName, (err, roomID) => {
     if (err) {
     console.log("Error: " + err);
     return res.send({ success: false });
     } else if (roomID > 0 && typeof roomID !== "undefined") {
     id = roomID;
-        // Query to delete the Room.
+        // Query to delete the RoomController_Room.
         const deleteRoomQuery = `
         DELETE FROM room
         WHERE ROOM_ID = ?;
@@ -278,7 +278,7 @@ Room.getRoomIDbyName(pool, name, accommodationName, (err, roomID) => {
 };
 
 // The archiveRoom function takes a database connection pool as input and returns a callback function that handles a POST request for archiving a room.
-// The function takes the information in the request body which it will use to identify the Room ID, that is associated with the current room name and accommodation name provided, through the Room.getRoomIDbyName helper function.
+// The function takes the information in the request body which it will use to identify the Room ID, that is associated with the current room name and accommodation name provided, through the RoomController_Room.getRoomIDbyName helper function.
 // If the room exists, it updates a detail of the room in the database to classify it as archived and returns a response indicating a successful operation to the client.
 // Otherwise, it returns a response indicating the unsuccessful operation to the client.
 exports.archiveRoom = (pool) => (req, res) => {
@@ -286,7 +286,7 @@ const {name, isArchived, accommodationName } = req.body;
 
 //Get the ID of the room if the name exists.
 var id = null;
-Room.getRoomIDbyName(pool, name, accommodationName, (err, roomID) => {
+RoomController_Room.getRoomIDbyName(pool, name, accommodationName, (err, roomID) => {
     if (err) {
     console.log("Error: " + err);
     return res.send({ success: false });
@@ -345,19 +345,19 @@ Room.getRoomIDbyName(pool, name, accommodationName, (err, roomID) => {
 /* This code is defining a function called `viewRoom` that takes a database connection pool as
 input and returns a function that handles a HTTP request to view a specific room in an
 accommodation. The function extracts the accommodation name and room name from the request body,
-uses a helper function called `Room.getRoomIDbyName` to get the ID of the room from the database, and
+uses a helper function called `RoomController_Room.getRoomIDbyName` to get the ID of the room from the database, and
 then uses the room ID to query the database for the room details. If successful, the function
 returns a JSON response with the room details and a success flag set to true. If there is an error
 at any point, */
 exports.viewRoom = (pool) => (req, res) => {
 const {accommodationName, roomName} = req.body;
 
-Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+RoomController_Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
     if (err) {
     console.log("Error: " + err);
     return res.send({ success: false });
     } else if (accommodationId > 0 && typeof accommodationId !== 'undefined') {
-    Room.getRoomIDbyName(pool, roomName, accommodationName,(err, roomID) => {
+    RoomController_Room.getRoomIDbyName(pool, roomName, accommodationName,(err, roomID) => {
         if (err) {
         console.log("Error: " + err);
         return res.send({ success: false });
@@ -416,7 +416,7 @@ exports.uploadRoomPic = (pool) => async (req, res) => {
 
         const { roomName, accommodationName } = req.body;
         var accommID = null;
-        Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+        RoomController_Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
             if (err) {
                 console.log("Error: " + err);
                 return res.send({ success: false , message: "Error getting accommodation ID."});
@@ -424,7 +424,7 @@ exports.uploadRoomPic = (pool) => async (req, res) => {
                 accommID = accommodationId;
                 // Check if the room ID exists.
                 var id = null;
-                Room.getRoomIDbyName(pool, roomName, accommodationName, (err, roomID) => {
+                RoomController_Room.getRoomIDbyName(pool, roomName, accommodationName, (err, roomID) => {
                     if (err) {
                         console.log("Error: " + err);
                         return res.send({ success: false , message: "Error getting room ID."});
@@ -490,13 +490,13 @@ exports.uploadRoomPic = (pool) => async (req, res) => {
 /* This function takes a database connection pool as input and returns a function that handles HTTP
 requests. The function retrieves the images associated with a specific room in a specific accommodation
 from the database. It first extracts the room name and accommodation name from the request body, then
-uses helper functions `Accommodation.getAccommodationIdByName` and `Room.getRoomIDbyName` to retrieve the corresponding
+uses helper functions `RoomController_Accommodation.getAccommodationIdByName` and `RoomController_Room.getRoomIDbyName` to retrieve the corresponding
 IDs from the database. If the IDs are found, it executes a SQL query to retrieve the picture IDs
 associated with the room and accommodation, and returns them in the response */
 exports.getRoomPic = (pool) => (req, res) => {
     const { roomName, accommodationName } = req.body;
     var accommID = null;
-    Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+    RoomController_Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
         if (err) {
             console.log("Error: " + err);
             return res.send({ success: false , message: "Error getting accommodation ID."});
@@ -504,7 +504,7 @@ exports.getRoomPic = (pool) => (req, res) => {
             accommID = accommodationId;
             // Check if the room ID exists.
             var id = null;
-            Room.getRoomIDbyName(pool, roomName, accommodationName, (err, roomID) => {
+            RoomController_Room.getRoomIDbyName(pool, roomName, accommodationName, (err, roomID) => {
                 if (err) {
                     console.log("Error: " + err);
                     return res.send({ success: false , message: "Error getting room ID."});
@@ -547,7 +547,7 @@ body to contain the room name, accommodation name, and the image ID to be delete
 exports.removeRoomPicture = (pool) => (req, res) => {
     const { roomName, accommodationName } = req.body;
     var accommID = null;
-    Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+    RoomController_Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
         if (err) {
             console.log("Error: " + err);
             return res.send({ success: false , message: "Error getting accommodation ID."});
@@ -555,7 +555,7 @@ exports.removeRoomPicture = (pool) => (req, res) => {
             accommID = accommodationId;
             // Check if the room ID exists.
             var id = null;
-            Room.getRoomIDbyName(pool, roomName, accommodationName, (err, roomID) => {
+            RoomController_Room.getRoomIDbyName(pool, roomName, accommodationName, (err, roomID) => {
                 if (err) {
                     console.log("Error: " + err);
                     return res.send({ success: false , message: "Error getting room ID."});

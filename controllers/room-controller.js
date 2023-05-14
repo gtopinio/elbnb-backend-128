@@ -464,12 +464,24 @@ getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
             FROM room
             WHERE ROOM_ID = ? AND ACCOMMODATION_ID = ?
         `;
-        pool.query(roomQuery, [roomID, accommodationId], (err, result) => {
+        pool.query(roomQuery, [roomID, accommodationId], (err, roomResult) => {
             if (err) {
-            console.log("Error getting room: " + err);
-            return res.send({ success: false });
+                console.log("Error getting room: " + err);
+                return res.send({ success: false });
             } else {
-            return res.send({ success: true, room: result });
+                // Get Room Picture
+                const pictureQuery = `SELECT PICTURE_ID FROM picture WHERE ROOM_ID = ?`;
+                pool.query(pictureQuery, roomID, (err, pictureResult) => {
+                    if (err) {
+                        console.log("Error: " + err);
+                        return res.send({ success: false });
+                      } else {
+                        // Get the image url from Cloudinary
+                        const pictureId = pictureResult[0].PICTURE_ID;
+                        const imageUrl = cloudinary.url(pictureId, { secure: true });
+                        return res.send({ success: true, room: roomResult, imageUrl: imageUrl });
+                      }
+                });
             }
         });
         }

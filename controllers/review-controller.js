@@ -634,6 +634,38 @@ getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
 });
 }
 
+/* This code is defining a function that retrieves the filtered reviews of an accommodation from a MySQL
+database using a pool connection. The function takes in a pool connection as a parameter and returns
+a middleware function that handles a POST request with an accommodation name in the request body.
+The function first retrieves the ID of the accommodation using the getAccommodationIdByName
+function. If the ID is found, it then executes a SQL query to retrieve all reviews based on a filter for that
+accommodation and sends the results back in the response. If there is an error at any point, the
+function sends a response with success set to false. */
+exports.getFilteredAccommodationReviews = (pool) => (req, res) => {
+  const {accommodationName, filter} = req.body;
+  
+  getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+      if (err) {
+      console.log("Error: " + err);
+      return res.send({ success: false });
+      } else if (accommodationId > 0 && typeof accommodationId !== 'undefined') {
+      const ratingsQuery = `
+          SELECT *
+          FROM review
+          WHERE ACCOMMODATION_ID = ? AND (REVIEW_RATING=? OR REVIEW_RATING=?+0.5)
+      `;
+      pool.query(ratingsQuery, [accommodationId, filter, filter], (err, results) => {
+          if (err) {
+          console.log("Error getting ratings: " + err);
+          return res.send({ success: false });
+          } else {
+          return res.send({ success: true, reviews: results });
+          }
+      });
+      }
+  });
+  }
+
 // This function takes a database connection pool, an accommodation name and gets the average rating for that accommodation.
 exports.getAccommodationAverageRating = (pool) => (req, res) => {
 const {accommodationName} = req.body;

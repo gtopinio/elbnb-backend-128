@@ -492,71 +492,108 @@ exports.viewAllOwners = (pool) => (req, res) => {
 // It then inserts a new row in the picture table with the user picture ID and user ID using an SQL INSERT statement.
 exports.uploadUserPic = (pool) => async (req, res) => {
 
-  // Extract the image data from the request body
-  const imageData = req.files.data[0].buffer;
-
-    // Convert the buffer to a base64 data URL
-    const mimeType = req.files.data[0].mimetype;
-    const imageDataUrl = `data:${mimeType};base64,${imageData.toString('base64')}`;
-    
-  // Find the accommodation id from the request parameters
-  const username = req.body.username;
-
-  // console.log("Data: " + base64Data);
-  console.log("Username: " + username);
-  
-  // get the user id
-
-  User.findBy(pool, "USER_USERNAME", username, (err, user) => {
-    if (err) {
-      console.log("Error: " + err);
-      return res.send({ success: false });
-    } else if (user) {
-
-      console.log("User: " + user.USER_USERNAME); // add this line
-
-      pool.getConnection(async (err, connection) => {
-        if (err) {
-          console.log("Error: " + err);
-          callback(err, null);
-        } else {
-  
-        // check if user already has a picture
-        connection.query(`SELECT * FROM picture WHERE USER_ID = ${user.USER_ID}`, async (err, results) => {
-          if (err) {
-            console.log("Error: " + err);
-            return res.send({ success: false });
-          } else if (results.length > 0) {
-            console.log("User already has a picture");
-            return res.send({ success: false });
-          } else {
-            console.log("User does not have a picture");
-            // Upload the image to Cloudinary
-            try {
-              const result = await cloudinary.uploader.upload(imageDataUrl, { upload_preset: 'mockup_setup' });
-              const userPictureId = result.public_id;
-              
-              // Update the picture table
-              const insertUserPictureQuery = `INSERT INTO picture (PICTURE_ID, USER_ID) VALUES ('${userPictureId}', ${user.USER_ID})`;
-              await connection.query(insertUserPictureQuery);
-              
-              // Return success response
-              console.log("Successfully uploaded the user image to cloudinary!");
-              return res.send({ success: true });
-            } catch (error) {
-              console.error(error);
-              return res.send({ success: false, message: 'Error uploading image' });
-            }
-          }
-        }
-      )}
-    });
-  } else {
-    console.log("No user found with username: " + username); // add this line
-    console.log("Full upload error");
+  // Extract the image data from the request body. But first, check if the request body is empty
+  if (!req.files || Object.keys(req.files).length === 0) {
     return res.send({ success: false });
   }
-  });
+
+  else {
+
+    const imageData = req.files.data[0].buffer;
+
+      // Convert the buffer to a base64 data URL
+      const mimeType = req.files.data[0].mimetype;
+      const imageDataUrl = `data:${mimeType};base64,${imageData.toString('base64')}`;
+      
+    // Find the accommodation id from the request parameters
+    const username = req.body.username;
+
+    // console.log("Data: " + base64Data);
+    console.log("Username: " + username);
+    
+    // get the user id
+
+    User.findBy(pool, "USER_USERNAME", username, (err, user) => {
+      if (err) {
+        console.log("Error: " + err);
+        return res.send({ success: false });
+      } else if (user) {
+
+        console.log("User: " + user.USER_USERNAME);
+        const userId = user.USER_ID;
+
+        pool.getConnection(async (err, connection) => {
+          if (err) {
+            console.log("Error: " + err);
+            callback(err, null);
+          } else {
+    
+          // check if user already has a picture
+          connection.query(`SELECT * FROM picture WHERE USER_ID = ${user.USER_ID}`, async (err, results) => {
+            if (err) {
+              console.log("Error: " + err);
+              return res.send({ success: false });
+            } else if (results.length > 0) {
+              console.log("User already has a picture. Updating picture...");
+                // delete the picture from cloudinary
+              cloudinary.uploader.destroy(results[0].PICTURE_ID, (err, results) => {
+                if (err) {
+                  console.log("Error deleting picture from cloudinary: " + err);
+                  return res.send({ success: false });
+                } else {
+                  // upload the new picture to cloudinary
+                  cloudinary.uploader.upload(imageDataUrl, { upload_preset: 'mockup_setup' }, (err, results) => {
+                    if (err) {
+                      console.log("Error uploading picture to cloudinary: " + err);
+                      return res.send({ success: false });
+                    } else {
+                      // update the user picture id in the database
+                      const updatePictureIdQuery = `
+                        UPDATE picture
+                        SET PICTURE_ID = ?
+                        WHERE USER_ID = ?
+                      `;
+                      pool.query(updatePictureIdQuery, [results.public_id, userId], (err, results) => {
+                        if (err) {
+                          console.log("Error updating picture id: " + err);
+                          return res.send({ success: false });
+                        } else {
+                          return res.send({ success: true });
+                        }
+                      });
+                    }
+                  });
+                }
+              });
+            } else {
+              console.log("User does not have a picture");
+              // Upload the image to Cloudinary
+              try {
+                const result = await cloudinary.uploader.upload(imageDataUrl, { upload_preset: 'mockup_setup' });
+                const userPictureId = result.public_id;
+                
+                // Update the picture table
+                const insertUserPictureQuery = `INSERT INTO picture (PICTURE_ID, USER_ID) VALUES ('${userPictureId}', ${user.USER_ID})`;
+                await connection.query(insertUserPictureQuery);
+                
+                // Return success response
+                console.log("Successfully uploaded the user image to cloudinary!");
+                return res.send({ success: true });
+              } catch (error) {
+                console.error(error);
+                return res.send({ success: false, message: 'Error uploading image' });
+              }
+            }
+          }
+        )}
+      });
+    } else {
+      console.log("No user found with username: " + username); // add this line
+      console.log("Full upload error");
+      return res.send({ success: false });
+    }
+    });
+  } // end of else
 };
 
 // Function to fetch a user's picture url from Cloudinary using the username and accessing it using the User.findBy function.
@@ -581,15 +618,9 @@ exports.getUserPic = (pool) => (req, res) => {
           console.log("No user image found!");
           return res.send({ success: false });
         } else {
-            // check if result[0].PICTURE_ID has "mockup-128" in its string
-            if(results[0].PICTURE_ID.includes("mockup-128")){
-              const imageId = results[0].PICTURE_ID;
-              const imageUrl = cloudinary.url(imageId, {secure: true});
-              return res.send({ success: true, imageUrl: imageUrl });
-          } else { // if not, then it is not a real image
-              console.log("No user image found!");
-              return res.send({ success: false });
-            }
+            const imageId = results[0].PICTURE_ID;
+            const imageUrl = cloudinary.url(imageId, {secure: true});
+            return res.send({ success: true, imageUrl: imageUrl });
         }
       });
     } else {
@@ -606,7 +637,7 @@ exports.removeUserPicture = (pool) => (req, res) => {
   const {username} = req.body;
 
   // see if the user exists
-  getUserIdByUsername(pool, username, (err, userId) => {
+  User.findBy(pool, "USER_USERNAME", username, (err, userId) => {
     if (err) {
       console.log("Error: " + err);
       return res.send({ success: false });
@@ -627,87 +658,18 @@ exports.removeUserPicture = (pool) => (req, res) => {
             if (err) {
               console.log("Error deleting picture from cloudinary: " + err);
               return res.send({ success: false });
-            } // check if result[0].PICTURE_ID has "mockup-128" in its string
-            else if(!results[0].PICTURE_ID.includes("mockup-128")){
-                console.log("No user image found!");
-                return res.send({ success: false });
             } else {
-              // update the user picture id in the database to null
-              const updatePictureIdQuery = `
-                UPDATE picture
-                SET PICTURE_ID = ?
+              // delete the user picture from the database
+              const deletePictureQuery = `
+                DELETE FROM picture
                 WHERE USER_ID = ?
               `;
-              pool.query(updatePictureIdQuery, [userId, userId], (err, results) => {
+              pool.query(deletePictureQuery, [userId, userId], (err, results) => {
                 if (err) {
                   console.log("Error updating picture id: " + err);
                   return res.send({ success: false });
                 } else {
                   return res.send({ success: true });
-                }
-              });
-            }
-          });
-        }
-      });
-    }
-  });
-}
-
-// Function to update the user picture from cloudinary and the mysql database
-exports.updateUserPicture = (pool) => (req, res) => {
-  // Extract the image data from the request body
-  const imageData = req.files.data[0].buffer;
-
-    // Convert the buffer to a base64 data URL
-    const mimeType = req.files.data[0].mimetype;
-    const imageDataUrl = `data:${mimeType};base64,${imageData.toString('base64')}`;
-
-  // get the username from the request body
-  const {username} = req.body;
-  // see if the user exists
-  getUserIdByUsername(pool, username, (err, userId) => {
-    if (err) {
-      console.log("Error: " + err);
-      return res.send({ success: false });
-    } else if (userId > 0 && typeof userId !== 'undefined') {
-      // get the user picture id
-      const getPictureIdQuery = `
-        SELECT PICTURE_ID
-        FROM picture
-        WHERE USER_ID = ?
-      `;
-      pool.query(getPictureIdQuery, [userId], (err, results) => {
-        if (err) {
-          console.log("Error getting picture id: " + err);
-          return res.send({ success: false });
-        } else {
-          // delete the picture from cloudinary
-          cloudinary.uploader.destroy(results[0].PICTURE_ID, (err, results) => {
-            if (err) {
-              console.log("Error deleting picture from cloudinary: " + err);
-              return res.send({ success: false });
-            } else {
-              // upload the new picture to cloudinary
-              cloudinary.uploader.upload(imageDataUrl, { upload_preset: 'mockup_setup' }, (err, results) => {
-                if (err) {
-                  console.log("Error uploading picture to cloudinary: " + err);
-                  return res.send({ success: false });
-                } else {
-                  // update the user picture id in the database
-                  const updatePictureIdQuery = `
-                    UPDATE picture
-                    SET PICTURE_ID = ?
-                    WHERE USER_ID = ?
-                  `;
-                  pool.query(updatePictureIdQuery, [results.public_id, userId], (err, results) => {
-                    if (err) {
-                      console.log("Error updating picture id: " + err);
-                      return res.send({ success: false });
-                    } else {
-                      return res.send({ success: true });
-                    }
-                  });
                 }
               });
             }

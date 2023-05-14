@@ -850,7 +850,13 @@ exports.removeAccommodationPicture = (pool) => (req, res) => {
         if (err) {
           console.log("Error getting picture id: " + err);
           return res.send({ success: false , message: "Error occurred while deleting the picture."});
-        } else {
+        } 
+        // check if the accommodation has a picture
+        else if (results.length === 0) {
+          console.log("Accommodation does not have a picture.");
+          return res.send({ success: false , message: "Accommodation does not have a picture."});
+        }
+        else {
           // delete the picture from cloudinary
           cloudinary.uploader.destroy(results[0].PICTURE_ID, (err, results) => {
             if (err) {

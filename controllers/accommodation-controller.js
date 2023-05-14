@@ -1,6 +1,6 @@
-
 // Imports
 const cloudinary = require('cloudinary').v2;
+const Accommodation = require('../models/accommodation');
 
 // Configuration for cloudinary (cloud for uploading unstructured files) 
 cloudinary.config({
@@ -11,29 +11,6 @@ cloudinary.config({
 
 
 // ===================================== START OF ACCOMMODATION MANAGEMENT FEATURES =====================================
-
-// The checkAccommDup function checks if an accommodation with the given name already exists in the database by querying the accommodation table. 
-// It takes a connection pool, accommodation name, and callback function as parameters.
-// It returns a boolean value in the callback function.
-function checkAccommDup(pool, name, callback) {
-    pool.getConnection((err, connection) => {
-      if (err) {
-        console.log("Error: " + err);
-        callback(err, null);
-      } else {
-        const checkQuery = `SELECT ACCOMMODATION_ID FROM accommodation WHERE ACCOMMODATION_NAME = ?`;
-        connection.query(checkQuery, [name], (err, result) => {
-          if (err) {
-            console.log("Check Accom Dup Error: " + err);
-            callback(err, null);
-          } else {
-            callback(null, result.length > 0);
-          }
-        });
-      }
-    });
-  }
-  
   
 // This function is used to add a new accommodation to the database. 
 // It takes in a pool object as input, which is used to establish a database connection. 
@@ -54,7 +31,7 @@ exports.addAccommodation = (pool) => (req, res) => {
   console.log("Owner ID: " + userId);
 
   // check if there's an accommodation that already has the same name
-  checkAccommDup(pool, name, (err, hasDup) => {
+  Accommodation.checkAccommDup(pool, name, (err, hasDup) => {
     if (err) {
       console.log("Error: " + err);
       return res.send({ success: false });
@@ -111,41 +88,6 @@ exports.addAccommodation = (pool) => (req, res) => {
   }); // end of checkAccomDupe
 }; // end of addAccommodation
 
-// This function takes a database connection pool, an accommodation name (unique), and a callback function as inputs. 
-// It queries the database to retrieve the accommodation ID for the provided name and passes the result to the callback function. 
-// If there is an error in the database query or connection, it logs the error and passes it to the callback function as the first parameter.
-function getAccommodationIdByName(pool, name, callback) {
-  pool.getConnection((err, connection) => {
-    if (err) {
-      console.log("Error: " + err);
-      callback(err, null);
-    } else {
-      const checkQuery = `SELECT ACCOMMODATION_ID FROM accommodation WHERE ACCOMMODATION_NAME = ?`;
-      connection.query(checkQuery, [name], (err, result) => {
-        if (err) {
-          console.log("Get Accomm Id Error: " + err);
-          callback(err, null);
-        } else {
-          try{
-            if(typeof result[0].ACCOMMODATION_ID === "undefined") {
-              console.log("Get Accom Id: Undefined Object");
-              callback(null, 0);
-            }
-            else {
-              console.log("Get Accom Id: Defined Object");
-              callback(null, result[0].ACCOMMODATION_ID);
-            }
-          } catch (err) {
-            console.log("Accommodation Not Found...");
-            callback(err, null);
-          }
-          
-        }
-      });
-    }
-  });
-}
-
 // The editAccommodation function takes a MySQL connection pool as input and returns a callback function that handles an POST request for editing an accommodation. 
 // The function first extracts the updated accommodation details from the request body. It then tries to retrieve the ID of the accommodation to be updated by its name. 
 // If the accommodation exists, it checks if the updated name already exists for another accommodation. 
@@ -157,7 +99,7 @@ exports.editAccommodation = (pool) => (req, res) => {
   // Try to get the id first if accommodation exists
   // check if there's an accommodation that has the same name
   var id = null;
-  getAccommodationIdByName(pool, name, (err, accommodationId) => {
+  Accommodation.getAccommodationIdByName(pool, name, (err, accommodationId) => {
     if (err) {
       console.log("Error: " + err);
       return res.send({ success: false });
@@ -245,7 +187,7 @@ exports.archiveAccommodation = (pool) => (req, res) => {
 
   // Try to get the id first if accommodation exists using the name
   var id = null;
-  getAccommodationIdByName(pool, name, (err, accommodationId) => {
+  Accommodation.getAccommodationIdByName(pool, name, (err, accommodationId) => {
     if (err) {
       console.log("Error: " + err);
       return res.send({ success: false });
@@ -310,7 +252,7 @@ exports.deleteAccommodation = (pool) => (req, res) => {
   // Try to get the id first if accommodation exists
   // check if there's an accommodation that has the same name
   var id = null;
-  getAccommodationIdByName(pool, name, (err, accommodationId) => {
+  Accommodation.getAccommodationIdByName(pool, name, (err, accommodationId) => {
     if (err) {
       console.log("Error: " + err);
       return res.send({ success: false });
@@ -479,7 +421,7 @@ exports.viewAccommodation = (pool) => (req, res) => {
 
   var accomid = null;
 
-  getAccommodationIdByName(pool, accommodationName, (err, accommodationId) =>{
+  Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) =>{
     if(err){
       console.log("Error: " + err);
       return res.send({ success: false });
@@ -516,27 +458,6 @@ exports.viewAccommodation = (pool) => (req, res) => {
     }
   })
 }
-
-// The function takes in a database connection pool object and returns a callback function that filters a room based on the user's search criteria specified in the req.query object.
-function filterRooms(pool, priceTo, priceFrom, capacity, callback) {
-  const query = `
-    SELECT DISTINCT ACCOMMODATION_ID FROM room
-    WHERE 
-      (ROOM_PRICE <= ? OR ? IS NULL)
-      AND (ROOM_PRICE >= ? OR ? IS NULL)
-      AND (ROOM_CAPACITY = ? OR ? IS NULL)
-  `;
-  
-  pool.query(query, [priceTo, priceTo, priceFrom, priceFrom, capacity, capacity], (err, results) => {
-    if (err) {
-      callback(err, null);
-    } else {
-      const ids = results.map(result => result.ACCOMMODATION_ID);
-      callback(null, ids);
-    }
-  });
-}
-
 
 // The function takes in a database connection pool object and returns a callback function that filters accommodations based on the user's search criteria specified in the req.query object. 
 // The function constructs a SQL query using the search criteria and executes it against the database. 
@@ -589,7 +510,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
   else if(priceFrom || priceTo || capacity){
 
   // check if there's an accommodation that already has the same name
-  filterRooms(pool, priceTo, priceFrom, capacity, (err, ids) => {
+  Accommodation.filterRooms(pool, priceTo, priceFrom, capacity, (err, ids) => {
     if (err) {
       console.log("Error: " + err);
       const empty = []
@@ -722,7 +643,7 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
   console.log("Accommodation Name: " + accommodationName);
   
   // check if there's an accommodation that has the same name
-  getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+  Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
     if (err) {
       console.log("Error: " + err);
       return res.send({ success: false });
@@ -777,7 +698,7 @@ exports.getAccommodationPic = (pool) => (req, res) => {
   const accommodationName = req.body.accommodationName;
 
   var id = null;
-  getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+  Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
     if (err) {
       console.log("Error: " + err);
       return res.send({ success: false });
@@ -815,7 +736,7 @@ exports.removeAccommodationPicture = (pool) => (req, res) => {
   const {accommodationName} = req.body;
 
   // see if the accommodation exists
-  getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+  Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
     if (err) {
       console.log("Error: " + err);
       return res.send({ success: false });
@@ -871,7 +792,7 @@ exports.updateAccommodationPicture = (pool) => (req, res) => {
   // get the accommodation name from the request body
   const {accommodationName} = req.body;
   // see if the accommodation exists
-  getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+  Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
     if (err) {
       console.log("Error: " + err);
       return res.send({ success: false });

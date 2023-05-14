@@ -1,42 +1,59 @@
-
+// Imports
+const { Room } = require('../models/room');
 
 // ===================================== START OF ROOM MANAGEMENT FEATURES =====================================
 
-// This function takes a database connection pool, an accommodation name (unique), and a callback function as inputs. 
-// It queries the database to retrieve the accommodation ID for the provided name and passes the result to the callback function. 
-// If there is an error in the database query or connection, it logs the error and passes it to the callback function as the first parameter.
-function getAccommodationIdByName(pool, name, callback) {
-    pool.getConnection((err, connection) => {
-      if (err) {
+  // This function takes a database connection pool, a room name (unique), an accommodation_id, and a callback function as inputs.
+  // It uses the getAccommodationIdByName to retrieve the Accommodation ID associated with the accomm_name.
+  // It queries the database to retrieve a Room ID associated with the room name and the accommodation ID in the parameter input.
+  // The function returns the callback which includes an error in the first parameter, if the query fails, and the Room ID in the second parameter if the query succeeds.
+function getRoomIDbyName(pool, name, accomm_name, callback) {
+    // Get accommodation ID from accommodation name.
+    var accommid = null;
+    Room.getAccommodationIdByName(pool, accomm_name, (err, accommodationId) => {
+        if (err) {
         console.log("Error: " + err);
         callback(err, null);
-      } else {
-        const checkQuery = `SELECT ACCOMMODATION_ID FROM accommodation WHERE ACCOMMODATION_NAME = ?`;
-        connection.query(checkQuery, [name], (err, result) => {
-          if (err) {
-            console.log("Get Accomm Id Error: " + err);
-            callback(err, null);
-          } else {
-            try{
-              if(typeof result[0].ACCOMMODATION_ID === "undefined") {
-                console.log("Get Accom Id: Undefined Object");
-                callback(null, 0);
-              }
-              else {
-                console.log("Get Accom Id: Defined Object");
-                callback(null, result[0].ACCOMMODATION_ID);
-              }
-            } catch (err) {
-              console.log("Accommodation Not Found...");
-              callback(err, null);
-            }
-            
-          }
-        });
-      }
-    });
-  }
+        } else if (accommodationId > 0 && typeof accommodationId != "undefined") {
+        accommid = accommodationId;
 
+        // Start connection.
+        pool.getConnection((err, connection) => {
+            if (err) {
+            console.log("Error: " + err);
+            callback(err, null);
+            } else {
+            const checkQuery = `SELECT ROOM_ID FROM room WHERE ROOM_NAME = ? AND ACCOMMODATION_ID = ?`;
+            connection.query(checkQuery, [name, accommid], (err, result) => {
+                if (err) {
+                console.log("Get Room ID Error: " + err);
+                callback(err, null);
+                } else {
+                // Room ID error.
+                try{
+                    if(typeof result[0].ROOM_ID === "undefined") {
+                    console.log("Get Room ID: Undefined Object");
+                    callback(null, 0);
+                    }
+                // Room ID success.
+                    else {
+                    console.log("Get Room ID: Defined Object");
+                    callback(null, result[0].ROOM_ID);
+                    }
+                // Room does not exist.
+                } catch (err) {
+                    console.log("Room Not Found...");
+                    callback(err, null);
+                }
+                } // end of query else statement.
+            }); // end of connection query.
+            } // end of connection else statement.
+        }); // end of connection.
+        } // end of getAccomID else-if statement.
+    }); // end of getAccomID function.
+} // end of getRoomID function.
+    
+  
 // This is a function that gets the accommodation ID by the accommodation name. After getting the id, it gets the rooms by the accommodation id.
 // It first gets the accommodation id from the request parameters and then gets the rooms by the accommodation id using an SQL SELECT statement.
 // If there is an error, it logs the error and sends a response with a success value of false and a message indicating an error occurred.
@@ -47,7 +64,7 @@ exports.getRoomsByAccommodationName = (pool) => (req, res) => {
     const accommodationName = req.body.accommodationName;
   
     var id = null;
-    getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+    Room.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
       if (err) {
         console.log("Error: " + err);
         return res.send({ success: false });
@@ -71,86 +88,13 @@ exports.getRoomsByAccommodationName = (pool) => (req, res) => {
     });
   }
   
-  // Function to check if a Room Name already exists. Currently not in use
-  // TODO: Use for adding rooms! It is for checking if a room name already exists for a specific accommodation. To be implemented in the addNewRoom function in the future.
-  function checkRoomIfExists(pool, name, accommID, callback) {
-    pool.getConnection((err, connection) => {
-      if (err) {
-        console.log("Error: " + err);
-        callback(err, null);
-      } else {
-        const checkQuery = `SELECT ROOM_ID FROM room WHERE ROOM_NAME = ? AND ACCOMMODATION_ID = ?`;
-        connection.query(checkQuery, [name, accommID], (err, result) => {
-          if (err) {
-            console.log("Check Room if Exists error: " + err);
-            callback(err, null);
-          } else {
-            callback(null, result.length > 0);
-          }
-        });
-      }
-    });
-  }
-  
-  
-  // This function takes a database connection pool, a room name (unique), an accommodation_id, and a callback function as inputs.
-  // It uses the getAccommodationIdByName to retrieve the Accommodation ID associated with the accomm_name.
-  // It queries the database to retrieve a Room ID associated with the room name and the accommodation ID in the parameter input.
-  // The function returns the callback which includes an error in the first parameter, if the query fails, and the Room ID in the second parameter if the query succeeds.
-function getRoomIDbyName(pool, name, accomm_name, callback) {
-
-// Get accommodation ID from accommodation name.
-var accommid = null;
-getAccommodationIdByName(pool, accomm_name, (err, accommodationId) => {
-    if (err) {
-    console.log("Error: " + err);
-    callback(err, null);
-    } else if (accommodationId > 0 && typeof accommodationId != "undefined") {
-    accommid = accommodationId;
-
-    // Start connection.
-    pool.getConnection((err, connection) => {
-        if (err) {
-        console.log("Error: " + err);
-        callback(err, null);
-        } else {
-        const checkQuery = `SELECT ROOM_ID FROM room WHERE ROOM_NAME = ? AND ACCOMMODATION_ID = ?`;
-        connection.query(checkQuery, [name, accommid], (err, result) => {
-            if (err) {
-            console.log("Get Room ID Error: " + err);
-            callback(err, null);
-            } else {
-            // Room ID error.
-            try{
-                if(typeof result[0].ROOM_ID === "undefined") {
-                console.log("Get Room ID: Undefined Object");
-                callback(null, 0);
-                }
-            // Room ID success.
-                else {
-                console.log("Get Room ID: Defined Object");
-                callback(null, result[0].ROOM_ID);
-                }
-            // Room does not exist.
-            } catch (err) {
-                console.log("Room Not Found...");
-                callback(err, null);
-            }
-            } // end of query else statement.
-        }); // end of connection query.
-        } // end of connection else statement.
-    }); // end of connection.
-    } // end of getAccomID else-if statement.
-}); // end of getAccomID function.
-} // end of getRoomID function.
-  
 // This function takes a database connection pool, the room name, its capacity, its price, and the accommodation name as inputs.
 // It uses the getAccommodationIdByName to retrieve the Accommodation ID associated with the accommodation name.
 // It queries the database to insert a new room with the room name, capacity, price, and accommodation ID in the parameter input.
 exports.addNewRoom = (pool) => (req, res) => {
 const { name, capacity, price, accommodationName } = req.body;
 var id = null;
-getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+Room.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
     if (err) {
     console.log("Error: " + err);
     return res.send({ success: false });
@@ -163,7 +107,7 @@ getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
         VALUES
         (?, ?, ?, ?)
         `;
-        checkRoomIfExists(pool, name, id, (err, hasDup) => {
+        Room.checkRoomIfExists(pool, name, id, (err, hasDup) => {
         if (err){
             console.log("Error: " + err);
             return res.send({ success: false });
@@ -225,7 +169,7 @@ exports.editRoom = (pool) => (req, res) => {
 const {name, newName, newCapacity, newPrice, accommodationName} = req.body;
 var accommID = null;
 // Check if accommodation exists.
-getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+Room.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
     if (err) {
     console.log("Error: " + err);
     return res.send({ success: false });
@@ -449,7 +393,7 @@ at any point, */
 exports.viewRoom = (pool) => (req, res) => {
 const {accommodationName, roomName} = req.body;
 
-getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+Room.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
     if (err) {
     console.log("Error: " + err);
     return res.send({ success: false });

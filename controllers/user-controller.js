@@ -655,7 +655,7 @@ This function get the average rating of an owner based of their accommodation ra
 exports.getOwnerAverageRating = (pool) => (req, res) => {
   const {userName} = req.body;
 
-  getUserIdByUsername(pool, userName, (err, userId) => {
+  UserController_User.getUserIdByUsername(pool, userName, (err, userId) => {
     if (err) {
       console.log("Error: " + err);
       return res.send({ success: false });

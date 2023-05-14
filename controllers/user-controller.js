@@ -637,17 +637,19 @@ exports.removeUserPicture = (pool) => (req, res) => {
   const {username} = req.body;
 
   // see if the user exists
-  User.findBy(pool, "USER_USERNAME", username, (err, userId) => {
+  User.findBy(pool, "USER_USERNAME", username, (err, user) => {
     if (err) {
       console.log("Error: " + err);
       return res.send({ success: false });
-    } else if (userId > 0 && typeof userId !== 'undefined') {
+    } // check if the user exists
+    else if (user) {
       // get the user picture id
       const getPictureIdQuery = `
         SELECT PICTURE_ID
         FROM picture
         WHERE USER_ID = ?
       `;
+      const userId = user.USER_ID;
       pool.query(getPictureIdQuery, [userId], (err, results) => {
         if (err) {
           console.log("Error getting picture id: " + err);

@@ -45,7 +45,6 @@ module.exports = (app, pool) => {
     app.post("/accommodation/room/upload-room-pic", roomController.uploadRoomPic(pool));
     app.post("/accommodation/room/get-room-pic", roomController.getRoomPic(pool));
     app.post("/accommodation/room/remove-room-pic", roomController.removeRoomPicture(pool));
-    app.post("/accommodation/room/update-room-pic", roomController.updateRoomPicture(pool));
 
     // review + favorite + rating management endpoints
     app.post("/accommodation/add-review", reviewController.addReview(pool));

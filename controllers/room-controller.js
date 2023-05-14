@@ -478,12 +478,16 @@ getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
                 return res.send({ success: false });
             } else {
                 // Get Room Picture
-                const pictureQuery = `SELECT PICTURE_ID FROM picture WHERE ROOM_ID = ?`;
-                pool.query(pictureQuery, roomID, (err, pictureResult) => {
+                const pictureQuery = `SELECT PICTURE_ID FROM picture WHERE ROOM_ID = ? AND ACCOMMODATION_ID = ?`;
+                pool.query(pictureQuery, [roomID, accommodationId], (err, pictureResult) => {
                     if (err) {
                         console.log("Error: " + err);
                         return res.send({ success: false });
-                      } else {
+                      } // If there is no picture for the room, return the room details without the image url
+                        else if (pictureResult.length == 0) {
+                        return res.send({ success: true, room: roomResult });
+                        } 
+                      else {
                         // Get the image url from Cloudinary
                         const pictureId = pictureResult[0].PICTURE_ID;
                         const imageUrl = cloudinary.url(pictureId, { secure: true });
@@ -497,8 +501,6 @@ getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
     }
 });
 }
-  
-// ===================================== END OF ROOM MANAGEMENT FEATURES =====================================
 
 /* This function takes a database connection pool as input and returns a function that handles HTTP
 requests. The function is responsible for adding/updating an image to a room in a given accommodation room. It
@@ -708,3 +710,5 @@ exports.removeRoomPicture = (pool) => (req, res) => {
         }
     });
 }
+
+// ===================================== END OF ROOM MANAGEMENT FEATURES =====================================

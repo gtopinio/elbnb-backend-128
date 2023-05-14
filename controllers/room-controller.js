@@ -1,4 +1,14 @@
+const e = require("express");
 
+// Imports
+const cloudinary = require("cloudinary").v2;
+
+// Configuration for cloudinary (cloud for uploading unstructured files)
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_API_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+  });
 
 // ===================================== START OF ROOM MANAGEMENT FEATURES =====================================
 
@@ -479,3 +489,290 @@ getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
 }
   
 // ===================================== END OF ROOM MANAGEMENT FEATURES =====================================
+
+/* This function takes a database connection pool as input and returns a function that handles HTTP
+requests. The function is responsible for adding an image to a room in a given accommodation. It
+first extracts the room name, accommodation name, and image data from the request body. It then
+retrieves the ID of the accommodation using its name, and the ID of the room using its name and the
+name of the accommodation it belongs to. If both IDs are found, the function inserts the image data,
+accommodation ID, and room ID into the `picture` table */
+exports.uploadRoomPic = (pool) => async (req, res) => {
+    // Extract the image data from the request body
+    const imageData = req.files.data[0].buffer;
+
+    // Convert the buffer to a base64 data URL
+    const mimeType = req.files.data[0].mimetype;
+    const imageDataUrl = `data:${mimeType};base64,${imageData.toString("base64")}`;
+
+    const { roomName, accommodationName } = req.body;
+    var accommID = null;
+    getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+        if (err) {
+            console.log("Error: " + err);
+            return res.send({ success: false });
+        } else if (accommodationId > 0 && typeof accommodationId != "undefined") {
+            accommID = accommodationId;
+            // Check if the room ID exists.
+            var id = null;
+            getRoomIDbyName(pool, roomName, accommodationName, (err, roomID) => {
+                if (err) {
+                    console.log("Error: " + err);
+                    return res.send({ success: false });
+                } else if (roomID > 0 && typeof roomID !== "undefined") {
+                    id = roomID;
+                    pool.query(`SELECT * FROM picture WHERE ACCOMMODATION_ID = ? AND ROOM_ID = ?`, [accommID, id], async (err, results) => {
+                        if (err) {
+                            console.log("Error: " + err);
+                            return res.send({ success: false });
+                        } else if (results.length > 0) {
+                            console.log("Room already has an image! Cannot proceed to adding image...");
+                            return res.send({ success: false });
+                        } else {
+                            console.log("Room has no image yet! Proceeding to adding image...");
+                            // Upload the image to cloudinary
+                            try {
+                                const result = await cloudinary.uploader.upload(imageDataUrl, {upload_preset: "mockup_setup"});
+                                const imageId = result.public_id;
+
+                                // Insert the image ID, accommodation ID, and room ID into the database
+                                const addImageQuery = `INSERT INTO picture (PICTURE_ID, ACCOMMODATION_ID, ROOM_ID) VALUES ('${imageId}', ${accommID}, ${id})`;
+                                await pool.query(addImageQuery);
+
+                                console.log("Successfully added image!");
+                                return res.send({ success: true });
+                            } catch (err) {
+                                console.log("Error uploading image: " + err);
+                                return res.send({ success: false });
+                            }
+                        }
+                    });
+                } else {
+                    console.log("Room not found! Cannot proceed to adding image...");
+                    return res.send({ success: false });
+                }
+            });
+        } else {
+            console.log("Accommodation not found! Cannot proceed to adding image...");
+            return res.send({ success: false });
+        }
+    });
+}
+
+
+/* This function takes a database connection pool as input and returns a function that handles HTTP
+requests. The function retrieves the images associated with a specific room in a specific accommodation
+from the database. It first extracts the room name and accommodation name from the request body, then
+uses helper functions `getAccommodationIdByName` and `getRoomIDbyName` to retrieve the corresponding
+IDs from the database. If the IDs are found, it executes a SQL query to retrieve the picture IDs
+associated with the room and accommodation, and returns them in the response */
+exports.getRoomPic = (pool) => (req, res) => {
+    const { roomName, accommodationName } = req.body;
+    var accommID = null;
+    getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+        if (err) {
+            console.log("Error: " + err);
+            return res.send({ success: false });
+        } else if (accommodationId > 0 && typeof accommodationId != "undefined") {
+            accommID = accommodationId;
+            // Check if the room ID exists.
+            var id = null;
+            getRoomIDbyName(pool, roomName, accommodationName, (err, roomID) => {
+                if (err) {
+                    console.log("Error: " + err);
+                    return res.send({ success: false });
+                } else if (roomID) {
+                    id = roomID;
+                    const getImagesQuery = `
+                        SELECT PICTURE_ID
+                        FROM picture
+                        WHERE ACCOMMODATION_ID = ? AND ROOM_ID = ?
+                    `;
+                    pool.query(getImagesQuery, [accommID, id], (err, result) => {
+                        if (err) {
+                            console.log("Error getting images: " + err);
+                            return res.send({ success: false });
+                        } else if (result.length === 0){
+                            console.log("No room image found!");
+                            return res.send({ success: false });
+                        }
+                        else {
+                            // check if result[0].PICTURE_ID has "mockup-128" in its string
+                            if(result[0].PICTURE_ID.includes("mockup-128")){
+                                const imageId = result[0].PICTURE_ID;
+                                const imageUrl = cloudinary.url(imageId, {secure: true});
+                                return res.send({ success: true, imageUrl: imageUrl });
+                            } else { // if not, then it is not a real image
+                                console.log("No room image found!");
+                                return res.send({ success: false });
+                            }
+                        }
+                    });
+                } else {
+                    console.log("Room not found! Cannot proceed to getting images...");
+                    return res.send({ success: false });
+                }
+            });
+        } else {
+            console.log("Accommodation not found! Cannot proceed to getting images...");
+            return res.send({ success: false });
+        }
+    });
+}
+
+/* This function updates the image of a room in a database. It takes in the pool
+object as a parameter and returns a function that takes in a request and response object. The
+request object should contain the room name, accommodation name, and the new image. */
+exports.updateRoomPicture = (pool) => (req, res) => {
+    // Extract the image data from the request body
+    const imageData = req.files.data[0].buffer;
+
+    // Convert the buffer to a base64 data URL
+    const mimeType = req.files.data[0].mimetype;
+    const imageDataUrl = `data:${mimeType};base64,${imageData.toString('base64')}`;
+
+    const { roomName, accommodationName } = req.body;
+    var accommID = null;
+    // Get the accommodation ID from the accommodation name.
+    getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+        if (err) {
+            console.log("Error: " + err);
+            return res.send({ success: false });
+        } else if (accommodationId > 0 && typeof accommodationId != "undefined") {
+            accommID = accommodationId;
+            // Check if the room ID exists.
+            var id = null;
+            getRoomIDbyName(pool, roomName, accommodationName, (err, roomID) => {
+                if (err) {
+                    console.log("Error: " + err);
+                    return res.send({ success: false });
+                } else if (roomID > 0 && typeof roomID !== "undefined") {
+                    id = roomID;
+                    const getImageIdQuery = `
+                        SELECT PICTURE_ID
+                        FROM picture
+                        WHERE ACCOMMODATION_ID = ? AND ROOM_ID = ?
+                    `;
+                    pool.query(getImageIdQuery, [accommID, id], (err, result) => {  // Get the image ID of the room.
+                        if (err) {
+                            console.log("Error getting image ID: " + err);
+                            return res.send({ success: false });
+                        } else if (result.length === 0) {
+                            console.log("No room image found!");
+                            return res.send({ success: false });
+                        }
+                        else {
+                            // Delete the old image from cloudinary.
+                            cloudinary.uploader.destroy(result[0].PICTURE_ID, (err) => {
+                                if (err) {
+                                    console.log("Error deleting image: " + err);
+                                    return res.send({ success: false });
+                                } else {
+                                    // Upload the new image to cloudinary.
+                                    cloudinary.uploader.upload(imageDataUrl, {upload_preset: "mockup_setup"}, (err, result) => {
+                                        if (err) {
+                                            console.log("Error uploading image: " + err);
+                                            return res.send({ success: false });
+                                        } else {
+                                            const updateImageQuery = `
+                                                UPDATE picture
+                                                SET PICTURE_ID = ?
+                                                WHERE ACCOMMODATION_ID = ? AND ROOM_ID = ?
+                                            `;
+                                            pool.query(updateImageQuery, [result.public_id, accommID, id], (err) => {
+                                                if (err) {
+                                                    console.log("Error updating image: " + err);
+                                                    return res.send({ success: false });
+                                                } else {
+                                                    console.log("Successfully updated image!");
+                                                    return res.send({ success: true });
+                                                }
+                                            });
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    });
+                } else {
+                    console.log("Room not found! Cannot proceed to updating image...");
+                    return res.send({ success: false });
+                }
+            });
+        } else {
+            console.log("Accommodation not found! Cannot proceed to updating image...");
+            return res.send({ success: false });
+        }
+    });
+}
+
+/* This function handles a request to delete an image associated with a room in a
+specific accommodation. It takes in the pool object for database connection, and expects the request
+body to contain the room name, accommodation name, and the image ID to be deleted. */
+exports.removeRoomPicture = (pool) => (req, res) => {
+    const { roomName, accommodationName } = req.body;
+    var accommID = null;
+    getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+        if (err) {
+            console.log("Error: " + err);
+            return res.send({ success: false });
+        } else if (accommodationId > 0 && typeof accommodationId != "undefined") {
+            accommID = accommodationId;
+            // Check if the room ID exists.
+            var id = null;
+            getRoomIDbyName(pool, roomName, accommodationName, (err, roomID) => {
+                if (err) {
+                    console.log("Error: " + err);
+                    return res.send({ success: false });
+                } else if (roomID > 0 && typeof roomID !== "undefined") {
+                    id = roomID;
+                    const getImageIdQuery = `
+                        SELECT PICTURE_ID
+                        FROM picture
+                        WHERE ACCOMMODATION_ID = ? AND ROOM_ID = ?
+                    `;
+                    pool.query(getImageIdQuery, [accommID, id], (err, result) => {  // Get the image ID of the room.
+                        if (err) {
+                            console.log("Error getting image ID: " + err);
+                            return res.send({ success: false });
+                        } else if (result.length === 0){
+                            console.log("No room image found!");
+                            return res.send({ success: false });
+                        } // check if result[0].PICTURE_ID has "mockup-128" in its string
+                        else if(!result[0].PICTURE_ID.includes("mockup-128")){
+                            console.log("No room image found!");
+                            return res.send({ success: false });
+                        }else {
+                            cloudinary.uploader.destroy(result[0].PICTURE_ID, (err) => {
+                                if (err) {
+                                    console.log("Error deleting image: " + err);
+                                    return res.send({ success: false });
+                                } else {
+                                    const deleteImageQuery = `
+                                        UPDATE picture
+                                        SET PICTURE_ID = ?
+                                        WHERE ACCOMMODATION_ID = ? AND ROOM_ID = ?
+                                    `;
+                                    pool.query(deleteImageQuery, [id, accommID, id], (err) => {
+                                        if (err) {
+                                            console.log("Error deleting image: " + err);
+                                            return res.send({ success: false });
+                                        } else {
+                                            console.log("Successfully deleted image!");
+                                            return res.send({ success: true });
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    });
+                } else {
+                    console.log("Room not found! Cannot proceed to deleting image...");
+                    return res.send({ success: false });
+                }
+            });
+        } else {
+            console.log("Accommodation not found! Cannot proceed to deleting image...");
+            return res.send({ success: false });
+        }
+    });
+}

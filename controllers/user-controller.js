@@ -494,6 +494,7 @@ exports.uploadUserPic = (pool) => async (req, res) => {
 
   // Extract the image data from the request body. But first, check if the request body is empty
   if (!req.files || Object.keys(req.files).length === 0) {
+    console.log("No files were uploaded.");
     return res.send({ success: false });
   }
 

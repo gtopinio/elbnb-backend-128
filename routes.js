@@ -22,7 +22,6 @@ module.exports = (app, pool) => {
     app.post("/user/upload-user-pic", userController.uploadUserPic(pool));
     app.post("/user/get-user-pic", userController.getUserPic(pool));
     app.post("/user/remove-user-pic", userController.removeUserPicture(pool));
-    app.post("/user/update-user-pic", userController.uploadUserPic(pool));
     app.post("/filter-users", userController.filterUsersByString(pool));
 
     // accommodation management endpoints

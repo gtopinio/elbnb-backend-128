@@ -669,6 +669,10 @@ exports.filterAccommodations = (pool) => (req, res) => {
                 if(ownerId){
                   whereClause += ` ACCOMMODATION_OWNER_ID = '${ownerId}' AND`;
                 }
+
+                if(rating){
+                  whereClause += ` ACCOMMODATION_ID IN (SELECT a.ACCOMMODATION_ID FROM (SELECT ACCOMMODATION_ID, AVG(REVIEW_RATING) avg FROM review ) a WHERE a.avg >= '${rating}') AND`
+                }
   
                       // Remove the extra 'AND' at the end of the WHERE clause
                 whereClause = whereClause.slice(0, -4);
@@ -742,6 +746,10 @@ exports.filterAccommodations = (pool) => (req, res) => {
               whereClause += ` ACCOMMODATION_ID IN (${roomIds.join(',')}) AND`;
             }
 
+            if(rating){
+              whereClause += ` ACCOMMODATION_ID IN (SELECT a.ACCOMMODATION_ID FROM (SELECT ACCOMMODATION_ID, AVG(REVIEW_RATING) avg FROM review ) a WHERE a.avg >= '${rating}') AND`
+            }
+
                   // Remove the extra 'AND' at the end of the WHERE clause
             whereClause = whereClause.slice(0, -4);
 
@@ -792,6 +800,10 @@ exports.filterAccommodations = (pool) => (req, res) => {
 
       if (type) {
         whereClause += ` ACCOMMODATION_TYPE = '${type}' AND`;
+      }
+
+      if(rating){
+        whereClause += ` ACCOMMODATION_ID IN (SELECT a.ACCOMMODATION_ID FROM (SELECT ACCOMMODATION_ID, AVG(REVIEW_RATING) avg FROM review ) a WHERE a.avg >= '${rating}') AND`
       }
 
             // Remove the extra 'AND' at the end of the WHERE clause

@@ -24,6 +24,7 @@ module.exports = (app, pool) => {
     app.post("/user/remove-user-pic", userController.removeUserPicture(pool));
     app.post("/user/update-user-pic", userController.updateUserPicture(pool));
     app.post("/filter-users", userController.filterUsersByString(pool));
+    app.post("/owner/get-average-rating", userController.getOwnerAverageRating(pool));
 
     // accommodation management endpoints
     app.post("/add-accommodation", accomodationController.addAccommodation(pool));
@@ -54,6 +55,7 @@ module.exports = (app, pool) => {
     app.post("/accommodation/is-favorite", reviewController.isAccommodationFavorited(pool));
     app.post("/accommodation/get-reviews", reviewController.getAccommodationReviews(pool));
     app.post("/accommodation/get-ratings", reviewController.getAccommodationAverageRating(pool));
+    app.post("/accommodation/get-filtered-reviews-by-rating", reviewController.getFilteredAccommodationReviews(pool));
     
     // report management endpoints
     app.post("/generate-report", reportController.generateReport(pool));

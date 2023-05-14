@@ -707,5 +707,41 @@ exports.updateUserPicture = (pool) => (req, res) => {
   });
 }
 
+/*
+This function get the average rating of an owner based of their accommodation ratings
+*/
+exports.getOwnerAverageRating = (pool) => (req, res) => {
+  const {userName} = req.body;
+
+  getUserIdByUsername(pool, userName, (err, userId) => {
+    if (err) {
+      console.log("Error: " + err);
+      return res.send({ success: false });
+    }
+    else if(userId>0) {
+      const selectQuery = `
+        SELECT AVG(REVIEW_RATING) AS AVG_RATING
+        FROM review 
+        WHERE ACCOMMODATION_ID = ANY(SELECT ACCOMODATION_ID FROM accommodation WHERE ACCOMMODATION_OWNER_ID = ?)
+      `;
+
+      pool.query(selectQuery, [userId], (err, results) => {
+        if(err) {
+          console.log("Error getting owner average ratings: " + err);
+          return res.send({ success: false });
+        }
+        else {
+          console.log("Average Rating of " + userName + ": " + results [0].AVG_RATING);
+          return res.send({ success:true, averageRating: results[0].AVG_RATING });
+        }
+      })
+    } 
+    else {
+      console.log("Owner not found!");
+      return res.send({ success: false });
+    }
+  })
+}
+
 // ===================================== END OF USER MANAGEMENT FEATURES =====================================
   

@@ -1,6 +1,6 @@
 // Import the necessary models.
-const Accommodation = require("../models/accommodation");
-const User = require("../models/user");
+const { Accommodation } = require("../models/accommodation");
+const { User } = require("../models/user");
 
 // ===================================== START OF REVIEW + FAVORITE + RATING MANAGEMENT FEATURES =====================================
 

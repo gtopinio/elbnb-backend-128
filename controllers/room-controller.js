@@ -1,7 +1,7 @@
 // Imports
 const cloudinary = require('cloudinary').v2;
-const Accommodation = require('../models/accommodation');
-const Room = require('../models/room');
+const { Accommodation } = require('../models/accommodation');
+const { Room } = require('../models/room');
 
 // Configuration for cloudinary (cloud for uploading unstructured files) 
 cloudinary.config({

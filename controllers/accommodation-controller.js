@@ -146,6 +146,51 @@ function getAccommodationIdByName(pool, name, callback) {
   });
 }
 
+// This function is used to query all of the accommodations by a single owner. It takes the ownerName from the request body, then checks first if the owner exists in the database.
+// If the owner is not found or there are errors in connecting to the database, the response will return a JSON object indicating failure.
+// If the owner is found, it will return all of accommodations created by the owner with the given owner username.
+exports.getAccommodationsByOwner = (pool) => (req, res) => {
+  const ownerName = req.body.ownerName;
+
+  pool.getConnection((err, connection) => {
+    if (err) {
+      // If error is found in connecting to DB
+      console.log("Error: " + err);
+      return res.send({ success: false });
+    } else {
+      // Checking first if User is an existing Owner
+      connection.query(`SELECT USER_ID FROM user WHERE USER_USERNAME = ? AND USER_TYPE = "Owner"`, [ownerName], (err, result) => {
+        if (err) {
+          console.log("Error: " + err);
+          return res.send({ success: false });
+        } else {
+          if (result.length == 0) {
+            console.log("No such Owner found");
+            return res.send({ success: false });
+          } else {
+            // Query accommodations WHERE Owner.ID = Accomodations.OWNER_ID
+            const userID = JSON.parse(JSON.stringify(result[0].USER_ID));
+            connection.query(`SELECT * FROM accommodation WHERE ACCOMMODATION_OWNER_ID = ?`, [userID], (err, accoms) => {
+              if (err) {
+                console.log("Error: " + err);
+                return res.send({ success: false });
+              } else {
+                if (accoms.length == 0) {
+                  console.log("No accommodations found");
+                  return res.send({ success: false });
+                } else {
+                  console.log("Found " + accoms.length + " accommodations for user " + ownerName);
+                  return res.send({ success: true, result: accoms });
+                }
+              }
+            }) 
+          }
+        }
+      });
+    }
+  });
+};
+
 // The editAccommodation function takes a MySQL connection pool as input and returns a callback function that handles an POST request for editing an accommodation. 
 // The function first extracts the updated accommodation details from the request body. It then tries to retrieve the ID of the accommodation to be updated by its name. 
 // If the accommodation exists, it checks if the updated name already exists for another accommodation. 

@@ -521,7 +521,7 @@ exports.uploadRoomPic = (pool) => async (req, res) => {
                     if (err) {
                         console.log("Error: " + err);
                         return res.send({ success: false , message: "Error getting room ID."});
-                    } else if (roomID > 0 && typeof roomID !== "undefined") {
+                    } else if (roomID > 0 && typeof roomID !== "undefined") { // Room ID exists
                         id = roomID;
                         pool.query(`SELECT * FROM picture WHERE ACCOMMODATION_ID = ? AND ROOM_ID = ?`, [accommID, id], async (err, results) => {
                             if (err) {
@@ -529,8 +529,10 @@ exports.uploadRoomPic = (pool) => async (req, res) => {
                                 return res.send({ success: false , message: "Error getting room image."});
                             } else if (results.length > 0) {
                                 console.log("Room already has an image. Updating image...");
-                                // Upload the image to cloudinary
+                                // Upload the image to cloudinary, but first, remove the old image from cloudinary
+                                const oldImageId = results[0].PICTURE_ID;
                                 try {
+                                    await cloudinary.uploader.destroy(oldImageId);
                                     const result = await cloudinary.uploader.upload(imageDataUrl, {upload_preset: "mockup_setup"});
                                     const imageId = result.public_id;
 
@@ -544,6 +546,7 @@ exports.uploadRoomPic = (pool) => async (req, res) => {
                                     console.log("Error uploading image: " + err);
                                     return res.send({ success: false , message: "Error uploading image."});
                                 }
+                                
                             } else {
                                 console.log("Room has no image yet! Proceeding to adding image...");
                                 // Upload the image to cloudinary

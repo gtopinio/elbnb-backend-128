@@ -12,6 +12,8 @@ const app = express();
 const appLink = "https://mockup-backend-128.herokuapp.com/"
 
 require('./models/user');
+require('./models/accommodation');
+require('./models/room');
 
 // Parse the database URL from the config var
 const dbUrl = url.parse(process.env.CLEARDB_DATABASE_URL);

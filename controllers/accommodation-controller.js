@@ -66,30 +66,6 @@ function getAccommodationIdByName(pool, name, callback) {
     }
   });
 }
-
-function getOwnerIdByUsername(pool, uname, callback) {
-  console.log("Getting Owner Id: " + uname);
-  pool.getConnection((err, connection) => {
-    if (err) {
-      console.log("Error: " + err);
-      callback(err, null);
-    } else {
-      const checkQuery = `SELECT USER_ID FROM user WHERE USER_TYPE = 'Owner' AND USER_USERNAME = ?`;
-      connection.query(checkQuery, [uname], (err, results) => {
-        if (err) {
-          console.log("Get Owner Id Error: " + err);
-          callback(err, null);
-        } else if (results.length > 0) {
-          console.log("Owner Found...");
-          callback(null, results[0].USER_ID);
-        } else {
-          console.log("Owner Not Found...");
-          callback(null, null);
-        }
-      });
-    }
-  });
-}
   
 // This function is used to add a new accommodation to the database. 
 // It takes in a pool object as input, which is used to establish a database connection. 

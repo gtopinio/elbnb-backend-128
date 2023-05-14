@@ -458,7 +458,7 @@ exports.uploadUserPic = (pool) => async (req, res) => {
   // Extract the image data from the request body. But first, check if the request body is empty
   if (!req.files || Object.keys(req.files).length === 0) {
     console.log("No files were uploaded.");
-    return res.send({ success: false });
+    return res.send({ success: false, message: "No files were uploaded."});
   }
 
   else {
@@ -480,7 +480,7 @@ exports.uploadUserPic = (pool) => async (req, res) => {
     User.findBy(pool, "USER_USERNAME", username, (err, user) => {
       if (err) {
         console.log("Error: " + err);
-        return res.send({ success: false });
+        return res.send({ success: false , message: "Error finding user."});
       } else if (user) {
 
         console.log("User: " + user.USER_USERNAME);
@@ -489,27 +489,27 @@ exports.uploadUserPic = (pool) => async (req, res) => {
         pool.getConnection(async (err, connection) => {
           if (err) {
             console.log("Error: " + err);
-            callback(err, null);
+            return res.send({ success: false , message: "Error connecting to database."});
           } else {
     
           // check if user already has a picture
           connection.query(`SELECT * FROM picture WHERE USER_ID = ${user.USER_ID}`, async (err, results) => {
             if (err) {
               console.log("Error: " + err);
-              return res.send({ success: false });
+              return res.send({ success: false, message: "Error finding user picture."});
             } else if (results.length > 0) {
               console.log("User already has a picture. Updating picture...");
                 // delete the picture from cloudinary
               cloudinary.uploader.destroy(results[0].PICTURE_ID, (err, results) => {
                 if (err) {
                   console.log("Error deleting picture from cloudinary: " + err);
-                  return res.send({ success: false });
+                  return res.send({ success: false , message: "Error deleting picture from cloudinary."});
                 } else {
                   // upload the new picture to cloudinary
                   cloudinary.uploader.upload(imageDataUrl, { upload_preset: 'mockup_setup' }, (err, results) => {
                     if (err) {
                       console.log("Error uploading picture to cloudinary: " + err);
-                      return res.send({ success: false });
+                      return res.send({ success: false , message: "Error uploading picture to cloudinary."});
                     } else {
                       // update the user picture id in the database
                       const updatePictureIdQuery = `
@@ -520,9 +520,9 @@ exports.uploadUserPic = (pool) => async (req, res) => {
                       pool.query(updatePictureIdQuery, [results.public_id, userId], (err, results) => {
                         if (err) {
                           console.log("Error updating picture id: " + err);
-                          return res.send({ success: false });
+                          return res.send({ success: false , message: "Error updating picture id."});
                         } else {
-                          return res.send({ success: true });
+                          return res.send({ success: true , message: "Successfully updated picture id."});
                         }
                       });
                     }
@@ -545,7 +545,7 @@ exports.uploadUserPic = (pool) => async (req, res) => {
                 return res.send({ success: true });
               } catch (error) {
                 console.error(error);
-                return res.send({ success: false, message: 'Error uploading image' });
+                return res.send({ success: false, message: "Error uploading image" });
               }
             }
           }
@@ -553,8 +553,7 @@ exports.uploadUserPic = (pool) => async (req, res) => {
       });
     } else {
       console.log("No user found with username: " + username); // add this line
-      console.log("Full upload error");
-      return res.send({ success: false });
+      return res.send({ success: false , message: "No user found with username: " + username});
     }
     });
   } // end of else
@@ -570,17 +569,17 @@ exports.getUserPic = (pool) => (req, res) => {
   User.findBy(pool, "USER_USERNAME", username, (err, user) => {
     if(err){
       console.log("Error: " + err);
-      return res.send({ success: false });
+      return res.send({ success: false , message: "Error finding user."});
     } else if(user){
       // Get the picture id of the user
       const query = `SELECT PICTURE_ID FROM picture WHERE USER_ID = ${user.USER_ID}`;
       pool.query(query, (err, results) => {
         if (err) {
           console.log("Error: " + err);
-          return res.send({ success: false });
+          return res.send({ success: false, message: "Error finding user picture." });
         } else if (results.length === 0){
           console.log("No user image found!");
-          return res.send({ success: false });
+          return res.send({ success: false , message: "No user image found!"});
         } else {
             const imageId = results[0].PICTURE_ID;
             const imageUrl = cloudinary.url(imageId, {secure: true});
@@ -590,7 +589,7 @@ exports.getUserPic = (pool) => (req, res) => {
     } else {
       // No user found with the username
       console.log("No user found with the username: " + username);
-      return res.send({ success: false });
+      return res.send({ success: false , message: "No user found with the username: " + username});
     }
   });
 }
@@ -606,7 +605,7 @@ exports.removeUserPicture = (pool) => (req, res) => {
   User.findBy(pool, "USER_USERNAME", username, (err, user) => {
     if (err) {
       console.log("Error: " + err);
-      return res.send({ success: false });
+      return res.send({ success: false , message: "Error finding user."});
     } // check if the user exists
     else if (user) {
       // get the user picture id
@@ -619,13 +618,13 @@ exports.removeUserPicture = (pool) => (req, res) => {
       pool.query(getPictureIdQuery, [userId], (err, results) => {
         if (err) {
           console.log("Error getting picture id: " + err);
-          return res.send({ success: false });
+          return res.send({ success: false , message: "Error getting picture id."});
         } else {
           // delete the picture from cloudinary
           cloudinary.uploader.destroy(results[0].PICTURE_ID, (err, results) => {
             if (err) {
               console.log("Error deleting picture from cloudinary: " + err);
-              return res.send({ success: false });
+              return res.send({ success: false , message: "Error deleting picture from cloudinary."});
             } else {
               // delete the user picture from the database
               const deletePictureQuery = `
@@ -635,7 +634,7 @@ exports.removeUserPicture = (pool) => (req, res) => {
               pool.query(deletePictureQuery, [userId, userId], (err, results) => {
                 if (err) {
                   console.log("Error updating picture id: " + err);
-                  return res.send({ success: false });
+                  return res.send({ success: false , message: "Error updating picture id."});
                 } else {
                   return res.send({ success: true });
                 }

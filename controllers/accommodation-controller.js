@@ -699,7 +699,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
   }
 };
 
-// This is a function that uploads an image to Cloudinary and updates the accommodation_pictures table in 
+// This is a function that uploads/updates an image to Cloudinary and updates the accommodation_pictures table in 
 // a database with the accommodation picture ID and accommodation ID. It first extracts the image data from the request body, 
 // converts the buffer to a base64 data URL, and finds the accommodation ID from the request parameters. 
 // It then checks if there is an accommodation with the same name and gets the accommodation ID using the getAccommodationIdByName function.
@@ -708,65 +708,87 @@ exports.filterAccommodations = (pool) => (req, res) => {
 // If there is an error, it logs the error and sends a response with a success value of false and a message indicating an error occurred.
 exports.uploadAccommodationPic = (pool) => async (req, res) => {
 
-  // Extract the image data from the request body
-  const imageData = req.files.data[0].buffer;
+  // Extract the image data from the request body. But first, check if the request body is empty
+  if (!req.files || Object.keys(req.files).length === 0) {
+    console.log("No files were uploaded.");
+    return res.send({ success: false , message: "No files were uploaded."});
+  } else {
 
-    // Convert the buffer to a base64 data URL
-    const mimeType = req.files.data[0].mimetype;
-    const imageDataUrl = `data:${mimeType};base64,${imageData.toString('base64')}`;
+    // Extract the image data from the request body
+    const imageData = req.files.data[0].buffer;
+
+      // Convert the buffer to a base64 data URL
+      const mimeType = req.files.data[0].mimetype;
+      const imageDataUrl = `data:${mimeType};base64,${imageData.toString('base64')}`;
+      
+    // Find the accommodation id from the request parameters
+    const accommodationName = req.body.accommodationName;
+
+    // console.log("Data: " + base64Data);
+    console.log("Accommodation Name: " + accommodationName);
     
-  // Find the accommodation id from the request parameters
-  const accommodationName = req.body.accommodationName;
+    // check if there's an accommodation that has the same name
+    getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+      if (err) {
+        console.log("Error: " + err);
+        return res.send({ success: false , message: "Error occurred while uploading the picture."});
+      } else if (accommodationId > 0) {
 
-  // console.log("Data: " + base64Data);
-  console.log("Accommodation Name: " + accommodationName);
-  
-  // check if there's an accommodation that has the same name
-  getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
-    if (err) {
-      console.log("Error: " + err);
-      return res.send({ success: false });
-    } else if (accommodationId > 0) {
-
-      pool.getConnection(async (err, connection) => {
-        if (err) {
-          console.log("Error: " + err);
-          callback(err, null);
-        } else {
-          // check if the accommodation has a picture
-          connection.query(`SELECT * FROM picture WHERE ACCOMMODATION_ID = ${accommodationId}`, async (err, results) => {
-            if (err) {
-              console.log("Error: " + err);
-              return res.send({ success: false });
-            } else if (results.length > 0) {
-              console.log("Accommodation already has a picture");
-              return res.send({ success: false });
-            } else {
-                // Upload the image to Cloudinary
+        pool.getConnection(async (err, connection) => {
+          if (err) {
+            console.log("Error: " + err);
+            callback(err, null);
+          } else {
+            // check if the accommodation has a picture
+            connection.query(`SELECT * FROM picture WHERE ACCOMMODATION_ID = ${accommodationId}`, async (err, results) => {
+              if (err) {
+                console.log("Error: " + err);
+                return res.send({ success: false , message: "Error occurred while uploading the picture."});
+              } else if (results.length > 0) {
+                console.log("Accommodation already has a picture. Updating the picture...");
+                // Update the picture in Cloudinary
                 try {
-                  const result = await cloudinary.uploader.upload(imageDataUrl, { upload_preset: 'mockup_setup' });
+                  const result = await cloudinary.uploader.upload(imageDataUrl, { public_id: results[0].PICTURE_ID, overwrite: true });
                   const accommodationPictureId = result.public_id;
                   
                   // Update the picture table
-                  const insertAccommodationPictureQuery = `INSERT INTO picture (PICTURE_ID, ACCOMMODATION_ID) VALUES ('${accommodationPictureId}', ${accommodationId})`;
-                  await connection.query(insertAccommodationPictureQuery);
+                  const updateAccommodationPictureQuery = `UPDATE picture SET PICTURE_ID = '${accommodationPictureId}' WHERE ACCOMMODATION_ID = ${accommodationId}`;
+                  await connection.query(updateAccommodationPictureQuery);
                   
                   // Return success response
-                  console.log("Successfully uploaded the accommodation image to cloudinary!");
+                  console.log("Successfully updated the accommodation image in cloudinary!");
                   return res.send({ success: true });
                 } catch (error) {
                   console.error(error);
-                  return res.send({ success: false, message: 'Error uploading image' });
+                  return res.send({ success: false , message: "Error occurred while uploading the picture."});
                 }
+              } else {
+                  // Upload the image to Cloudinary
+                  try {
+                    const result = await cloudinary.uploader.upload(imageDataUrl, { upload_preset: 'mockup_setup' });
+                    const accommodationPictureId = result.public_id;
+                    
+                    // Update the picture table
+                    const insertAccommodationPictureQuery = `INSERT INTO picture (PICTURE_ID, ACCOMMODATION_ID) VALUES ('${accommodationPictureId}', ${accommodationId})`;
+                    await connection.query(insertAccommodationPictureQuery);
+                    
+                    // Return success response
+                    console.log("Successfully uploaded the accommodation image to cloudinary!");
+                    return res.send({ success: true });
+                  } catch (error) {
+                    console.error(error);
+                    return res.send({ success: false, message: "Error uploading image" });
+                  }
+              }
             }
-          }
-      );}
+        );}
+      });
+    } else {
+      console.log("No accommodation found with the name: " + accommodationName);
+      return res.send({ success: false , message: "No accommodation found with the name: " + accommodationName});
+    }
     });
-  } else {
-    console.log("Full upload error");
-    return res.send({ success: false });
   }
-  });
 }
 
 // Function to fetch an accommodation's picture url from Cloudinary using the accommodation name and accessing it using the getAccommodationIdByName function. 
@@ -780,7 +802,7 @@ exports.getAccommodationPic = (pool) => (req, res) => {
   getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
     if (err) {
       console.log("Error: " + err);
-      return res.send({ success: false });
+      return res.send({ success: false, message: "Error occurred while fetching the picture." });
     } else if (accommodationId > 0) {
       id = accommodationId;
       // Get the picture id of the accommodation
@@ -788,26 +810,21 @@ exports.getAccommodationPic = (pool) => (req, res) => {
       pool.query(query, (err, results) => {
         if (err) {
           console.log("Error: " + err);
-          return res.send({ success: false });
+          return res.send({ success: false , message: "Error occurred while fetching the picture."});
         } else if (results.length === 0){
           console.log("No accommodation image found!");
-          return res.send({ success: false });
+          return res.send({ success: false , message: "No accommodation image found!"});
         } else {
-          // check if result[0].PICTURE_ID has "mockup-128" in its string
-          if(results[0].PICTURE_ID.includes("mockup-128")){
             const imageId = results[0].PICTURE_ID;
             const imageUrl = cloudinary.url(imageId, {secure: true});
             return res.send({ success: true, imageUrl: imageUrl });
-        } else { // if not, then it is not a real image
-            console.log("No accommodation image found!");
-            return res.send({ success: false });
-        }
+        
       }
       });
     } else {
       // No accommodation found with the accommodationName
       console.log("No accommodation found with the name: " + accommodationName);
-      return res.send({ success: false });
+      return res.send({ success: false , message: "No accommodation found with the name: " + accommodationName});
     }
   });
 }
@@ -821,7 +838,7 @@ exports.removeAccommodationPicture = (pool) => (req, res) => {
   getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
     if (err) {
       console.log("Error: " + err);
-      return res.send({ success: false });
+      return res.send({ success: false , message: "Error occurred while deleting the picture."});
     } else if (accommodationId > 0 && typeof accommodationId !== 'undefined') {
       // get the accommodation picture id
       const getPictureIdQuery = `
@@ -832,95 +849,25 @@ exports.removeAccommodationPicture = (pool) => (req, res) => {
       pool.query(getPictureIdQuery, [accommodationId], (err, results) => {
         if (err) {
           console.log("Error getting picture id: " + err);
-          return res.send({ success: false });
+          return res.send({ success: false , message: "Error occurred while deleting the picture."});
         } else {
           // delete the picture from cloudinary
           cloudinary.uploader.destroy(results[0].PICTURE_ID, (err, results) => {
             if (err) {
               console.log("Error deleting picture from cloudinary: " + err);
               return res.send({ success: false });
-            } // check if result[0].PICTURE_ID has "mockup-128" in its string
-            else if(!results[0].PICTURE_ID.includes("mockup-128")){
-                console.log("No user image found!");
-                return res.send({ success: false });
             } else {
-              // update the accommodation picture id in the database to null
-              const updatePictureIdQuery = `
-                UPDATE picture
-                SET PICTURE_ID = ?
+              // delete the picture from the database
+              const deletePictureQuery = `
+                DELETE FROM picture
                 WHERE ACCOMMODATION_ID = ?
               `;
-              pool.query(updatePictureIdQuery, [accommodationId, accommodationId], (err, results) => {
+              pool.query(deletePictureQuery, [accommodationId, accommodationId], (err, results) => {
                 if (err) {
-                  console.log("Error updating picture id: " + err);
-                  return res.send({ success: false });
+                  console.log("Error deleting picture id: " + err);
+                  return res.send({ success: false , message: "Error occurred while deleting the picture."});
                 } else {
                   return res.send({ success: true });
-                }
-              });
-            }
-          });
-        }
-      });
-    }
-  });
-}
-
-// Function to update an accommodation picture from cloudinary and the mysql database
-exports.updateAccommodationPicture = (pool) => (req, res) => {
-  // Extract the image data from the request body
-  const imageData = req.files.data[0].buffer;
-
-    // Convert the buffer to a base64 data URL
-    const mimeType = req.files.data[0].mimetype;
-    const imageDataUrl = `data:${mimeType};base64,${imageData.toString('base64')}`;
-
-  // get the accommodation name from the request body
-  const {accommodationName} = req.body;
-  // see if the accommodation exists
-  getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
-    if (err) {
-      console.log("Error: " + err);
-      return res.send({ success: false });
-    } else if (accommodationId > 0 && typeof accommodationId !== 'undefined') {
-      // get the accommodation picture id
-      const getPictureIdQuery = `
-        SELECT PICTURE_ID
-        FROM picture
-        WHERE ACCOMMODATION_ID = ?
-      `;
-      pool.query(getPictureIdQuery, [accommodationId], (err, results) => {
-        if (err) {
-          console.log("Error getting picture id: " + err);
-          return res.send({ success: false });
-        } else {
-          // delete the picture from cloudinary
-          cloudinary.uploader.destroy(results[0].PICTURE_ID, (err, results) => {
-            if (err) {
-              console.log("Error deleting picture from cloudinary: " + err);
-              return res.send({ success: false });
-            } else {
-              // upload the new picture to cloudinary
-              cloudinary.uploader.upload(imageDataUrl, { upload_preset: 'mockup_setup' }, (err, results) => {
-                if (err) {
-                  console.log("Error uploading picture to cloudinary: " + err);
-                  return res.send({ success: false });
-                } else {
-                  // update the accommodation picture id in the database
-                  const updatePictureIdQuery = `
-                    UPDATE picture
-                    SET PICTURE_ID = ?
-                    WHERE ACCOMMODATION_ID = ?
-                  `;
-                  pool.query(updatePictureIdQuery, [results.public_id, accommodationId], (err, results) => {
-                    if (err) {
-                      console.log("Error updating picture id: " + err);
-                      return res.send({ success: false });
-                    } else {
-                      return res.send({ success: true });
-                    }
-                  }
-                  );
                 }
               });
             }

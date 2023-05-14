@@ -34,7 +34,6 @@ module.exports = (app, pool) => {
     app.post("/accommodation/upload-accommodation-pic", accomodationController.uploadAccommodationPic(pool));
     app.post("/accommodation/get-accommodation-pic", accomodationController.getAccommodationPic(pool));
     app.post("/accommodation/remove-accommodation-pic", accomodationController.removeAccommodationPicture(pool));
-    app.post("/accommodation/update-accommodation-pic", accomodationController.updateAccommodationPicture(pool));
 
     // room management endpoints
     app.post("/accommodation/add-room", roomController.addNewRoom(pool));

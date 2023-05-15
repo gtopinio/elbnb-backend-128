@@ -64,6 +64,15 @@ exports.signUp = (pool) => (req, res) => {
           console.log(err);
         } else {
             const { email, password, username, firstName, lastName, contactNum, isBusinessAccount, isPersonalAccount } = req.body;
+            console.log("----------Sign Up Feature----------");
+            console.log("Email: " + email);
+            console.log("Password : " + password);
+            console.log("UserName: " + username);
+            console.log("First Name: " + firstName);
+            console.log("Last Name: " + lastName);
+            console.log("Contact Number: " + contactNum);
+            console.log("Is Business Account?: " + isBusinessAccount);
+            console.log("Is Personal Account?: " + isPersonalAccount);
 
             // Check which user type to create
             var userType = null;
@@ -115,6 +124,10 @@ exports.login = (pool) => (req, res) => {
   // Credentials
   const email = req.body.email.trim();
   const password = req.body.password;
+  console.log("----------Log In Feature----------");
+  console.log("Email: " + email);
+  console.log("Password: " + password);
+
 
   pool.getConnection((err, connection) => {
     if(err){
@@ -180,7 +193,6 @@ exports.login = (pool) => (req, res) => {
 // It also verifies the user type and checks if the user exists in the database for that user type. It returns a JSON object containing 'isLoggedIn',
 // which could either be true or false depending if the user is really logged in or not.
 exports.checkIfLoggedIn = (pool) => (req, res) => {
-
   // Checking if cookies/authToken cookie exists
   if (!req.cookies.authToken) {
     console.log("failed")
@@ -229,6 +241,9 @@ exports.checkIfLoggedIn = (pool) => (req, res) => {
 // Finally, it returns a response with success true if the user is successfully deleted, and success false if the user is not deleted or an error occurs.
 exports.deleteUserByEmail = (pool) => (req, res) => {
   const email = req.body.email;
+  console.log("----------Delete User by Email Feature----------");
+  console.log("Email to be Deleted: " + email);
+
 
   // Console log the email to be deleted
   console.log("=== DELETING USER BY EMAIL ===");
@@ -278,6 +293,13 @@ exports.deleteUserByEmail = (pool) => (req, res) => {
 // Finally, it returns a response with success true if the user is successfully updated, and success false if the user is not updated or an error occurs.
 exports.editUserByEmail = (pool) => (req, res) => {
   const { email, newPassword, newUsername, newFirstName, newLastName, newContactNum} = req.body;
+  console.log("----------Edit User bu Email Feature----------");
+  console.log("Email: " + email);
+  console.log("Password : " + newPassword);
+  console.log("UserName: " + newUsername);
+  console.log("First Name: " + newFirstName);
+  console.log("Last Name: " + newLastName);
+  console.log("Contact Number: " + newContactNum);
 
   // Console log the email to be deleted
   console.log("=== EDIT USER BY EMAIL ===");
@@ -328,6 +350,8 @@ exports.editUserByEmail = (pool) => (req, res) => {
 // Finally, it returns a response with success true if the user is successfully found, and success false if the user is not found or an error occurs.
 exports.viewProfile = (pool) => (req, res) => {
   const email = req.body.email;
+  console.log("----------View Profile Feature----------");
+  console.log("Email: " + email);
 
   // Console log the email to be deleted
   console.log("=== VIEWING USER BY EMAIL ===");
@@ -368,6 +392,11 @@ exports.viewProfile = (pool) => (req, res) => {
 exports.filterUsersByString = (pool) => (req, res) => {
   const {name, isStudent} = req.body;
   const empty=[];
+
+  console.log("----------Filter User by String Feature----------");
+  console.log("Username: " + name);
+  console.log("Is Student? : " + isStudent);
+
   // Checks if filter is set as empty.
   if (!name){
     pool.getConnection((err, connection) => {
@@ -459,7 +488,7 @@ exports.viewAllStudents = (pool) => (req, res) => {
     }
   });
 };
-
+  
 // The viewAllOwners function takes a database connection pool, and gets all
 // entries in the user table whose USER_TYPE is a "Owners"
 exports.viewAllOwners = (pool) => (req, res) => {
@@ -504,6 +533,7 @@ exports.uploadUserPic = (pool) => async (req, res) => {
   const username = req.body.username;
 
   // console.log("Data: " + base64Data);
+  console.log("----------Upload User Picture Feature----------");
   console.log("Username: " + username);
   
   // get the user id
@@ -566,6 +596,8 @@ exports.uploadUserPic = (pool) => async (req, res) => {
 // If there is no error, it sends a response with a success value of true and the image url
 exports.getUserPic = (pool) => (req, res) => {
   const username = req.body.username;
+  console.log("----------Get User Picture Feature----------");
+  console.log("Username: " + username);
 
   User.findBy(pool, "USER_USERNAME", username, (err, user) => {
     if(err){
@@ -597,6 +629,8 @@ exports.getUserPic = (pool) => (req, res) => {
 exports.removeUserPicture = (pool) => (req, res) => {
   // get the username from the request body
   const {username} = req.body;
+  console.log("----------Delete User Picture Feature----------");
+  console.log("Username: " + username);
 
   // see if the user exists
   getUserIdByUsername(pool, username, (err, userId) => {
@@ -654,6 +688,8 @@ exports.updateUserPicture = (pool) => (req, res) => {
 
   // get the username from the request body
   const {username} = req.body;
+  console.log("----------Update User Picture Feature----------");
+  console.log("Username: " + username);
   // see if the user exists
   getUserIdByUsername(pool, username, (err, userId) => {
     if (err) {

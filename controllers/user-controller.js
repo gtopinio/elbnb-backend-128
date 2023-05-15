@@ -727,7 +727,7 @@ exports.getOwnerAverageRating = (pool) => (req, res) => {
   });
 
   // Function to return the user given the user id
-  exports.getUserById = (pool) => (req, res) => {
+  exports.viewProfileById = (pool) => (req, res) => {
     const userId = req.body.userId;
     console.log("----------Get User By Id Feature----------");
     console.log("User Id: " + userId);

@@ -724,7 +724,26 @@ exports.getOwnerAverageRating = (pool) => (req, res) => {
       console.log("Owner not found!");
       return res.send({ success: false });
     }
-  })
+  });
+
+  // Function to return the user given the user id
+  exports.getUserById = (pool) => (req, res) => {
+    const userId = req.body.userId;
+    console.log("----------Get User By Id Feature----------");
+    console.log("User Id: " + userId);
+  
+    UserController_User.findBy(pool, "USER_ID", userId, (err, user) => {
+      if(err){
+        console.log("Error: " + err);
+        return res.send({ success: false , message: "Error finding user."});
+      } else if(user){
+        return res.send({ success: true, user: user });
+      } else {
+        console.log("No user found with the user id: " + userId);
+        return res.send({ success: false , message: "No user found with the user id: " + userId});
+      }
+    });
+  }
 }
 // ===================================== END OF USER MANAGEMENT FEATURES =====================================
   

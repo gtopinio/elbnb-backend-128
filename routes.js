@@ -25,6 +25,7 @@ module.exports = (app, pool) => {
     app.post("/filter-users", userController.filterUsersByString(pool));
     app.post("/user/get-all-favorites", reviewController.getUserFavorites(pool));
     app.post("/owner/get-average-rating", userController.getOwnerAverageRating(pool));
+    app.post("/get-user-by-id", userController.getUserById(pool));
 
     // accommodation management endpoints
     app.post("/add-accommodation", accomodationController.addAccommodation(pool));

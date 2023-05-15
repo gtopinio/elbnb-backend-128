@@ -693,7 +693,7 @@ This function get the average rating of an owner based of their accommodation ra
 exports.getOwnerAverageRating = (pool) => (req, res) => {
   // get the username from the request body
   const {username} = req.body;
-  console.log("----------Update User Picture Feature----------");
+  console.log("----------Get Owner Average Rating----------");
   console.log("Username: " + username);
   // see if the user exists
 

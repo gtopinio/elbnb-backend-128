@@ -115,15 +115,19 @@ exports.login = (pool) => (req, res) => {
                 user_id: user.USER_ID,
                 user_type: user.USER_TYPE
             }
+
+            // Create a token
             const token = jwt.sign(tokenPayload, process.env.AUTH_SECRET_STRING);
             console.log("Successfully logged in as " + user.USER_TYPE);
             return res.send({
               success: true,
               authToken: token,
               userId: user.USER_ID,
+              userType:user.USER_TYPE,
               username: user.USER_USERNAME,
               fname: user.USER_FNAME,
               lname: user.USER_LNAME,
+              contactNum: user.USER_CONTACTNUM,
               email: email
             });
           });

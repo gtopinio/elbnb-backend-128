@@ -623,4 +623,45 @@ ReviewController_Accommodation.getAccommodationIdByName(pool, accommodationName,
 });
 }
 
+ // This function takes a database connection pool, a username and gets all favorites for that user.
+  exports.getUserFavorites = (pool) => (req, res) => {
+    const {username} = req.body;
+
+    // Ensure that the user exists
+    ReviewController_User.getUserIdByUsername(pool, username, (err, userId) => {
+      if (err) {
+        console.log("Error: " + err);
+        return res.send({ success: false , message: "Error getting favorites"});
+      } else if (userId > 0 && typeof userId !== 'undefined') {
+        // The favorite tables contains the user ID and accommodation ID of all favorites
+        const favoritesQuery = `
+          SELECT ACCOMMODATION_ID
+          FROM favorite
+          WHERE USER_ID = ?
+        `;
+        pool.query(favoritesQuery, [userId], (err, results) => {
+          if (err) {
+            console.log("Error getting favorites: " + err);
+            return res.send({ success: false , message: "Error getting favorites"});
+          } else {
+            // once we have all the accommodation IDs, we can get the accommodation(s) from the accommodation table
+            const accommodationQuery = `
+              SELECT *
+              FROM accommodation
+              WHERE ACCOMMODATION_ID IN (?)
+            `;
+            pool.query(accommodationQuery, [results.map(result => result.ACCOMMODATION_ID)], (err, results) => {
+              if (err) {
+                console.log("Error getting favorites: " + err);
+                return res.send({ success: false , message: "Error getting favorites"});
+              } else {
+                return res.send({ success: true, favorites: results });
+              }
+            });
+          }
+        });
+      }
+    });
+  }
+
 // ===================================== END OF REVIEW + FAVORITE + RATING MANAGEMENT FEATURES =====================================

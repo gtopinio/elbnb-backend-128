@@ -697,7 +697,7 @@ exports.getOwnerAverageRating = (pool) => (req, res) => {
   console.log("Username: " + username);
   // see if the user exists
 
-  UserController_User.getUserIdByUsername(pool, userName, (err, userId) => {
+  UserController_User.getUserIdByUsername(pool, username, (err, userId) => {
     if (err) {
       console.log("Error: " + err);
       return res.send({ success: false });

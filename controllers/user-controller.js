@@ -121,6 +121,7 @@ exports.login = (pool) => (req, res) => {
               success: true,
               authToken: token,
               userId: user.USER_ID,
+              userType:user.USER_TYPE,
               username: user.USER_USERNAME,
               fname: user.USER_FNAME,
               lname: user.USER_LNAME,

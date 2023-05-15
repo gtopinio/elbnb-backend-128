@@ -82,9 +82,13 @@ function getAccommodationIdByName(pool, name, callback) {
 exports.addReview = (pool) => (req, res) => {
     const{rating, comment, userName, timestamp, accommName} = req.body;
   
-    console.log("----------Rating and Review----------");
+    console.log("----------Add Review Feature----------");
     console.log("Rating: " + rating);
     console.log("Review: " + comment);
+    console.log("Username: " + userName);
+    console.log("Time Stamp: " + timestamp);
+    console.log("Accommodation Name: "+ accommName);
+
   
     var uid = null;
     var accomid = null;
@@ -178,9 +182,10 @@ exports.addReview = (pool) => (req, res) => {
 // Otherwise, it returns a response indicating the unsuccessful operation to the client.
 exports.addAccommodationToFavorite = (pool) => (req, res) => {
     const{userName, accommName} = req.body;
-    console.log("----------Add Accommodation to Favorite----------");
+    console.log("----------Add Accommodation to Favorite Feature----------");
     console.log("Username: " + userName);
     console.log("Accommodation Name: " + accommName);
+
     // check if user exist
     getUserIdByUsername(pool, userName, (err, userId) => {
       if(err){
@@ -266,7 +271,7 @@ exports.addAccommodationToFavorite = (pool) => (req, res) => {
 // Otherwise, it returns a response indicating the unsuccessful operation to the client.
 exports.removeAccommodationFromFavorite = (pool) => (req, res) => {
     const{userName, accommName} = req.body;
-    console.log("----------Remove Accommodation from Favorite----------");
+    console.log("----------Remove Accommodation from Favorite Feature----------");
     console.log("Username: " + userName);
     console.log("Accommodation Name: " + accommName);
     // check if user exist
@@ -357,12 +362,12 @@ date timestamp to find the correct review to edit.
 exports.editReview = (pool) => (req, res) => {
 const {rating, comment, timestamp, userName, accommName} = req.body;
 
-console.log("----------Edit Review----------");
+console.log("----------Edit Review Feature----------");
 console.log("Rating: " + rating);
-console.log("Comment: " + comment);
-console.log("Date: " + timestamp);
+console.log("Review: " + comment);
 console.log("Username: " + userName);
-console.log("Accommodation Name: " + accommName);
+console.log("Time Stamp: " + timestamp);
+console.log("Accommodation Name: "+ accommName);
 
 var uId = null;
 var aId = null;
@@ -445,7 +450,7 @@ getUserIdByUsername(pool, userName, (err, userId) => {
 exports.deleteReview = (pool) => (req, res) => {
 const {userName, accommName} = req.body;
 
-console.log("----------Delete----------");
+console.log("----------Delete Review Feature----------");
 console.log("username: " + userName);
 console.log("accommodation name: " + accommName);
 
@@ -567,6 +572,10 @@ it returns a response indicating that it is not */
 exports.isAccommodationFavorited = (pool) => (req, res) => {
 const {username, accommodationName} = req.body;
 
+console.log("----------Is Accommodation Favorited----------");
+console.log("username: " + userName);
+console.log("accommodation name: " + accommName);
+
 getUserIdByUsername(pool, username, (err, userId) => {
     if (err) {
     console.log("Error: " + err);
@@ -612,6 +621,8 @@ function sends a response with success set to false. */
 exports.getAccommodationReviews = (pool) => (req, res) => {
 const {accommodationName} = req.body;
 
+console.log("----------Get Accommodation Reviews----------");
+console.log("Accommodation name: " + accommodationName);
 getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
     if (err) {
     console.log("Error: " + err);
@@ -637,7 +648,8 @@ getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
 // This function takes a database connection pool, an accommodation name and gets the average rating for that accommodation.
 exports.getAccommodationAverageRating = (pool) => (req, res) => {
 const {accommodationName} = req.body;
-
+console.log("----------Get Accommodation Average Rating----------");
+console.log("Accommodation name: " + accommodationName);
 getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
     if (err) {
     console.log("Error: " + err);

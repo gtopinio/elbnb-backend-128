@@ -45,7 +45,10 @@ function getAccommodationIdByName(pool, name, callback) {
 exports.getRoomsByAccommodationName = (pool) => (req, res) => {
     // Get the id of the accommodation name
     const accommodationName = req.body.accommodationName;
-  
+    
+    console.log("----------Get Rooms by Accommodation Name----------");
+    console.log("Accommodation name: " + accommodationName);
+
     var id = null;
     getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
       if (err) {
@@ -149,6 +152,12 @@ getAccommodationIdByName(pool, accomm_name, (err, accommodationId) => {
 // It queries the database to insert a new room with the room name, capacity, price, and accommodation ID in the parameter input.
 exports.addNewRoom = (pool) => (req, res) => {
 const { name, capacity, price, accommodationName } = req.body;
+console.log("----------Add New Room Feature----------");
+console.log("Name of Room: " + name);
+console.log("Price: " + capacity);
+console.log("Capacity: " + price);
+console.log("Accommodation Name: " + accommodationName);
+
 var id = null;
 getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
     if (err) {
@@ -223,6 +232,13 @@ getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
 // Otherwise, it returns a response indicating the unsuccessful update to the client.
 exports.editRoom = (pool) => (req, res) => {
 const {name, newName, newCapacity, newPrice, accommodationName} = req.body;
+console.log("----------Edit Room Feature----------");
+console.log("Old Name of Room: " + name);
+console.log("New Name of Room: " + newName);
+console.log("Price: " + newCapacity);
+console.log("Capacity: " + newPrice);
+console.log("Accommodation Name: " + accommodationName);
+
 var accommID = null;
 // Check if accommodation exists.
 getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
@@ -319,6 +335,10 @@ getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
 // Otherwise, it returns a response indicating the unsuccessful deletion to the client.
 exports.deleteRoom = (pool) => (req, res) => {
 const {name, accommodationName} = req.body;
+console.log("----------Delete Room Feature----------");
+console.log("Name of Room: " + name);
+console.log("Accommdation Name: " + accommodationName);
+
 
 // Get the ID of the room if the name exists.
 var id = null;
@@ -380,6 +400,10 @@ getRoomIDbyName(pool, name, accommodationName, (err, roomID) => {
 // Otherwise, it returns a response indicating the unsuccessful operation to the client.
 exports.archiveRoom = (pool) => (req, res) => {
 const {name, isArchived, accommodationName } = req.body;
+console.log("----------Archive Room Feature----------");
+console.log("Name of Room: " + name);
+console.log("Is Archived? : " + isArchived);
+console.log("Accommdation Name: " + accommodationName);
 
 //Get the ID of the room if the name exists.
 var id = null;
@@ -448,6 +472,9 @@ returns a JSON response with the room details and a success flag set to true. If
 at any point, */
 exports.viewRoom = (pool) => (req, res) => {
 const {accommodationName, roomName} = req.body;
+console.log("----------View Room Feature----------");
+console.log("Name of Room: " + roomName);
+console.log("Accommdation Name: " + accommodationName);
 
 getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
     if (err) {

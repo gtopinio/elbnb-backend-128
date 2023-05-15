@@ -725,6 +725,8 @@ exports.getOwnerAverageRating = (pool) => (req, res) => {
       return res.send({ success: false });
     }
   });
+}
+
 
   // Function to return the user given the user id
   exports.viewProfileById = (pool) => (req, res) => {
@@ -732,29 +734,17 @@ exports.getOwnerAverageRating = (pool) => (req, res) => {
     console.log("----------Get User By Id Feature----------");
     console.log("User Id: " + userId);
   
-    // Get pool connection
-    pool.getConnection((err, connection) => {
-      if (err) {
-        console.log("Error getting connection: " + err);
-        return res.send({ success: false, message: "Error getting connection." });
+    UserController_User.findBy(pool, "USER_ID", userId, (err, user) => {
+      if(err){
+        console.log("Error: " + err);
+        return res.send({ success: false , message: "Error finding user."});
+      } else if(user){
+        return res.send({ success: true, user: user });
       } else {
-        // Get the user with the given user id
-        const query = `SELECT * FROM user WHERE USER_ID = ${userId}`;
-        connection.query(query, (err, results) => {
-          if (err) {
-            console.log("Error: " + err);
-            return res.send({ success: false, message: "Error getting user." });
-          } else if (results.length === 0) {
-            console.log("No user found!");
-            return res.send({ success: false, message: "No user found!" });
-          } else {
-            console.log("User found!");
-            return res.send({ success: true, user: results[0] });
-          }
-        });
+        console.log("No user found with the user id: " + userId);
+        return res.send({ success: false , message: "No user found with the user id: " + userId});
       }
-    }
-  )};
-}
+    });
+  }
 // ===================================== END OF USER MANAGEMENT FEATURES =====================================
   

@@ -715,7 +715,7 @@ exports.getOwnerAverageRating = (pool) => (req, res) => {
           return res.send({ success: false });
         }
         else {
-          console.log("Average Rating of " + userName + ": " + results [0].AVG_RATING);
+          console.log("Average Rating of " + username + ": " + results [0].AVG_RATING);
           return res.send({ success:true, averageRating: results[0].AVG_RATING });
         }
       })

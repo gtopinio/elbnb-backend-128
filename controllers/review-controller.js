@@ -470,56 +470,41 @@ with success set to true and the list of featured accommodation. */
 exports.getFeaturedAccommodations = (pool) => (req, res) => {
     console.log("----------Get Featured Accommodations----------");
     const {type} = req.body;
-
-
-    if(type !== "" || type !== null){
-        // Query that gets the top 5 featured accommodation based on their average review rating (by type)
-        const query = `
+    
+    var query;
+    if(type === "" || type === null){
+        // Query that gets the top 5 featured accommodation based on their average review rating
+         query = `
         SELECT a.ACCOMMODATION_ID, a.ACCOMMODATION_NAME, a.ACCOMMODATION_TYPE, a.ACCOMMODATION_DESCRIPTION, a.ACCOMMODATION_AMENITIES, a.ACCOMMODATION_ADDRESS, a.ACCOMMODATION_LOCATION, a.ACCOMMODATION_OWNER_ID, AVG(r.REVIEW_RATING) AS AVERAGE_RATING
         FROM accommodation a
         JOIN review r ON a.ACCOMMODATION_ID = r.ACCOMMODATION_ID
-        WHERE a.ACCOMMODATION_TYPE = '?'
         GROUP BY a.ACCOMMODATION_ID
         ORDER BY AVERAGE_RATING DESC
         LIMIT 5
         `;
-      pool.query(query, [type] , (err, results) => {
-        if (err) {
-        console.log("Featured Accommodations Error: " + err);
-        return res.send({ success: false });
-        } else {
-          console.log("Featured Accommodations:");
-          // print out each accommodation in the results
-          for (let i = 0; i < results.length; i++) {
-            console.log(results[i]);
-          }
-        return res.send({ success: true, accommodation: results });
-        }
-      });
     } else {
-        // Query that gets the top 5 featured accommodation based on their average review rating (by type)
-        const query = `
+        // Query that gets the top 5 featured accommodation based on their average review rating and type
+        query = `
         SELECT a.ACCOMMODATION_ID, a.ACCOMMODATION_NAME, a.ACCOMMODATION_TYPE, a.ACCOMMODATION_DESCRIPTION, a.ACCOMMODATION_AMENITIES, a.ACCOMMODATION_ADDRESS, a.ACCOMMODATION_LOCATION, a.ACCOMMODATION_OWNER_ID, AVG(r.REVIEW_RATING) AS AVERAGE_RATING
         FROM accommodation a
         JOIN review r ON a.ACCOMMODATION_ID = r.ACCOMMODATION_ID
+        WHERE a.ACCOMMODATION_TYPE = ?
         GROUP BY a.ACCOMMODATION_ID
         ORDER BY AVERAGE_RATING DESC
         LIMIT 5
         `;
-      pool.query(query, (err, results) => {
+    }
+    // Printing the query
+    console.log("Query: " + query);
+
+    pool.query(query, (err, results) => {
         if (err) {
         console.log("Featured Accommodations Error: " + err);
         return res.send({ success: false });
         } else {
-          console.log("Featured Accommodations:");
-          // print out each accommodation in the results
-          for (let i = 0; i < results.length; i++) {
-            console.log(results[i]);
-          }
         return res.send({ success: true, accommodation: results });
         }
-      });
-    }
+    });
 };
 
 /* This code is a function that checks if a given accommodation is favorited by a given user. It

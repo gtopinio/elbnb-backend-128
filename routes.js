@@ -8,7 +8,6 @@ module.exports = (app, pool) => {
     // endpoints with GET method
     app.get("/view-all-students", userController.viewAllStudents(pool));
     app.get("/view-all-owners", userController.viewAllOwners(pool));
-    app.get("/get-top-five-accommodations", reviewController.getFeaturedAccommodations(pool));
 
     // endpoints with POST method
 
@@ -38,6 +37,7 @@ module.exports = (app, pool) => {
     app.post("/accommodation/get-accommodation-pic", accomodationController.getAccommodationPic(pool));
     app.post("/accommodation/remove-accommodation-pic", accomodationController.removeAccommodationPicture(pool));
     app.post("/accommodation/get-user-accommodations", accomodationController.getAccommodationsByOwner(pool));
+    app.post("/get-top-five-accommodations", reviewController.getFeaturedAccommodations(pool));
 
     // room management endpoints
     app.post("/accommodation/add-room", roomController.addNewRoom(pool));

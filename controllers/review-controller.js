@@ -497,7 +497,7 @@ exports.getFeaturedAccommodations = (pool) => (req, res) => {
     // Printing the query
     console.log("Query: " + query);
 
-    pool.query(query, (err, results) => {
+    pool.query(query, [type], (err, results) => {
         if (err) {
         console.log("Featured Accommodations Error: " + err);
         return res.send({ success: false });

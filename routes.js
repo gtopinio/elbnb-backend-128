@@ -37,7 +37,6 @@ module.exports = (app, pool) => {
     app.post("/accommodation/get-accommodation-pic", accomodationController.getAccommodationPic(pool));
     app.post("/accommodation/remove-accommodation-pic", accomodationController.removeAccommodationPicture(pool));
     app.post("/accommodation/get-user-accommodations", accomodationController.getAccommodationsByOwner(pool));
-    app.post("/get-top-five-accommodations", reviewController.getFeaturedAccommodations(pool));
 
     // room management endpoints
     app.post("/accommodation/add-room", roomController.addNewRoom(pool));
@@ -60,6 +59,7 @@ module.exports = (app, pool) => {
     app.post("/accommodation/get-reviews", reviewController.getAccommodationReviews(pool));
     app.post("/accommodation/get-ratings", reviewController.getAccommodationAverageRating(pool));
     app.post("/accommodation/get-filtered-reviews-by-rating", reviewController.getFilteredAccommodationReviews(pool));
+    app.post("/get-top-five-accommodations", reviewController.getFeaturedAccommodations(pool));
     
     // report management endpoints
     app.post("/generate-report", reportController.generateReport(pool));

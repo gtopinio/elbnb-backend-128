@@ -502,6 +502,11 @@ exports.getFeaturedAccommodations = (pool) => (req, res) => {
         console.log("Featured Accommodations Error: " + err);
         return res.send({ success: false });
         } else {
+          console.log("Featured Accommodations: ");
+          // Printing the results one by one
+          for (i = 0; i < results.length; i++) {
+            console.log(results[i]);
+          }
         return res.send({ success: true, accommodation: results });
         }
     });

@@ -12,9 +12,13 @@ const { User: ReviewController_User } = require("../models/user");
 exports.addReview = (pool) => (req, res) => {
     const{rating, comment, userName, timestamp, accommName} = req.body;
   
-    console.log("----------Rating and Review----------");
+    console.log("----------Add Review Feature----------");
     console.log("Rating: " + rating);
     console.log("Review: " + comment);
+    console.log("Username: " + userName);
+    console.log("Time Stamp: " + timestamp);
+    console.log("Accommodation Name: "+ accommName);
+
   
     var uid = null;
     var accomid = null;
@@ -108,9 +112,10 @@ exports.addReview = (pool) => (req, res) => {
 // Otherwise, it returns a response indicating the unsuccessful operation to the client.
 exports.addAccommodationToFavorite = (pool) => (req, res) => {
     const{userName, accommName} = req.body;
-    console.log("----------Add Accommodation to Favorite----------");
+    console.log("----------Add Accommodation to Favorite Feature----------");
     console.log("Username: " + userName);
     console.log("Accommodation Name: " + accommName);
+
     // check if user exist
     ReviewController_User.getUserIdByUsername(pool, userName, (err, userId) => {
       if(err){
@@ -196,7 +201,7 @@ exports.addAccommodationToFavorite = (pool) => (req, res) => {
 // Otherwise, it returns a response indicating the unsuccessful operation to the client.
 exports.removeAccommodationFromFavorite = (pool) => (req, res) => {
     const{userName, accommName} = req.body;
-    console.log("----------Remove Accommodation from Favorite----------");
+    console.log("----------Remove Accommodation from Favorite Feature----------");
     console.log("Username: " + userName);
     console.log("Accommodation Name: " + accommName);
     // check if user exist
@@ -287,12 +292,12 @@ date timestamp to find the correct review to edit.
 exports.editReview = (pool) => (req, res) => {
 const {rating, comment, timestamp, userName, accommName} = req.body;
 
-console.log("----------Edit Review----------");
+console.log("----------Edit Review Feature----------");
 console.log("Rating: " + rating);
-console.log("Comment: " + comment);
-console.log("Date: " + timestamp);
+console.log("Review: " + comment);
 console.log("Username: " + userName);
-console.log("Accommodation Name: " + accommName);
+console.log("Time Stamp: " + timestamp);
+console.log("Accommodation Name: "+ accommName);
 
 var uId = null;
 var aId = null;
@@ -375,9 +380,9 @@ ReviewController_User.getUserIdByUsername(pool, userName, (err, userId) => {
 exports.deleteReview = (pool) => (req, res) => {
     const {userName, accommName} = req.body;
 
-    console.log("----------Delete----------");
-    console.log("username: " + userName);
-    console.log("accommodation name: " + accommName);
+  console.log("----------Delete Review Feature----------");
+  console.log("username: " + userName);
+  console.log("accommodation name: " + accommName);
 
     var uId = null;
     var aId = null;
@@ -463,25 +468,45 @@ a middleware function that handles HTTP requests and responses. If there is an e
 query, the function returns a response with success set to false. Otherwise, it returns a response
 with success set to true and the list of featured accommodation. */
 exports.getFeaturedAccommodations = (pool) => (req, res) => {
-
-    // Query that gets the top 5 featured accommodation based on their average review rating
-    const query = `
-    SELECT a.ACCOMMODATION_ID, a.ACCOMMODATION_NAME, a.ACCOMMODATION_TYPE, a.ACCOMMODATION_DESCRIPTION, a.ACCOMMODATION_AMENITIES, a.ACCOMMODATION_ADDRESS, a.ACCOMMODATION_LOCATION, a.ACCOMMODATION_OWNER_ID, AVG(r.REVIEW_RATING) AS AVERAGE_RATING
-    FROM accommodation a
-    JOIN review r ON a.ACCOMMODATION_ID = r.ACCOMMODATION_ID
-    GROUP BY a.ACCOMMODATION_ID
-    ORDER BY AVERAGE_RATING DESC
-    LIMIT 5
-    `;
-
+    console.log("----------Get Featured Accommodations----------");
+    const {type} = req.body;
+    
+    var query;
+    if(type === "" || type === null){
+        // Query that gets the top 5 featured accommodation based on their average review rating
+         query = `
+        SELECT a.ACCOMMODATION_ID, a.ACCOMMODATION_NAME, a.ACCOMMODATION_TYPE, a.ACCOMMODATION_DESCRIPTION, a.ACCOMMODATION_AMENITIES, a.ACCOMMODATION_ADDRESS, a.ACCOMMODATION_LOCATION, a.ACCOMMODATION_OWNER_ID, AVG(r.REVIEW_RATING) AS AVERAGE_RATING
+        FROM accommodation a
+        JOIN review r ON a.ACCOMMODATION_ID = r.ACCOMMODATION_ID
+        GROUP BY a.ACCOMMODATION_ID
+        ORDER BY AVERAGE_RATING DESC
+        LIMIT 5
+        `;
+    } else {
+        // Query that gets the top 5 featured accommodation based on their average review rating and type
+        query = `
+        SELECT a.ACCOMMODATION_ID, a.ACCOMMODATION_NAME, a.ACCOMMODATION_TYPE, a.ACCOMMODATION_DESCRIPTION, a.ACCOMMODATION_AMENITIES, a.ACCOMMODATION_ADDRESS, a.ACCOMMODATION_LOCATION, a.ACCOMMODATION_OWNER_ID, AVG(r.REVIEW_RATING) AS AVERAGE_RATING
+        FROM accommodation a
+        JOIN review r ON a.ACCOMMODATION_ID = r.ACCOMMODATION_ID
+        WHERE a.ACCOMMODATION_TYPE = ?
+        GROUP BY a.ACCOMMODATION_ID
+        ORDER BY AVERAGE_RATING DESC
+        LIMIT 5
+        `;
+    }
     // Printing the query
     console.log("Query: " + query);
 
-    pool.query(query, (err, results) => {
+    pool.query(query, [type], (err, results) => {
         if (err) {
         console.log("Featured Accommodations Error: " + err);
         return res.send({ success: false });
         } else {
+          console.log("Featured Accommodations: ");
+          // Printing the results one by one
+          for (i = 0; i < results.length; i++) {
+            console.log(results[i]);
+          }
         return res.send({ success: true, accommodation: results });
         }
     });
@@ -496,6 +521,9 @@ match, it returns a response indicating that the accommodation is favorited by t
 it returns a response indicating that it is not */
 exports.isAccommodationFavorited = (pool) => (req, res) => {
   const {username, accommodationName} = req.body;
+  console.log("----------Is Accommodation Favorited----------");
+  console.log("username: " + username);
+  console.log("accommodation name: " + accommodationName);
 
   ReviewController_User.getUserIdByUsername(pool, username, (err, userId) => {
       if (err) {
@@ -541,6 +569,8 @@ accommodation and sends the results back in the response. If there is an error a
 function sends a response with success set to false. */
 exports.getAccommodationReviews = (pool) => (req, res) => {
   const {accommodationName} = req.body;
+  console.log("----------Get Accommodation Reviews----------");
+  console.log("Accommodation name: " + accommodationName);
 
   ReviewController_Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
       if (err) {
@@ -599,6 +629,8 @@ exports.getFilteredAccommodationReviews = (pool) => (req, res) => {
 // This function takes a database connection pool, an accommodation name and gets the average rating for that accommodation.
 exports.getAccommodationAverageRating = (pool) => (req, res) => {
 const {accommodationName} = req.body;
+console.log("----------Get Accommodation Average Rating----------");
+console.log("Accommodation name: " + accommodationName);
 
 ReviewController_Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
     if (err) {
@@ -622,5 +654,48 @@ ReviewController_Accommodation.getAccommodationIdByName(pool, accommodationName,
     }
 });
 }
+
+ // This function takes a database connection pool, a username and gets all favorites for that user.
+  exports.getUserFavorites = (pool) => (req, res) => {
+    const {username} = req.body;
+    console.log("----------Get All User Favorites----------");
+    console.log("Username: " + username);
+
+    // Ensure that the user exists
+    ReviewController_User.getUserIdByUsername(pool, username, (err, userId) => {
+      if (err) {
+        console.log("Error: " + err);
+        return res.send({ success: false , message: "Error getting favorites"});
+      } else if (userId > 0 && typeof userId !== 'undefined') {
+        // The favorite tables contains the user ID and accommodation ID of all favorites
+        const favoritesQuery = `
+          SELECT ACCOMMODATION_ID
+          FROM favorite
+          WHERE USER_ID = ?
+        `;
+        pool.query(favoritesQuery, [userId], (err, results) => {
+          if (err) {
+            console.log("Error getting favorites: " + err);
+            return res.send({ success: false , message: "Error getting favorites"});
+          } else {
+            // once we have all the accommodation IDs, we can get the accommodation(s) from the accommodation table
+            const accommodationQuery = `
+              SELECT *
+              FROM accommodation
+              WHERE ACCOMMODATION_ID IN (?)
+            `;
+            pool.query(accommodationQuery, [results.map(result => result.ACCOMMODATION_ID)], (err, results) => {
+              if (err) {
+                console.log("Error getting favorites: " + err);
+                return res.send({ success: false , message: "Error getting favorites"});
+              } else {
+                return res.send({ success: true, favorites: results });
+              }
+            });
+          }
+        });
+      }
+    });
+  }
 
 // ===================================== END OF REVIEW + FAVORITE + RATING MANAGEMENT FEATURES =====================================

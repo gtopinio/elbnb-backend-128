@@ -27,6 +27,15 @@ exports.signUp = (pool) => (req, res) => {
           console.log(err);
         } else {
             const { email, password, username, firstName, lastName, contactNum, isBusinessAccount, isPersonalAccount } = req.body;
+            console.log("----------Sign Up Feature----------");
+            console.log("Email: " + email);
+            console.log("Password : " + password);
+            console.log("UserName: " + username);
+            console.log("First Name: " + firstName);
+            console.log("Last Name: " + lastName);
+            console.log("Contact Number: " + contactNum);
+            console.log("Is Business Account?: " + isBusinessAccount);
+            console.log("Is Personal Account?: " + isPersonalAccount);
 
             // Check which user type to create
             var userType = null;
@@ -78,6 +87,10 @@ exports.login = (pool) => (req, res) => {
   // Credentials
   const email = req.body.email.trim();
   const password = req.body.password;
+  console.log("----------Log In Feature----------");
+  console.log("Email: " + email);
+  console.log("Password: " + password);
+
 
   pool.getConnection((err, connection) => {
     if(err){
@@ -115,15 +128,19 @@ exports.login = (pool) => (req, res) => {
                 user_id: user.USER_ID,
                 user_type: user.USER_TYPE
             }
+
+            // Create a token
             const token = jwt.sign(tokenPayload, process.env.AUTH_SECRET_STRING);
             console.log("Successfully logged in as " + user.USER_TYPE);
             return res.send({
               success: true,
               authToken: token,
               userId: user.USER_ID,
+              userType:user.USER_TYPE,
               username: user.USER_USERNAME,
               fname: user.USER_FNAME,
               lname: user.USER_LNAME,
+              contactNum: user.USER_CONTACTNUM,
               email: email
             });
           });
@@ -143,7 +160,6 @@ exports.login = (pool) => (req, res) => {
 // It also verifies the user type and checks if the user exists in the database for that user type. It returns a JSON object containing 'isLoggedIn',
 // which could either be true or false depending if the user is really logged in or not.
 exports.checkIfLoggedIn = (pool) => (req, res) => {
-
   // Checking if cookies/authToken cookie exists
   if (!req.cookies.authToken) {
     console.log("failed")
@@ -192,6 +208,9 @@ exports.checkIfLoggedIn = (pool) => (req, res) => {
 // Finally, it returns a response with success true if the user is successfully deleted, and success false if the user is not deleted or an error occurs.
 exports.deleteUserByEmail = (pool) => (req, res) => {
   const email = req.body.email;
+  console.log("----------Delete User by Email Feature----------");
+  console.log("Email to be Deleted: " + email);
+
 
   // Console log the email to be deleted
   console.log("=== DELETING USER BY EMAIL ===");
@@ -241,6 +260,13 @@ exports.deleteUserByEmail = (pool) => (req, res) => {
 // Finally, it returns a response with success true if the user is successfully updated, and success false if the user is not updated or an error occurs.
 exports.editUserByEmail = (pool) => (req, res) => {
   const { email, newPassword, newUsername, newFirstName, newLastName, newContactNum} = req.body;
+  console.log("----------Edit User bu Email Feature----------");
+  console.log("Email: " + email);
+  console.log("Password : " + newPassword);
+  console.log("UserName: " + newUsername);
+  console.log("First Name: " + newFirstName);
+  console.log("Last Name: " + newLastName);
+  console.log("Contact Number: " + newContactNum);
 
   // Console log the email to be deleted
   console.log("=== EDIT USER BY EMAIL ===");
@@ -291,6 +317,8 @@ exports.editUserByEmail = (pool) => (req, res) => {
 // Finally, it returns a response with success true if the user is successfully found, and success false if the user is not found or an error occurs.
 exports.viewProfile = (pool) => (req, res) => {
   const email = req.body.email;
+  console.log("----------View Profile Feature----------");
+  console.log("Email: " + email);
 
   // Console log the email to be deleted
   console.log("=== VIEWING USER BY EMAIL ===");
@@ -331,6 +359,11 @@ exports.viewProfile = (pool) => (req, res) => {
 exports.filterUsersByString = (pool) => (req, res) => {
   const {name, isStudent} = req.body;
   const empty=[];
+
+  console.log("----------Filter User by String Feature----------");
+  console.log("Username: " + name);
+  console.log("Is Student? : " + isStudent);
+
   // Checks if filter is set as empty.
   if (!name){
     pool.getConnection((err, connection) => {
@@ -422,7 +455,7 @@ exports.viewAllStudents = (pool) => (req, res) => {
     }
   });
 };
-
+  
 // The viewAllOwners function takes a database connection pool, and gets all
 // entries in the user table whose USER_TYPE is a "Owners"
 exports.viewAllOwners = (pool) => (req, res) => {
@@ -474,7 +507,10 @@ exports.uploadUserPic = (pool) => async (req, res) => {
     const username = req.body.username;
 
     // console.log("Data: " + base64Data);
+    console.log("----------Upload User Picture Feature----------");
     console.log("Username: " + username);
+  
+  // get the user id
     
     // get the user id
 
@@ -566,6 +602,8 @@ exports.uploadUserPic = (pool) => async (req, res) => {
 // If there is no error, it sends a response with a success value of true and the image url
 exports.getUserPic = (pool) => (req, res) => {
   const username = req.body.username;
+  console.log("----------Get User Picture Feature----------");
+  console.log("Username: " + username);
 
   UserController_User.findBy(pool, "USER_USERNAME", username, (err, user) => {
     if(err){
@@ -599,7 +637,7 @@ exports.getUserPic = (pool) => (req, res) => {
 exports.removeUserPicture = (pool) => (req, res) => {
   // get the username from the request body
   const {username} = req.body;
-
+  console.log("----------Delete User Picture Feature----------");
   console.log("Username: " + username);
 
   // see if the user exists
@@ -653,9 +691,13 @@ exports.removeUserPicture = (pool) => (req, res) => {
 This function get the average rating of an owner based of their accommodation ratings
 */
 exports.getOwnerAverageRating = (pool) => (req, res) => {
-  const {userName} = req.body;
+  // get the username from the request body
+  const {username} = req.body;
+  console.log("----------Get Owner Average Rating----------");
+  console.log("Username: " + username);
+  // see if the user exists
 
-  UserController_User.getUserIdByUsername(pool, userName, (err, userId) => {
+  UserController_User.getUserIdByUsername(pool, username, (err, userId) => {
     if (err) {
       console.log("Error: " + err);
       return res.send({ success: false });
@@ -673,7 +715,7 @@ exports.getOwnerAverageRating = (pool) => (req, res) => {
           return res.send({ success: false });
         }
         else {
-          console.log("Average Rating of " + userName + ": " + results [0].AVG_RATING);
+          console.log("Average Rating of " + username + ": " + results [0].AVG_RATING);
           return res.send({ success:true, averageRating: results[0].AVG_RATING });
         }
       })
@@ -682,7 +724,27 @@ exports.getOwnerAverageRating = (pool) => (req, res) => {
       console.log("Owner not found!");
       return res.send({ success: false });
     }
-  })
+  });
 }
+
+
+  // Function to return the user given the user id
+  exports.viewProfileById = (pool) => (req, res) => {
+    const userId = req.body.userId;
+    console.log("----------Get User By Id Feature----------");
+    console.log("User Id: " + userId);
+  
+    UserController_User.findBy(pool, "USER_ID", userId, (err, user) => {
+      if(err){
+        console.log("Error: " + err);
+        return res.send({ success: false , message: "Error finding user."});
+      } else if(user){
+        return res.send({ success: true, user: user });
+      } else {
+        console.log("No user found with the user id: " + userId);
+        return res.send({ success: false , message: "No user found with the user id: " + userId});
+      }
+    });
+  }
 // ===================================== END OF USER MANAGEMENT FEATURES =====================================
   

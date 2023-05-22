@@ -23,7 +23,7 @@ exports.addAccommodation = (pool) => (req, res) => {
   const { name, type, address, location, description, amenities, userId} = req.body;
 
   // Printing the details of the accommodation query
-  console.log("========== ACCOMMODATION DETAILS ==========")
+  console.log("========== ADD ACCOMMODATION DETAILS ==========")
   console.log("Name: " + name);
   console.log("Type: " + type);
   console.log("Description: " + description);
@@ -141,7 +141,7 @@ exports.getAccommodationsByOwner = (pool) => (req, res) => {
 exports.editAccommodation = (pool) => (req, res) => {
   const {name, newName, newType, newDescription, newAddress, newLocation, newAmenities} = req.body;
 
-  console.log("========== ACCOMMODATION DETAILS ==========");
+  console.log("========== EDIT ACCOMMODATION DETAILS ==========");
   console.log("Name: " + name);
   console.log("New Name: " + newName);
   console.log("New Type: " + newType);
@@ -302,6 +302,8 @@ exports.archiveAccommodation = (pool) => (req, res) => {
 // The function returns a JSON response indicating whether the operation was successful or not.
 exports.deleteAccommodation = (pool) => (req, res) => {
   const {name} = req.body;
+  console.log("========== DELETE ACCOMMODATION DETAILS ==========");
+  console.log("Name: " + name);
 
   // Try to get the id first if accommodation exists
   // check if there's an accommodation that has the same name

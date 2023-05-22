@@ -1,5 +1,5 @@
 const express = require("express");
-const mysql = require("promise-mysql");
+const mysql = require("mysql");
 const cookieParser = require("cookie-parser");
 const multer = require("multer");
 const upload = multer();
@@ -23,23 +23,14 @@ require('./models/room');
 // }
 
 // Create a connection pool to the database
-// const pool = mysql.createPool({
+const pool = mysql.createPool({
+  user: process.env.GOOGLE_CLOUD_DB_USER,
+  password: process.env.GOOGLE_CLOUD_DB_PASSWORD,
+  database: process.env.GOOGLE_CLOUD_DB_NAME,
+  socketPath: `/cloudsql/${process.env.GOOGLE_CLOUD_INSTANCE_NAME}`,
+});
 
-// });
-
-const createUnixSocketPool = 
-  // Note: Saving credentials in environment variables is convenient, but not
-  // secure - consider a more secure solution such as
-  // Cloud Secret Manager (https://cloud.google.com/secret-manager) to help
-  // keep secrets safe.
-  mysql.createPool({
-    user: process.env.GOOGLE_CLOUD_DB_USER,
-    password: process.env.GOOGLE_CLOUD_DB_PASSWORD,
-    database: process.env.GOOGLE_CLOUD_DB_NAME,
-    socketPath: `/cloudsql/${process.env.GOOGLE_CLOUD_INSTANCE_NAME}`,
-  });
-
-createUnixSocketPool.getConnection((err, connection) => {
+pool.getConnection((err, connection) => {
   if (err) {
     console.log("Error connecting to database:", err);
   } else {
@@ -66,7 +57,7 @@ app.use((req, res, next) => {
 });
 
 // Pass the database connection pool to your routes module
-require("./routes")(app, createUnixSocketPool);
+require("./routes")(app, pool);
 
 // ================ START OF MESSAGING FEATURE ================
 // Chat functionalities

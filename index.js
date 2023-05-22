@@ -25,7 +25,7 @@ require('./models/room');
 // Create a connection pool to the database
 const pool = mysql.createPool({
   host: process.env.GOOGLE_CLOUD_DB_HOST_NAME,
-  port: process.env.GOOGLE_CLOUD_DB_PORT,
+  port: process.env.PORT,
   user: process.env.GOOGLE_CLOUD_DB_USER,
   password: process.env.GOOGLE_CLOUD_DB_PASS
 });

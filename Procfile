@@ -1,2 +1,2 @@
 web: node index.js
-worker: python connection_script.py
+release: chmod u+x connection_script.sh && ./connection_script.sh

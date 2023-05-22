@@ -27,8 +27,7 @@ const pool = mysql.createPool({
   host: process.env.GOOGLE_CLOUD_DB_HOST_NAME,
   port: process.env.GOOGLE_CLOUD_DB_PORT,
   user: process.env.GOOGLE_CLOUD_DB_USER,
-  password: process.env.GOOGLE_CLOUD_DB_PASS,
-  database: process.env.GOOGLE_CLOUD_DB_NAME
+  password: process.env.GOOGLE_CLOUD_DB_PASS
 });
 
 pool.getConnection((err, connection) => {

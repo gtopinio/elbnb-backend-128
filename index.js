@@ -15,20 +15,19 @@ require('./models/user');
 require('./models/accommodation');
 require('./models/room');
 
-// Parse the database URL from the config var
-const dbUrl = url.parse(process.env.CLEARDB_DATABASE_URL);
-// Check if database URL exists
-if (!dbUrl) {
-  throw new Error('Database URL not found');
-}
+// // Parse the database URL from the config var
+// const dbUrl = url.parse(process.env.CLEARDB_DATABASE_URL);
+// // Check if database URL exists
+// if (!dbUrl) {
+//   throw new Error('Database URL not found');
+// }
 
 // Create a connection pool to the database
 const pool = mysql.createPool({
-  host: dbUrl.hostname,
-  user: dbUrl.auth.split(':')[0],
-  password: dbUrl.auth.split(':')[1],
-  database: dbUrl.pathname.substring(1),
-  connectionLimit: 30,
+  user: process.env.GOOGLE_CLOUD_DB_USER,
+  password: process.env.GOOGLE_CLOUD_DB_PASSWORD,
+  database: process.env.GOOGLE_CLOUD_DB_NAME,
+  socketPath: `/cloudsql/${process.env.GOOGLE_CLOUD_INSTANCE_CONNECTION_NAME}`,
 });
 
 pool.getConnection((err, connection) => {

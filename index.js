@@ -39,7 +39,7 @@ const createUnixSocketPool =
     socketPath: `/cloudsql/${process.env.GOOGLE_CLOUD_INSTANCE_NAME}`,
   });
 
-pool.getConnection((err, connection) => {
+createUnixSocketPool.getConnection((err, connection) => {
   if (err) {
     console.log("Error connecting to database:", err);
   } else {

@@ -141,6 +141,15 @@ exports.getAccommodationsByOwner = (pool) => (req, res) => {
 exports.editAccommodation = (pool) => (req, res) => {
   const {name, newName, newType, newDescription, newAddress, newLocation, newAmenities} = req.body;
 
+  console.log("========== ACCOMMODATION DETAILS ==========");
+  console.log("Name: " + name);
+  console.log("New Name: " + newName);
+  console.log("New Type: " + newType);
+  console.log("New Description: " + newDescription);
+  console.log("New Address: " + newAddress);
+  console.log("New Location: " + newLocation);
+  console.log("New Amenities: " + newAmenities);
+
   // Try to get the id first if accommodation exists
   // check if there's an accommodation that has the same name
   var id = null;

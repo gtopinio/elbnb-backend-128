@@ -27,18 +27,17 @@ require('./models/room');
 
 // });
 
-const createUnixSocketPool = async => {
+const createUnixSocketPool = 
   // Note: Saving credentials in environment variables is convenient, but not
   // secure - consider a more secure solution such as
   // Cloud Secret Manager (https://cloud.google.com/secret-manager) to help
   // keep secrets safe.
-  return mysql.createPool({
+  mysql.createPool({
     user: process.env.GOOGLE_CLOUD_DB_USER,
     password: process.env.GOOGLE_CLOUD_DB_PASSWORD,
     database: process.env.GOOGLE_CLOUD_DB_NAME,
     socketPath: `/cloudsql/${process.env.GOOGLE_CLOUD_INSTANCE_NAME}`,
   });
-};
 
 pool.getConnection((err, connection) => {
   if (err) {

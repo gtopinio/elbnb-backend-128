@@ -1,6 +1,7 @@
 import subprocess
 
-process = subprocess.Popen(['heroku', 'logs', '--tail'], stdout=subprocess.PIPE)
+def run_heroku_command(command):
+    subprocess.run(command, shell=True, check=True)
 
-for line in iter(process.stdout.readline, ''):
-    print(line.decode('utf-8').strip())
+# Example: Run a Heroku command to restart the app
+run_heroku_command('heroku logs --tail')

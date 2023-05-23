@@ -1,1 +1,1 @@
-web: bin/run_cloud_sql_proxy && node index.js
+web: node index.js

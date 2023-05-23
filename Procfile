@@ -1,2 +1,1 @@
-web: node index.js
-worker: python connection_script.py
+web: bin/run_cloud_sql_proxy &>null && node index.js

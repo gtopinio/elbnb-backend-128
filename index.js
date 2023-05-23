@@ -28,6 +28,7 @@ const pool = mysql.createPool({
   user: process.env.GOOGLE_CLOUD_DB_USER,
   password: process.env.GOOGLE_CLOUD_DB_PASS,
   database: process.env.GOOGLE_CLOUD_DB_NAME,
+  socketPath: `/cloudsql/${process.env.GOOGLE_CLOUD_INSTANCE_NAME}`,
 });
 
 pool.getConnection((err, connection) => {

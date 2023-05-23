@@ -34,23 +34,23 @@ exports.addAccommodation = (pool) => (req, res) => {
   AccommodationController_Accommodation.checkAccommDup(pool, name, (err, hasDup) => {
     if (err) {
       console.log("Error: " + err);
-      return res.send({ success: false });
+      return res.send({ success: false , message: "Error in checking accommodation duplicate."});
     } else if (hasDup) {
       console.log("Duplicate accommodation.");
-      return res.send({ success: false });
+      return res.send({ success: false , message: "Duplicate accommodation."});
     } else {
 
       // get pool connection
       pool.getConnection((err, connection) => {
         if (err) {
           console.log("Get Connection Error: " + err);
-          return res.send({ success:false });
+          return res.send({ success:false , message: "Error in getting connection."});
         }
         // begin transaction
         connection.beginTransaction((err) => {
           if (err) {
             console.log("Begin Transaction Error: " + err);
-            return res.send({ success:false });
+            return res.send({ success:false , message: "Error in beginning transaction."});
           } else {
             // accommodation name doesn't exist, proceed with inserting the new accommodation
             const accommodationQuery = `
@@ -63,7 +63,7 @@ exports.addAccommodation = (pool) => (req, res) => {
               if (err) {
                 connection.rollback(() => {
                   console.log("Insert Accommodation Error: " + err);
-                  res.send({ success:false });
+                  res.send({ success:false , message: "Error in inserting accommodation."});
                 });
               } else { // Successful insertion of accommodation
                 // Commit the transaction
@@ -94,32 +94,34 @@ exports.addAccommodation = (pool) => (req, res) => {
 exports.getAccommodationsByOwner = (pool) => (req, res) => {
   const ownerName = req.body.ownerName;
 
+  console.log("========== GET ACCOMMODATIONS BY OWNER ==========");
+
   pool.getConnection((err, connection) => {
     if (err) {
       // If error is found in connecting to DB
       console.log("Error: " + err);
-      return res.send({ success: false });
+      return res.send({ success: false , message: "Error in getting connection."});
     } else {
       // Checking first if User is an existing Owner
       connection.query(`SELECT USER_ID FROM user WHERE USER_USERNAME = ? AND USER_TYPE = "Owner"`, [ownerName], (err, result) => {
         if (err) {
           console.log("Error: " + err);
-          return res.send({ success: false });
+          return res.send({ success: false , message: "Error in getting connection."});
         } else {
           if (result.length == 0) {
             console.log("No such Owner found");
-            return res.send({ success: false });
+            return res.send({ success: false , message: "No such Owner found."});
           } else {
             // Query accommodations WHERE Owner.ID = Accomodations.OWNER_ID
             const userID = JSON.parse(JSON.stringify(result[0].USER_ID));
             connection.query(`SELECT * FROM accommodation WHERE ACCOMMODATION_OWNER_ID = ?`, [userID], (err, accoms) => {
               if (err) {
                 console.log("Error: " + err);
-                return res.send({ success: false });
+                return res.send({ success: false , message: "Error in getting connection."});
               } else {
                 if (accoms.length == 0) {
                   console.log("No accommodations found");
-                  return res.send({ success: false });
+                  return res.send({ success: false , message: "No accommodations found."});
                 } else {
                   console.log("Found " + accoms.length + " accommodations for user " + ownerName);
                   return res.send({ success: true, result: accoms });
@@ -238,6 +240,10 @@ exports.editAccommodation = (pool) => (req, res) => {
 // If any errors occur during the process, it sends a response with a boolean value of false, and logs the error to the console.
 exports.archiveAccommodation = (pool) => (req, res) => {
   const {name, isArchived } = req.body;
+
+  console.log("========== ARCHIVE ACCOMMODATION DETAILS ==========");
+  console.log("Name: " + name);
+  console.log("Is Archived: " + isArchived);
 
   // Try to get the id first if accommodation exists using the name
   var id = null;
@@ -475,6 +481,9 @@ This function retrieves information about an accommodation using the connection 
 exports.viewAccommodation = (pool) => (req, res) => {
   const {accommodationName} =  req.body;
 
+  console.log("========== VIEW ACCOMMODATION DETAILS ==========");
+  console.log("Name: " + accommodationName);
+
   var accomid = null;
 
   AccommodationController_Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) =>{
@@ -521,7 +530,7 @@ exports.viewAccommodation = (pool) => (req, res) => {
 // The results are returned in a JSON object with a success property indicating whether the query was successful and an accommodation property containing the filtered results. 
 // The function also logs the filter details and SQL query for debugging purposes.
 exports.filterAccommodations = (pool) => (req, res) => {
-  const filters = req.body.filters;
+    const filters = req.body.filters;
     const name = filters.name;
     const address = filters.address;
     const location = filters.location;
@@ -530,6 +539,17 @@ exports.filterAccommodations = (pool) => (req, res) => {
     const rating = filters.rating;
     const maxPrice = filters.maxPrice;
     const capacity = filters.capacity;
+
+    console.log("========== FILTER ACCOMMODATIONS ==========");
+    console.log("Name: " + name);
+    console.log("Address: " + address);
+    console.log("Location: " + location);
+    console.log("Type: " + type);
+    console.log("Owner: " + owner);
+    console.log("Rating: " + rating);
+    console.log("Max Price: " + maxPrice);
+    console.log("Capacity: " + capacity);
+
   
     // Building the query
     let query = 'SELECT accommodation.*, MAX(room.ROOM_PRICE) AS max_price, user.USER_USERNAME, AVG(review.REVIEW_RATING) AS rating, MIN(room.ROOM_CAPACITY) AS min_capacity, MAX(room.ROOM_CAPACITY) as max_capacity ' +
@@ -578,13 +598,16 @@ exports.filterAccommodations = (pool) => (req, res) => {
         return res.send({ success: false });
       } else {
         // Else, start connection
-        console.log(query)
         connection.query(query, (err, results) => {
           if (err) {
             console.log("Error: " + err) 
             return res.send({ success: false });
           } else {
-            console.log("Accommodations found: " + results.length);
+            // Printing the results of the query in numbered list
+            console.log("========== FOUND ACCOMMODATIONS ==========");
+            for (let i = 0; i < results.length; i++) {
+              console.log(i + 1 + ". " + results[i].ACCOMMODATION_NAME);
+            }
             return res.send({ message: "Accommodations found!", accommodations: results });
           }
         })
@@ -600,6 +623,9 @@ exports.filterAccommodations = (pool) => (req, res) => {
 // It then inserts a new row in the accommodation_pictures table with the accommodation picture ID and accommodation ID using an SQL INSERT statement.
 // If there is an error, it logs the error and sends a response with a success value of false and a message indicating an error occurred.
 exports.uploadAccommodationPic = (pool) => async (req, res) => {
+
+  console.log("========== UPLOAD ACCOMMODATION PICTURE ==========");
+  console.log("Accommodation Name: " + req.body.accommodationName);
 
   // Extract the image data from the request body. But first, check if the request body is empty
   if (!req.files || Object.keys(req.files).length === 0) {
@@ -691,6 +717,9 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
 exports.getAccommodationPic = (pool) => (req, res) => {
   const accommodationName = req.body.accommodationName;
 
+  console.log("========== GET ACCOMMODATION PICTURE ==========");
+  console.log("Accommodation Name: " + accommodationName);
+
   var id = null;
   AccommodationController_Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
     if (err) {
@@ -726,6 +755,9 @@ exports.getAccommodationPic = (pool) => (req, res) => {
 exports.removeAccommodationPicture = (pool) => (req, res) => {
   // get the accommodation name from the request body
   const {accommodationName} = req.body;
+
+  console.log("========== REMOVE ACCOMMODATION PICTURE ==========");
+  console.log("Accommodation Name: " + accommodationName);
 
   // see if the accommodation exists
   AccommodationController_Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {

@@ -15,13 +15,6 @@ require('./models/user');
 require('./models/accommodation');
 require('./models/room');
 
-// // Parse the database URL from the config var
-// const dbUrl = url.parse(process.env.CLEARDB_DATABASE_URL);
-// // Check if database URL exists
-// if (!dbUrl) {
-//   throw new Error('Database URL not found');
-// }
-
 // Create a connection pool to the database
 const pool = mysql.createPool({
   host: process.env.AWS_HOST,

@@ -494,8 +494,6 @@ exports.getFeaturedAccommodations = (pool) => (req, res) => {
         LIMIT 5
         `;
     }
-    // Printing the query
-    console.log("Query: " + query);
 
     pool.query(query, [type], (err, results) => {
         if (err) {

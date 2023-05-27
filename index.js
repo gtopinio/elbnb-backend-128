@@ -3,8 +3,8 @@ const mysql = require("mysql");
 const cookieParser = require("cookie-parser");
 const multer = require("multer");
 const upload = multer();
-const url = require("url");
 const http = require('http');
+const cors = require('cors');
 const { Server } = require('socket.io');
 
 const PORT = process.env.PORT || 3001;
@@ -42,18 +42,12 @@ app.use(cookieParser());
 app.use(upload.fields([{ name: 'accommodationName', maxCount: 1 }, { name: 'data', maxCount: 1 }, { name: 'username', maxCount: 1 }, { name: 'data', maxCount: 1 }]));
 
 // allow CORS
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  res.setHeader("Access-Control-Allow-Credentials", "true");
-  // handling OPTIONS request
-  if ('OPTIONS' == req.method) {
-    return res.sendStatus(200);
-} else {
-    next();
-}
-});
+const corsOptions = {
+  origin: true,
+  credentials: true,
+};
+
+app.use('*', cors(corsOptions));
 
 // Pass the database connection pool to your routes module
 require("./routes")(app, pool);

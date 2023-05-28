@@ -9,7 +9,7 @@ const { Server } = require('socket.io');
 
 const PORT = process.env.PORT || 3001;
 const app = express();
-const appLink = "https://mockup-backend-128.herokuapp.com/"
+const appLink = "https://mockup-backend-128.herokuapp.com"
 
 require('./models/user');
 require('./models/accommodation');
@@ -48,7 +48,7 @@ const corsOptions = {
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 };
 
-app.use('*', cors(corsOptions));
+app.use(appLink, cors(corsOptions));
 
 // Pass the database connection pool to your routes module
 require("./routes")(app, pool);

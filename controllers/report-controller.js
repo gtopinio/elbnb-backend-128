@@ -139,7 +139,7 @@ exports.generateReport = (pool) => (req, res) => {
 /* This code exports a function called `deleteReport` that takes a database connection pool as a
 parameter and returns a function that takes a request and response object as parameters. */
 exports.deleteReport = (pool) => (req, res) => {
-  const {userName, accommName} = req.body;
+  const {userName, accommName, details} = req.body;
 
   console.log("----------Delete Report Feature----------");
   console.log("Username: " + userName);
@@ -171,9 +171,9 @@ exports.deleteReport = (pool) => (req, res) => {
                 console.log("Error: " + err);
                 return res.send({success: false});
               }else{
-                const deleteQuery = `DELETE FROM report WHERE USER_ID = '?' AND ACCOMMODATION_ID = '?'`;
+                const deleteQuery = `DELETE FROM report WHERE USER_ID = '?' AND ACCOMMODATION_ID = '?' AND REPORT_DETAILS = '?';`;
 
-                connection.query(deleteQuery, [uId, aId], (err, result) => {
+                connection.query(deleteQuery, [uId, aId, details], (err, result) => {
                   if(err){
                     connection.rollback(() => {
                       console.log("Error: " + err);

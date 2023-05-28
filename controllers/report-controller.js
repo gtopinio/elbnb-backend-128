@@ -171,7 +171,7 @@ exports.deleteReport = (pool) => (req, res) => {
                 console.log("Error: " + err);
                 return res.send({success: false});
               }else{
-                const deleteQuery = `DELETE FROM report WHERE USER_ID = '?' AND ACCOMMODATION_ID = '?' AND REPORT_DETAILS = '?'`;
+                const deleteQuery = `DELETE FROM report WHERE USER_ID = ? AND ACCOMMODATION_ID = ? AND REPORT_DETAILS = ?`;
 
                 connection.query(deleteQuery, [uId, aId, details], (err, result) => {
                   if(err){

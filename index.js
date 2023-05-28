@@ -45,9 +45,10 @@ app.use(upload.fields([{ name: 'accommodationName', maxCount: 1 }, { name: 'data
 const corsOptions = {
   origin: true,
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 };
 
-app.options('*', cors(corsOptions)); // preflight OPTIONS; put before other routes
+app.options('*', cors(corsOptions));
 
 // Pass the database connection pool to your routes module
 require("./routes")(app, pool);

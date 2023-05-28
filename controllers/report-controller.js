@@ -155,27 +155,27 @@ exports.viewReport = (pool) => (req, res) => {
   ReportController_User.getUserIdByUsername(pool, username, (err, userId) => {
     if (err) {
       console.log("Get User ID Error: " + err);
-      return res.send({ success: false });
+      return res.send({ success: false , message: "User not found!"});
     } else if (userId > 0 && typeof userId !== 'undefined') {
       // If found and not undefined, get accommodation ID by accommodation name.
       ReportController_Accommodation.getAccommodationIdByName(pool, accommName, (err, accommodationId) => {
         if (err) {
           console.log("Get Accommodation ID Error: " + err);
-          return res.send({ success: false });
+          return res.send({ success: false , message: "Accommodation not found!"});
         } else if (accommodationId > 0 && accommodationId !== 'undefined') {
           // If found and not underfined, find report ID by using user ID and accommodation ID
           ReportController_Report.getReportId(pool, userId, accommodationId, (err, reportId) => {
             if (err) {
               console.log("Get Report ID Error: " + err);
-              return res.send({ success: false });
+              return res.send({ success: false , message: "Report not found!"});
             } else if (reportId > 0 && reportId !== 'undefined') {
               // if found and not undefined, get the report with the corresponding user id and accommodation id
               const reportQuery = `SELECT * FROM report WHERE REPORT_ID = ? AND REPORT_DETAILS = ?`;
               pool.query(reportQuery, [reportId, details], (err, reportResult) => {
                 if (err) {
                   console.log("Get Report ID Error: " + err);
-                  return res.send({ success: false });
-                } else {
+                  return res.send({ success: false , message: "Report not found!"});
+                } else if (reportResult.length > 0) {
                   console.log("Report found! Sending report data...");
                   return res.send({
                     success: true,
@@ -184,21 +184,24 @@ exports.viewReport = (pool) => (req, res) => {
                     reportTimestamp: reportResult[0].REPORT_DATE,
                     accommodationName: accommName
                   });
+                } else {
+                  console.log("Report not found!");
+                  return res.send({ success: false , message: "Report not found!"});
                 }
               });
             } else {
               console.log("Report not found!");
-              return res.send({ success: false });
+              return res.send({ success: false , message: "Report not found!"});
             }
           });
         } else {
           console.log("Accommodation not found! Cannot select a report");
-          return res.send({ success: false })
+          return res.send({ success: false , message: "Accommodation not found!"})
         }
       });
     } else {
       console.log("User not found! Cannot select a report");
-      return res.send({ success: false });
+      return res.send({ success: false , message: "User not found!"});
     }
   });
 }

@@ -1,6 +1,8 @@
 // Imports
 const pdf = require('pdfkit');
-
+const {Accommodation: ReportController_Accommodation} = require('../models/accommodation');
+const {User: ReportController_User} = require('../models/user');
+const e = require('express');
 
 // ===================================== START OF REPORT MANAGEMENT FEATURES =====================================
   
@@ -133,5 +135,78 @@ exports.generateReport = (pool) => (req, res) => {
       }
     });
   }
+
+/* This code exports a function called `deleteReport` that takes a database connection pool as a
+parameter and returns a function that takes a request and response object as parameters. */
+exports.deleteReport = (pool) => (req, res) => {
+  const {userName, accommName} = req.body;
+
+  console.log("----------Delete Report Feature----------");
+  console.log("Username: " + userName);
+  console.log("Accommodation Name: " + accommName);
+
+  var uId = null;
+  var aId = null;
+
+  ReportController_User.getUserIdByUsername(pool, userName, (err, userId) => {
+    if(err){
+      console.log("Error: " + err);
+      return res.send({success: false});
+    }else if(userId > 0){
+      uId = userId;
+      ReportController_Accommodation.getAccommodationIdByName(pool, accommName, (err, accommId) => {
+        if(err){
+          console.log("Error: " + err);
+          return res.send({success: false});
+        }else if(accommId > 0){
+          aId = accommId;
+          
+          pool.getConnection((err, connection) => {
+            if(err){
+              console.log("Error: " + err);
+              return res.send({success: false});
+            }
+            connection.beginTransaction((err) => {
+              if(err){
+                console.log("Error: " + err);
+                return res.send({success: false});
+              }else{
+                const deleteQuery = `DELETE FROM report WHERE USER_ID = '?' AND ACCOMMODATION_ID = '?'`;
+
+                connection.query(deleteQuery, [uId, aId], (err, result) => {
+                  if(err){
+                    connection.rollback(() => {
+                      console.log("Error: " + err);
+                      return res.send({success: false});
+                    });
+                  }else if(result.affectedRows == 0){
+                    connection.rollback(() => {
+                      console.log("Error: Report not found");
+                      return res.send({success: false});
+                    });
+                  }else{
+                    connection.commit((err) => {
+                      if(err){
+                        connection.rollback(() => {
+                          console.log("Error: " + err);
+                          return res.send({success: false});
+                        });
+                      }else{
+                        console.log("Report successfully deleted");
+                        return res.send({success: true});
+                      }
+                    });
+                  }
+                });
+              }
+            });
+          });
+        }
+      });
+    }
+  });
+}
+
+
   
   // ===================================== END OF REPORT MANAGEMENT FEATURES =====================================

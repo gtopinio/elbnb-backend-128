@@ -45,7 +45,7 @@ app.use(upload.fields([{ name: 'accommodationName', maxCount: 1 }, { name: 'data
 const corsOptions = {
   origin: '*',
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  optionsSuccessStatus: 200,
 };
 
 app.use(cors(corsOptions));

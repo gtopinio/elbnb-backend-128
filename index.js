@@ -43,12 +43,12 @@ app.use(upload.fields([{ name: 'accommodationName', maxCount: 1 }, { name: 'data
 
 // allow CORS
 const corsOptions = {
-  origin: true,
+  origin: '*',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 };
 
-app.use(appLink, cors(corsOptions));
+app.use(cors(corsOptions));
 
 // Pass the database connection pool to your routes module
 require("./routes")(app, pool);

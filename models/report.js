@@ -24,7 +24,7 @@ const Report = {
                             }
                             } catch (err) {
                             console.log("Report Not Found...");
-                            callback(null, null);
+                            callback(null, false);
                             }
                             
                     }

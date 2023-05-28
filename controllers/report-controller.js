@@ -172,7 +172,7 @@ exports.generateReport = (pool) => (req, res) => {
                 return res.send({ success: false , message: "Error getting accommodation id"});
               } else if (accommodationId > 0 && typeof accommodationId != "undefined") {
                 // Check if report already exists using checkReportDup
-                Report.checkReportIfExists(pool, accommodationName, username, (err, reportExists) => {
+                ReportController_Report.checkReportIfExists(pool, accommodationName, username, (err, reportExists) => {
                   if(err){
                     console.log("Error: " + err);
                     return res.send({ success: false , message: "Error checking if report exists"});

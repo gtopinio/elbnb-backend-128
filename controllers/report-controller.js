@@ -151,25 +151,25 @@ exports.deleteReport = (pool) => (req, res) => {
   ReportController_User.getUserIdByUsername(pool, userName, (err, userId) => {
     if(err){
       console.log("Error: " + err);
-      return res.send({success: false});
+      return res.send({success: false, message: "Error in getting user id"});
     }else if(userId > 0){
       uId = userId;
       ReportController_Accommodation.getAccommodationIdByName(pool, accommName, (err, accommId) => {
         if(err){
           console.log("Error: " + err);
-          return res.send({success: false});
+          return res.send({success: false, message: "Error in getting accommodation id"});
         }else if(accommId > 0){
           aId = accommId;
           
           pool.getConnection((err, connection) => {
             if(err){
               console.log("Error: " + err);
-              return res.send({success: false});
+              return res.send({success: false, message: "Error in getting connection"});
             }
             connection.beginTransaction((err) => {
               if(err){
                 console.log("Error: " + err);
-                return res.send({success: false});
+                return res.send({success: false, message: "Error in starting transaction"});
               }else{
                 const deleteQuery = `DELETE FROM report WHERE USER_ID = ? AND ACCOMMODATION_ID = ? AND REPORT_DETAILS = ?`;
 
@@ -177,19 +177,19 @@ exports.deleteReport = (pool) => (req, res) => {
                   if(err){
                     connection.rollback(() => {
                       console.log("Error: " + err);
-                      return res.send({success: false});
+                      return res.send({success: false, message: "Error in deleting report"});
                     });
                   }else if(result.affectedRows == 0){
                     connection.rollback(() => {
                       console.log("Error: Report not found");
-                      return res.send({success: false});
+                      return res.send({success: false, message: "Report not found"});
                     });
                   }else{
                     connection.commit((err) => {
                       if(err){
                         connection.rollback(() => {
                           console.log("Error: " + err);
-                          return res.send({success: false});
+                          return res.send({success: false, message: "Error in committing transaction"});
                         });
                       }else{
                         console.log("Report successfully deleted");

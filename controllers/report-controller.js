@@ -152,7 +152,7 @@ exports.viewAllArchiveByOwner = (pool) => (req, res) => {
       console.log("Error: " + err);
       return res.send({ success: false });
     }
-    else if (accommodationId > 0 && typeof accommodationId !== 'undefined'){
+    else if (userID > 0 && typeof userID !== 'undefined'){
       const selectQuery = `SELECT * FROM accommodation WHERE ACCOMMODATION_ISARCHIVED = TRUE AND ACCOMMODATION_OWNER_ID = ?`;
 
       pool.query(selectQuery, [userID], (err, results) => {

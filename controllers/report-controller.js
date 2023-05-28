@@ -1,6 +1,9 @@
 // Imports
 const pdf = require('pdfkit');
 const { Review: ReportController_Report } = require('../models/report');
+const { Accommodation: ReportController_Accommodation } = require('../models/accommodation');
+const { User: ReportController_User } = require('../models/user');
+
 
 // ===================================== START OF REPORT MANAGEMENT FEATURES =====================================
   
@@ -133,5 +136,69 @@ exports.generateReport = (pool) => (req, res) => {
       }
     });
   }
-  
+
+
+// The viewReport function takes a database connection pool and returns a callback function that handles a POST request for viewing a single report.
+// The function takes the username and accommodation name from the request body and uses the helper functions ReportController_User.findBy
+// and ReportController_Accommodation.getAccommodationIdByName to identify the corresponding IDs.
+// The function then uses the user ID and accommodation ID to query the report table and get the ID of the given report.
+// If successful, the function returns a JSON response with the username, report review details, timestamp, accommodation name, and a success flag set to true.
+// If there is an error at any point, return a JSON respone with a success flag set to false.
+exports.viewReport = (pool) => (req, res) => {
+  const {username, accommName} = req.body;
+  console.log("----------View Single Report Feature----------");
+  console.log("Username: " + username);
+  console.log("Accommodation Name: " + accommName);
+
+  // Get user ID using username.
+  ReportController_User.findBy(pool, "USER_USERNAME", username, (err, userId) => {
+    if (err) {
+      console.log("Get User ID Error: " + err);
+      return res.send({ success: false });
+    } else if (userId > 0 && typeof userId !== 'undefined') {
+      // If found and not undefined, get accommodation ID by accommodation name.
+      ReportController_Accommodation.getAccommodationIdByName(pool, accommName, (err, accommodationId) => {
+        if (err) {
+          console.log("Get Accommodation ID Error: " + err);
+          return res.send({ success: false });
+        } else if (accommodationId > 0 && accommodationId !== 'undefined') {
+          // If found and not underfined, find report ID by using user ID and accommodation ID
+          ReportController_Report.getReportId(pool, userId, accommodationId, (err, reportId) => {
+            if (err) {
+              console.log("Get Report ID Error: " + err);
+              return res.send({ success: false });
+            } else if (reportId > 0 && reportId !== 'undefined') {
+              // if found and not undefined, get the report with the corresponding user id and accommodation id
+              const reportQuery = `SELECT * FROM report WHERE REPORT_ID = ?`;
+              pool.query(reportQuery, [reportId], (err, reportResult) => {
+                if (err) {
+                  console.log("Get Report ID Error: " + err);
+                  return res.send({ success: false });
+                } else {
+                  console.log("Report found! Sending report data...");
+                  return res.send({
+                    success: true,
+                    reportUsername: username,
+                    reportDetails: reportResult[0].REPORT_DETAILS,
+                    reportTimestamp: reportResult[0].REPORT_DATE,
+                    accommodationName: accommName
+                  });
+                }
+              });
+            } else {
+              console.log("Report not found!");
+              return res.send({ success: false });
+            }
+          });
+        } else {
+          console.log("Accommodation not found! Cannot select a report");
+          return res.send({ success: false })
+        }
+      });
+    } else {
+      console.log("User not found! Cannot select a report");
+      return res.send({ success: false });
+    }
+  });
+}
   // ===================================== END OF REPORT MANAGEMENT FEATURES =====================================

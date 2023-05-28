@@ -48,7 +48,7 @@ const corsOptions = {
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 };
 
-app.options('*', cors(corsOptions));
+app.use('*', cors(corsOptions));
 
 // Pass the database connection pool to your routes module
 require("./routes")(app, pool);

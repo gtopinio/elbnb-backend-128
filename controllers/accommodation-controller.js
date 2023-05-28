@@ -733,7 +733,7 @@ exports.getAccommodationPic = (pool) => async (req, res) => {
     });
 
     if (accommodationId > 0) {
-      const query = `SELECT PICTURE_ID FROM picture WHERE ACCOMMODATION_ID = ${accommodationId}`;
+      const query = `SELECT PICTURE_ID FROM picture WHERE ACCOMMODATION_ID = ${accommodationId} AND ROOM_ID IS NULL`;
       const results = await new Promise((resolve, reject) => {
         pool.query(query, (err, results) => {
           if (err) {

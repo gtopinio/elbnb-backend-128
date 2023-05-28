@@ -715,42 +715,55 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
 // If there is an error, it logs the error and sends a response with a success value of false and a message indicating an error occurred.
 // If there is no error, it sends a response with a success value of true and the image url
 exports.getAccommodationPic = (pool) => async (req, res) => {
-  
-  const accommodationName = req.body.accommodationName;
+  try {
+    const accommodationName = req.body.accommodationName;
 
-  console.log("========== GET ACCOMMODATION PICTURE ==========");
-  console.log("Accommodation Name: " + accommodationName);
+    console.log("========== GET ACCOMMODATION PICTURE ==========");
+    console.log("Accommodation Name: " + accommodationName);
 
-  var id = null;
-  AccommodationController_Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
-    if (err) {
-      console.log("Error: " + err);
-      return res.send({ success: false, message: "Error occurred while fetching the picture." });
-    } else if (accommodationId > 0) {
-      id = accommodationId;
-      // Get the picture id of the accommodation
-      const query = `SELECT PICTURE_ID FROM picture WHERE ACCOMMODATION_ID = ${id}`;
-      pool.query(query, (err, results) => {
+    const accommodationId = await new Promise((resolve, reject) => {
+      AccommodationController_Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
         if (err) {
           console.log("Error: " + err);
-          return res.send({ success: false , message: "Error occurred while fetching the picture."});
-        } else if (results.length === 0){
-          console.log("No accommodation image found!");
-          return res.send({ success: false , message: "No accommodation image found!"});
+          reject(err);
         } else {
-            const imageId = results[0].PICTURE_ID;
-            const imageUrl = cloudinary.url(imageId, {secure: true});
-            return res.send({ success: true, imageUrl: imageUrl });
-        
-      }
+          resolve(accommodationId);
+        }
       });
+    });
+
+    if (accommodationId > 0) {
+      const query = `SELECT PICTURE_ID FROM picture WHERE ACCOMMODATION_ID = ${accommodationId}`;
+      const results = await new Promise((resolve, reject) => {
+        pool.query(query, (err, results) => {
+          if (err) {
+            console.log("Error: " + err);
+            reject(err);
+          } else {
+            resolve(results);
+          }
+        });
+      });
+
+      if (results.length === 0) {
+        console.log("No accommodation image found!");
+        return res.send({ success: false, message: "No accommodation image found!" });
+      } else {
+        const imageId = results[0].PICTURE_ID;
+        const imageUrl = cloudinary.url(imageId, { secure: true });
+        console.log("Successfully fetched the accommodation image!");
+        return res.send({ success: true, imageUrl: imageUrl });
+      }
     } else {
-      // No accommodation found with the accommodationName
       console.log("No accommodation found with the name: " + accommodationName);
-      return res.send({ success: false , message: "No accommodation found with the name: " + accommodationName});
+      return res.send({ success: false, message: "No accommodation found with the name: " + accommodationName });
     }
-  });
-}
+  } catch (error) {
+    console.log("Error occurred while fetching the picture:", error);
+    return res.send({ success: false, message: "Error occurred while fetching the picture." });
+  }
+};
+
 
 // Function to remove an accommodation picture from cloudinary and the mysql database
 exports.removeAccommodationPicture = (pool) => (req, res) => {

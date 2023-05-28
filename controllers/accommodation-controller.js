@@ -565,7 +565,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
 
     query = query.slice(0, -4);
     query += 'GROUP BY accommodation.ACCOMMODATION_ID '
-    if (rating || maxPrice || capacity) {
+    if (maxPrice || capacity) {
       query += 'HAVING '
       if (maxPrice) {
         query += `MAX(room.ROOM_PRICE) <= ${maxPrice} AND `

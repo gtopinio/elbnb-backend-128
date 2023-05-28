@@ -179,7 +179,7 @@ exports.generateReport = (pool) => (req, res) => {
                   if(err){
                     console.log("Error: " + err);
                     return res.send({ success: false , message: "Error checking if report exists"});
-                  } else if (reportExists) {
+                  } else if (reportExists> 0 && typeof reportExists != "undefined") {
                     console.log("Report already exists!");
                     return res.send({ success: false , message: "Report already exists!"});
                   } else {

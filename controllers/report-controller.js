@@ -161,7 +161,7 @@ exports.generateReport = (pool) => (req, res) => {
       }
       else if(userId>0){
         uid = userId;
-        ReportController_Accommodation.getAccommodationIdByName(pool, accommName, (err, accommodationId) => {
+        ReportController_Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
           if(err){
             console.log("Error: " + err);
             return res.send({ success: false , message: "Error in adding report!"});

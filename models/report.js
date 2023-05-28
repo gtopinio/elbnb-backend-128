@@ -11,9 +11,21 @@ const Report = {
                 connection.query(checkQuery, [accommodationName, username], (err, result) => {
                     if (err) {
                         console.log("Check Report if Exists error: " + err);
-                        callback(err, null);
+                        callback(err, null)
                     } else {
-                        callback(null, result.length);
+                        try{
+                            if(typeof result[0].REPORT_ID === "undefined") {
+                                console.log("Get Report Id: Undefined Object");
+                                callback(null, 0);
+                            }
+                            else {
+                                console.log("Get Report Id: Defined Object");
+                                callback(null, result[0].REPORT_ID);
+                            }
+                            } catch (err) {
+                            console.log("Report Not Found...");
+                            callback(err, null);
+                            }
                     }
                 });
             }

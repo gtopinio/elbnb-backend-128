@@ -1,6 +1,6 @@
 // Imports
 const pdf = require('pdfkit');
-const { Review: ReportController_Report } = require('../models/report');
+const { Report: ReportController_Report } = require('../models/report');
 const { Accommodation: ReportController_Accommodation } = require('../models/accommodation');
 const { User: ReportController_User } = require('../models/user');
 
@@ -152,7 +152,7 @@ exports.viewReport = (pool) => (req, res) => {
   console.log("Report Details: " + details);
 
   // Get user ID using username.
-  ReportController_User.findBy(pool, "USER_USERNAME", username, (err, userId) => {
+  ReportController_User.getUserIdByUsername(pool, "USER_USERNAME", username, (err, userId) => {
     if (err) {
       console.log("Get User ID Error: " + err);
       return res.send({ success: false });

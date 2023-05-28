@@ -20,11 +20,11 @@ const Report = {
                             }
                             else {
                                 console.log("Get Report Id: Defined Object");
-                                callback(null, true);
+                                callback(null, false);
                             }
                             } catch (err) {
-                            console.log("Report Not Found...");
-                            callback(null, false);
+                                console.log("Report Not Found...");
+                                callback(null, true);
                             }
                             
                     }

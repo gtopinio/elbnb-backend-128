@@ -23,8 +23,8 @@ const Report = {
                                 callback(null, true);
                             }
                             } catch (err) {
-                            console.log("Accommodation Not Found...");
-                            callback(err, null);
+                            console.log("Report Not Found...");
+                            callback(null, null);
                             }
                             
                     }

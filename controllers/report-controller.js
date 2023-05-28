@@ -160,11 +160,13 @@ exports.generateReport = (pool) => (req, res) => {
         return res.send({ success: false , message: "Error connecting to database"});
       } else {
         // Check if user exists first using getUserIDByUsername
+        console.log("1 Here");
         ReportController_User.getUserIdByUsername(pool, username, (err, userId) => {
           if(err) {
             console.log("Error: " + err);
             return res.send({ success: false , message: "Error getting user id"});
           } else if (userId > 0 && typeof userId != "undefined") {
+            console.log("2 Here");
             // Check if accommodation exists using getAccommodationIdByName
             ReportController_Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
               if(err) {
@@ -172,6 +174,7 @@ exports.generateReport = (pool) => (req, res) => {
                 return res.send({ success: false , message: "Error getting accommodation id"});
               } else if (accommodationId > 0 && typeof accommodationId != "undefined") {
                 // Check if report already exists using checkReportDup
+                console.log("3 Here");
                 ReportController_Report.checkReportIfExists(pool, accommodationName, username, (err, reportExists) => {
                   if(err){
                     console.log("Error: " + err);

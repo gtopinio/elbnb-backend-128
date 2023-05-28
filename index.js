@@ -47,6 +47,7 @@ app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Methods", "POST, GET");
   res.setHeader("Access-Control-Allow-Headers", "Access-Control-Allow-Headers, Access-Control-Allow-Methods, Origin, Accept, Content-Type");
   res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.setHeader("Access-Control-Max-Age", "600");
   next();
 });
 

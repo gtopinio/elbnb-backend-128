@@ -143,68 +143,95 @@ exports.generateReport = (pool) => (req, res) => {
   // This function takes a database connection pool and lets the user add a new report based on the accommodation name.
   // It also checks first if the combination of the user id and accommodation id already exists in the reports table.
   exports.addReport = (pool) => (req, res) => {
-    const report = req.body.report;
-    const accommodationName = req.body.accommodationName;
-    const username = req.body.username;
-
-    console.log("================== ADDING REPORT ==================");
-    console.log("Accommodation Name: " + accommodationName);
-    console.log("Username: " + username);
-    console.log("Report details: " + report);
+    const{username, report, accommodationName} = req.body;
   
-    // Querying
-    pool.getConnection((err, connection) => {
-      if (err) {
-        // If error is encountered
+    console.log("----------Add Report Feature----------");
+    console.log("Report: " + report);
+    console.log("Username: " + username);
+    console.log("Accommodation Name: "+ accommodationName);
+
+  
+    var uid = null;
+    var accomid = null;
+  
+    ReportController_User.getUserIdByUsername(pool, userName, (err, userId) => {
+      if(err){
         console.log("Error: " + err);
-        return res.send({ success: false , message: "Error connecting to database"});
-      } else {
-        // Check if user exists first using getUserIDByUsername
-        console.log("1 Here");
-        ReportController_User.getUserIdByUsername(pool, username, (err, userId) => {
-          if(err) {
-            console.log("Error: " + err);
-            return res.send({ success: false , message: "Error getting user id"});
-          } else if (userId > 0 && typeof userId != "undefined") {
-            console.log("2 Here");
-            // Check if accommodation exists using getAccommodationIdByName
-            ReportController_Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
-              if(err) {
-                console.log("Error: " + err);
-                return res.send({ success: false , message: "Error getting accommodation id"});
-              } else if (accommodationId > 0 && typeof accommodationId != "undefined") {
-                // Check if report already exists using checkReportDup
-                console.log("3 Here");
-                ReportController_Report.checkReportIfExists(pool, accommodationName, username, (err, reportExists) => {
-                  if(err){
-                    console.log("Error: " + err);
-                    return res.send({ success: false , message: "Error checking if report exists"});
-                  } else if (reportExists> 0 && typeof reportExists != "undefined") {
-                    console.log("Report already exists!");
-                    return res.send({ success: false , message: "Report already exists!"});
-                  } else {
-                    // Insert report
-                    const insertQuery = `INSERT INTO report (USER_ID, ACCOMMODATION_ID, REPORT_DETAILS) VALUES (?, ?, ?)`;
-                    connection.query(insertQuery, [userId, accommodationId, report], (err, result) => {
-                      if (err) {
-                        console.log("Error: " + err);
-                        return res.send({ success: false , message: "Error committing transaction"});
-                      } else {
-                        console.log("Report successfully added!");
-                        return res.send({ success: true , message: "Report successfully added!"});
-                      }
-                      });
-                 }})} 
-              else {
-                console.log("Accommodation does not exist!");
-                return res.send({ success: false , message: "Accommodation does not exist!"});
-              }
-            });
-          } else {
-            console.log("User does not exist!");
-            return res.send({ success: false , message: "User does not exist!"});
-          }
-        });
+        return res.send({ success: false , message: "Error in adding report!"});
       }
-    });
+      else if(userId>0){
+        uid = userId;
+        ReportController_Accommodation.getAccommodationIdByName(pool, accommName, (err, accommodationId) => {
+          if(err){
+            console.log("Error: " + err);
+            return res.send({ success: false , message: "Error in adding report!"});
+          }
+          else if(accommodationId>0){
+            accomid = accommodationId;
+  
+            pool.getConnection((err, connection) => {
+              if(err){
+                console.log("Get Connection Error" + err);
+                return res.send({ success: false , message: "Error in adding report!"});
+              }
+  
+              connection.beginTransaction((err) => {
+                if(err){
+                  console.log("Error: " + err);
+                  return res.send({ success: false , message: "Error in adding report!"});
+                }
+                else{
+                  const selectQuery = `SELECT COUNT(*) AS count FROM report WHERE USER_ID = ? AND ACCOMMODATION_ID = ?`;
+                  
+                  connection.query(selectQuery, [uid, accomid], (err, result) => {
+                    if(err){
+                      console.log("Error: " + err);
+                      return res.send({ success: false , message: "Error in adding report!"})
+                    }
+                    else if(result[0].count>0){
+                      console.log("Report from user already exist");
+                      return res.send({ success: false , message: "Report from user already exist!"})
+                    }
+                    else{
+                      const insertQuery = `INSERT INTO report (REPORT_DETAILS, USER_ID, ACCOMMODATION_ID) VALUES (?, ?, ?)`;
+  
+                      connection.query(insertQuery, [report, uid, accomid], (err, result1) => {
+                        if(err){
+                          connection.rollback(() => {
+                            console.log("Insert report error: " + err);
+                            return res.send({ success: false , message: "Error in adding report!"});
+                          })
+                        }
+                        else{
+                          connection.commit((err) => {
+                            if(err){
+                              connection.rollback(() => {
+                                console.log("Commit error: " + err);
+                                return res.send({ success: false , message: "Error in adding report!"});
+                              })
+                            }
+                            else{
+                              console.log("Reporrt has been inserted!");
+                              return res.send({ success: true });
+                            }
+                          })
+                        }
+                      })
+                    }
+                  })
+                }
+              })
+            });
+          }
+          else{
+            console.log("Accomodation not found! Cannot add report");
+            return res.send({ success: false });
+          }
+        })
+      }
+      else{
+        console.log("User not found! Cannot add report");
+        return res.send({ success: false });
+      }
+    })
   }

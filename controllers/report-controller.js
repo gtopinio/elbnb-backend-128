@@ -133,5 +133,31 @@ exports.generateReport = (pool) => (req, res) => {
       }
     });
   }
-  
+
+// This function only needs a connection pool, and gets all of the entries
+// in the report table, ordered by the timestamp according to recency 
+// (most recent at top)
+exports.viewAllReports = (pool) => (req, res) => {
+  console.log("========== View All Reports ==========");
+
+  // Querying
+  pool.getConnection((err, connection) => {
+    if (err) {
+      // If error occured in starting connection
+      console.log("Error: " + err);
+      return res.send({ success: false });
+    } else {
+      connection.query('SELECT * FROM report ORDER BY timestamp(REPORT_DATE) DESC', (err, results) => {
+        // Getting the results
+        if (err) {
+          console.log("Error: " + err);
+          return res.send({ success: false });
+        } else {
+          return res.send({ success: true, results });
+        }
+      });
+    }
+  });
+}
+
   // ===================================== END OF REPORT MANAGEMENT FEATURES =====================================

@@ -144,8 +144,8 @@ exports.generateReport = (pool) => (req, res) => {
   // It also checks first if the combination of the user id and accommodation id already exists in the reports table.
   exports.addReport = (pool) => (req, res) => {
     const report = req.body.report;
-    const accommodationName = report.body.accommodationName;
-    const username = report.body.username;
+    const accommodationName = req.body.accommodationName;
+    const username = req.body.username;
 
     console.log("================== ADDING REPORT ==================");
     console.log("Accommodation Name: " + accommodationName);

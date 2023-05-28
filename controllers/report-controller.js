@@ -183,33 +183,17 @@ exports.generateReport = (pool) => (req, res) => {
                     console.log("Report already exists!");
                     return res.send({ success: false , message: "Report already exists!"});
                   } else {
-                    // Begin transaction
-                    connection.beginTransaction((err) => {
+                    // Insert report
+                    const insertQuery = `INSERT INTO report (USER_ID, ACCOMMODATION_ID, REPORT_DETAILS) VALUES (?, ?, ?)`;
+                    connection.query(insertQuery, [userId, accommodationId, report], (err, result) => {
                       if (err) {
                         console.log("Error: " + err);
-                        return res.send({ success: false , message: "Error beginning transaction"});
+                        return res.send({ success: false , message: "Error committing transaction"});
                       } else {
-                        // Insert report
-                        const insertQuery = `INSERT INTO report (USER_ID, ACCOMMODATION_ID, REPORT_DETAILS) VALUES (?, ?, ?)`;
-                        connection.query(insertQuery, [userId, accommodationId, report], (err, result) => {
-                          if (err) {
-                            console.log("Error: " + err);
-                            return res.send({ success: false , message: "Error inserting report"});
-                          } else {
-                            // Commit transaction
-                            connection.commit((err) => {
-                              if (err) {
-                                console.log("Error: " + err);
-                                return res.send({ success: false , message: "Error committing transaction"});
-                              } else {
-                                console.log("Report successfully added!");
-                                return res.send({ success: true , message: "Report successfully added!"});
-                              }
-                            });
-                          }
-                        });
+                        console.log("Report successfully added!");
+                        return res.send({ success: true , message: "Report successfully added!"});
                       }
-                    });
+                      });
                  }})} 
               else {
                 console.log("Accommodation does not exist!");

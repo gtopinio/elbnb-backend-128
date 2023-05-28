@@ -63,4 +63,5 @@ module.exports = (app, pool) => {
     
     // report management endpoints
     app.post("/generate-report", reportController.generateReport(pool));
+    app.post("/view-report", reportController.viewReport(pool));
 }

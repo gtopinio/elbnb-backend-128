@@ -13,20 +13,7 @@ const Report = {
                         console.log("Check Report if Exists error: " + err);
                         callback(err, null);
                     } else {
-                        try{
-                            if(typeof result[0].REPORT_ID === "undefined") {
-                                console.log("Get Report Id: Undefined Object");
-                                callback(null, null);
-                            }
-                            else {
-                                console.log("Get Report Id: Defined Object");
-                                callback(null, false);
-                            }
-                            } catch (err) {
-                                console.log("Report Not Found...");
-                                callback(null, true);
-                            }
-                            
+                        callback(null, result.length);
                     }
                 });
             }

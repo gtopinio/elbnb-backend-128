@@ -714,7 +714,7 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
 // After getting the id, we look through the picture table for the picture with the same accommodation id and get the picture id and use it to access the image url from Cloudinary.
 // If there is an error, it logs the error and sends a response with a success value of false and a message indicating an error occurred.
 // If there is no error, it sends a response with a success value of true and the image url
-exports.getAccommodationPic = (pool) => (req, res) => {
+exports.getAccommodationPic = (pool) => async (req, res) => {
   const accommodationName = req.body.accommodationName;
 
   console.log("========== GET ACCOMMODATION PICTURE ==========");

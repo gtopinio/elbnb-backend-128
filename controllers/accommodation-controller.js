@@ -715,11 +715,7 @@ exports.uploadAccommodationPic = (pool) => async (req, res) => {
 // If there is an error, it logs the error and sends a response with a success value of false and a message indicating an error occurred.
 // If there is no error, it sends a response with a success value of true and the image url
 exports.getAccommodationPic = (pool) => async (req, res) => {
-  if(req.method === 'OPTIONS'){
-    console.log("OPTIONS SUCCESS");
-    return res.send({success: false});
-  } else {
-
+  
   const accommodationName = req.body.accommodationName;
 
   console.log("========== GET ACCOMMODATION PICTURE ==========");
@@ -754,7 +750,6 @@ exports.getAccommodationPic = (pool) => async (req, res) => {
       return res.send({ success: false , message: "No accommodation found with the name: " + accommodationName});
     }
   });
-}
 }
 
 // Function to remove an accommodation picture from cloudinary and the mysql database

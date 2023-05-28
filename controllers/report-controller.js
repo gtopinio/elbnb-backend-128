@@ -179,7 +179,7 @@ exports.generateReport = (pool) => (req, res) => {
                   } else if (reportExists === true) {
                     console.log("Report already exists!");
                     return res.send({ success: false , message: "Report already exists!"});
-                  } else {
+                  } else if(reportExists === null) {
                     // Begin transaction
                     connection.beginTransaction((err) => {
                       if (err) {

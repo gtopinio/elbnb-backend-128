@@ -13,7 +13,20 @@ const Report = {
                         console.log("Check Report if Exists error: " + err);
                         callback(err, null);
                     } else {
-                        callback(null, result.length > 0);
+                        try{
+                            if(typeof result[0].REPORT_ID === "undefined") {
+                                console.log("Get Report Id: Undefined Object");
+                                callback(null, null);
+                            }
+                            else {
+                                console.log("Get Report Id: Defined Object");
+                                callback(null, true);
+                            }
+                            } catch (err) {
+                            console.log("Accommodation Not Found...");
+                            callback(err, null);
+                            }
+                            
                     }
                 });
             }

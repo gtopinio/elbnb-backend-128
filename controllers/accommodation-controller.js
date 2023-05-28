@@ -532,37 +532,29 @@ exports.viewAccommodation = (pool) => (req, res) => {
 exports.filterAccommodations = (pool) => (req, res) => {
     const filters = req.body.filters;
     const name = filters.name;
-    const address = filters.address;
     const location = filters.location;
     const type = filters.type;
-    const owner = filters.ownerUsername;
-    const rating = filters.rating;
     const maxPrice = filters.maxPrice;
     const capacity = filters.capacity;
 
     console.log("========== FILTER ACCOMMODATIONS ==========");
     console.log("Name: " + name);
-    console.log("Address: " + address);
     console.log("Location: " + location);
     console.log("Type: " + type);
-    console.log("Owner: " + owner);
-    console.log("Rating: " + rating);
     console.log("Max Price: " + maxPrice);
     console.log("Capacity: " + capacity);
 
   
     // Building the query
-    let query = 'SELECT accommodation.*, MAX(room.ROOM_PRICE) AS max_price, user.USER_USERNAME, AVG(review.REVIEW_RATING) AS rating, MIN(room.ROOM_CAPACITY) AS min_capacity, MAX(room.ROOM_CAPACITY) as max_capacity ' +
-                'FROM user INNER JOIN accommodation ON user.USER_ID = accommodation.ACCOMMODATION_OWNER_ID ' + 
-                'INNER JOIN review ON accommodation.ACCOMMODATION_ID = review.ACCOMMODATION_ID ' +
-                'LEFT JOIN room ON accommodation.ACCOMMODATION_ID = room.ACCOMMODATION_ID ' + 
-                'WHERE accommodation.ACCOMMODATION_ISARCHIVED = false AND room.ROOM_ISARCHIVED = false AND '
+    let query = 'SELECT accommodation.*, MAX(room.ROOM_PRICE) AS max_price, MIN(room.ROOM_CAPACITY) AS min_capacity, MAX(room.ROOM_CAPACITY) as max_capacity ' +
+    'FROM accommodation ' + 
+    'review ON accommodation.ACCOMMODATION_ID = review.ACCOMMODATION_ID ' +
+    'LEFT JOIN room ON accommodation.ACCOMMODATION_ID = room.ACCOMMODATION_ID ' + 
+    'WHERE accommodation.ACCOMMODATION_ISARCHIVED = false AND room.ROOM_ISARCHIVED = false AND ';
+
 
     if (name) {
       query += `accommodation.ACCOMMODATION_NAME LIKE '%${name}%' AND `
-    }
-    if (address) {
-      query += `accommodation.ACCOMMODATION_ADDRESS LIKE '%${address}%' AND `
     }
     if (location) {
       query += `accommodation.ACCOMMODATION_LOCATION = '${location}' AND `
@@ -570,16 +562,11 @@ exports.filterAccommodations = (pool) => (req, res) => {
     if (type) {
       query += `accommodation.ACCOMMODATION_TYPE = '${type}' AND `
     }
-    if (owner) {
-      query += `user.USER_USERNAME = '${owner}' AND `
-    }
+
     query = query.slice(0, -4);
     query += 'GROUP BY accommodation.ACCOMMODATION_ID '
     if (rating || maxPrice || capacity) {
       query += 'HAVING '
-      if (rating) {
-        query += `AVG(review.REVIEW_RATING) >= '${rating}' AND `
-      }
       if (maxPrice) {
         query += `MAX(room.ROOM_PRICE) <= ${maxPrice} AND `
       }

@@ -152,7 +152,7 @@ exports.viewReport = (pool) => (req, res) => {
   console.log("Report Details: " + details);
 
   // Get user ID using username.
-  ReportController_User.getUserIdByUsername(pool, "USER_USERNAME", username, (err, userId) => {
+  ReportController_User.getUserIdByUsername(pool, username, (err, userId) => {
     if (err) {
       console.log("Get User ID Error: " + err);
       return res.send({ success: false });

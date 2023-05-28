@@ -139,16 +139,17 @@ exports.generateReport = (pool) => (req, res) => {
 
 
 // The viewReport function takes a database connection pool and returns a callback function that handles a POST request for viewing a single report.
-// The function takes the username and accommodation name from the request body and uses the helper functions ReportController_User.findBy
-// and ReportController_Accommodation.getAccommodationIdByName to identify the corresponding IDs.
-// The function then uses the user ID and accommodation ID to query the report table and get the ID of the given report.
+// The function takes the username, accommodation name, and report details from the request body and uses the helper functions ReportController_User.findBy
+// and ReportController_Accommodation.getAccommodationIdByName to identify the corresponding IDs of the username and accommodation name.
+// The function then uses the user ID, accommodation ID, and report details to query the report table and get the ID of the given report.
 // If successful, the function returns a JSON response with the username, report review details, timestamp, accommodation name, and a success flag set to true.
-// If there is an error at any point, return a JSON respone with a success flag set to false.
+// If there is an error at any point, returns a JSON respone with a success flag set to false.
 exports.viewReport = (pool) => (req, res) => {
-  const {username, accommName} = req.body;
+  const {username, accommName, details} = req.body;
   console.log("----------View Single Report Feature----------");
   console.log("Username: " + username);
   console.log("Accommodation Name: " + accommName);
+  console.log("Report Details: " + details);
 
   // Get user ID using username.
   ReportController_User.findBy(pool, "USER_USERNAME", username, (err, userId) => {
@@ -169,8 +170,8 @@ exports.viewReport = (pool) => (req, res) => {
               return res.send({ success: false });
             } else if (reportId > 0 && reportId !== 'undefined') {
               // if found and not undefined, get the report with the corresponding user id and accommodation id
-              const reportQuery = `SELECT * FROM report WHERE REPORT_ID = ?`;
-              pool.query(reportQuery, [reportId], (err, reportResult) => {
+              const reportQuery = `SELECT * FROM report WHERE REPORT_ID = ? AND REPORT_DETAILS = ?`;
+              pool.query(reportQuery, [reportId, details], (err, reportResult) => {
                 if (err) {
                   console.log("Get Report ID Error: " + err);
                   return res.send({ success: false });

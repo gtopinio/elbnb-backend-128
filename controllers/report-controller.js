@@ -2,6 +2,7 @@
 const pdf = require('pdfkit');
 const { User: ReportController_User } = require('../models/user');
 const { Accommodation: ReportController_Accommodation } = require('../models/accommodation');
+const { Report: ReportController_Report } = require('../models/report');
 
 
 // ===================================== START OF REPORT MANAGEMENT FEATURES =====================================
@@ -137,3 +138,86 @@ exports.generateReport = (pool) => (req, res) => {
   }
   
   // ===================================== END OF REPORT MANAGEMENT FEATURES =====================================
+
+  
+  // This function takes a database connection pool and lets the user add a new report based on the accommodation name.
+  // It also checks first if the combination of the user id and accommodation id already exists in the reports table.
+  exports.addReport = (pool) => (req, res) => {
+    const report = req.body.report;
+    const accommodationName = report.body.accommodationName;
+    const username = report.body.username;
+
+    console.log("================== ADDING REPORT ==================");
+    console.log("Accommodation Name: " + accommodationName);
+    console.log("Username: " + username);
+    console.log("Report details: " + report);
+  
+    // Querying
+    pool.getConnection((err, connection) => {
+      if (err) {
+        // If error is encountered
+        console.log("Error: " + err);
+        return res.send({ success: false , message: "Error connecting to database"});
+      } else {
+        // Check if user exists first using getUserIDByUsername
+        ReportController_User.getUserIdByUsername(pool, username, (err, userId) => {
+          if(err) {
+            console.log("Error: " + err);
+            return res.send({ success: false , message: "Error getting user id"});
+          } else if (userId > 0 && typeof userId != "undefined") {
+            // Check if accommodation exists using getAccommodationIdByName
+            ReportController_Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+              if(err) {
+                console.log("Error: " + err);
+                return res.send({ success: false , message: "Error getting accommodation id"});
+              } else if (accommodationId > 0 && typeof accommodationId != "undefined") {
+                // Check if report already exists using checkReportDup
+                Report.checkReportIfExists(pool, accommodationName, username, (err, reportExists) => {
+                  if(err){
+                    console.log("Error: " + err);
+                    return res.send({ success: false , message: "Error checking if report exists"});
+                  } else if (reportExists) {
+                    console.log("Report already exists!");
+                    return res.send({ success: false , message: "Report already exists!"});
+                  } else {
+                    // Begin transaction
+                    connection.beginTransaction((err) => {
+                      if (err) {
+                        console.log("Error: " + err);
+                        return res.send({ success: false , message: "Error beginning transaction"});
+                      } else {
+                        // Insert report
+                        const insertQuery = `INSERT INTO report (USER_ID, ACCOMMODATION_ID, REPORT_DETAILS) VALUES (?, ?, ?)`;
+                        connection.query(insertQuery, [userId, accommodationId, report], (err, result) => {
+                          if (err) {
+                            console.log("Error: " + err);
+                            return res.send({ success: false , message: "Error inserting report"});
+                          } else {
+                            // Commit transaction
+                            connection.commit((err) => {
+                              if (err) {
+                                console.log("Error: " + err);
+                                return res.send({ success: false , message: "Error committing transaction"});
+                              } else {
+                                console.log("Report successfully added!");
+                                return res.send({ success: true , message: "Report successfully added!"});
+                              }
+                            });
+                          }
+                        });
+                      }
+                    });
+                 }})} 
+              else {
+                console.log("Accommodation does not exist!");
+                return res.send({ success: false , message: "Accommodation does not exist!"});
+              }
+            });
+          } else {
+            console.log("User does not exist!");
+            return res.send({ success: false , message: "User does not exist!"});
+          }
+        });
+      }
+    });
+  }

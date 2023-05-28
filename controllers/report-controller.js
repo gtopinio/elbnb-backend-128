@@ -154,7 +154,7 @@ exports.generateReport = (pool) => (req, res) => {
     var uid = null;
     var accomid = null;
   
-    ReportController_User.getUserIdByUsername(pool, userName, (err, userId) => {
+    ReportController_User.getUserIdByUsername(pool, username, (err, userId) => {
       if(err){
         console.log("Error: " + err);
         return res.send({ success: false , message: "Error in adding report!"});

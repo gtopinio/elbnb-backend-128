@@ -7,7 +7,7 @@ const Report = {
                 console.log("Error: " + err);
                 callback(err, null);
             } else {
-                const checkQuery = `SELECT REPORT_ID FROM report WHERE ACCOMMODATION_NAME = ? AND USER_USERNAME = ?`;
+                const checkQuery = `SELECT REPORT_ID FROM report WHERE ACCOMMODATION_ID = ? AND USER_ID = ?`;
                 connection.query(checkQuery, [accommodationName, username], (err, result) => {
                     if (err) {
                         console.log("Check Report if Exists error: " + err);

@@ -1,6 +1,6 @@
 // Imports
 const pdf = require('pdfkit');
-
+const { Review: ReportController_Report } = require('../models/report');
 
 // ===================================== START OF REPORT MANAGEMENT FEATURES =====================================
   

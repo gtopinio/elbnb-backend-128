@@ -1,17 +1,17 @@
 const Report = {
-    getReportIdByUsernameAndAccommName: (pool, username, accommodationName, callback) => {
-        // This function takes a database connection pool, a username, accommodation name, and a callback function as inputs.
-        // The function queries the database to retrieve the ID of a report with the corresponding username and accommodation name and passes the result to the callback function.
+    getReportId: (pool, userId, accommodationId, callback) => {
+        // This function takes a database connection pool, a user ID, accommodation ID, and a callback function as inputs.
+        // The function queries the database to retrieve the ID of a report with the corresponding user ID and accommodation ID and passes the result to the callback function.
         // If there is an error in the database query or connection, it logs the rror and passes it to the callback function as the first parameter.
         pool.getConnection((err, connection) => {
             if (err) {
                 console.log(err);
                 callback(err, null);
             } else {
-                const checkQuery = `SELECT REPORT_ID FROM report WHERE ACCOMMODATION_NAME = ? AND USER_USERNAME = ?`;
-                connection.query(checkQuery, [accommodationName, username], (err, result) => {
+                const checkQuery = `SELECT REPORT_ID FROM report WHERE ACCOMMODATION_ID = ? AND USER_ID = ?`;
+                connection.query(checkQuery, [accommodationId, userId], (err, result) => {
                     if (err) {
-                        console.log("Get Report ID by Username and Accommodation Name error: " + err);
+                        console.log("Get Report ID by User ID and Accommodation ID error: " + err);
                         callback(err, null);
                     } else {
                         try{

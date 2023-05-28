@@ -181,18 +181,6 @@ exports.generateReport = (pool) => (req, res) => {
                   return res.send({ success: false , message: "Error in adding report!"});
                 }
                 else{
-                  const selectQuery = `SELECT COUNT(*) AS count FROM report WHERE USER_ID = ? AND ACCOMMODATION_ID = ?`;
-                  
-                  connection.query(selectQuery, [uid, accomid], (err, result) => {
-                    if(err){
-                      console.log("Error: " + err);
-                      return res.send({ success: false , message: "Error in adding report!"})
-                    }
-                    else if(result[0].count>0){
-                      console.log("Report from user already exist");
-                      return res.send({ success: false , message: "Report from user already exist!"})
-                    }
-                    else{
                       const insertQuery = `INSERT INTO report (REPORT_DETAILS, USER_ID, ACCOMMODATION_ID) VALUES (?, ?, ?)`;
   
                       connection.query(insertQuery, [report, uid, accomid], (err, result1) => {
@@ -216,9 +204,7 @@ exports.generateReport = (pool) => (req, res) => {
                             }
                           })
                         }
-                      })
-                    }
-                  })
+                      });
                 }
               })
             });

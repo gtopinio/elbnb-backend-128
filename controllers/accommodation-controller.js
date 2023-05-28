@@ -602,13 +602,16 @@ exports.filterAccommodations = (pool) => (req, res) => {
           if (err) {
             console.log("Error: " + err) 
             return res.send({ success: false });
-          } else {
+          } else if (results.length > 0) {
             // Printing the results of the query in numbered list
             console.log("========== FOUND ACCOMMODATIONS ==========");
             for (let i = 0; i < results.length; i++) {
               console.log(i + 1 + ". " + results[i].ACCOMMODATION_NAME);
             }
             return res.send({ message: "Accommodations found!", accommodations: results });
+          } else {
+            console.log("No accommodations found!");
+            return res.send({ message: "No accommodations found!" });
           }
         })
       }

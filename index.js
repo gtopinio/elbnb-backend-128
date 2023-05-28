@@ -47,7 +47,7 @@ const corsOptions = {
   credentials: true,
 };
 
-app.use('*', cors(corsOptions));
+app.options('*', cors(corsOptions)); // preflight OPTIONS; put before other routes
 
 // Pass the database connection pool to your routes module
 require("./routes")(app, pool);

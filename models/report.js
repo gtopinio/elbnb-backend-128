@@ -1,5 +1,8 @@
 const Report = {
-    getReportIdByUsernameAndAccommName: (pool, accommodationName, username, callback) => {
+    getReportIdByUsernameAndAccommName: (pool, username, accommodationName, callback) => {
+        // This function takes a database connection pool, a username, accommodation name, and a callback function as inputs.
+        // The function queries the database to retrieve the ID of a report with the corresponding username and accommodation name and passes the result to the callback function.
+        // If there is an error in the database query or connection, it logs the rror and passes it to the callback function as the first parameter.
         pool.getConnection((err, connection) => {
             if (err) {
                 console.log(err);

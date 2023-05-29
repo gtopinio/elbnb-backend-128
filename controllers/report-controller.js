@@ -1,5 +1,8 @@
 // Imports
 const pdf = require('pdfkit');
+// Import the necessary models.
+const { Accommodation: ReportController_Accommodation } = require("../models/accommodation");
+const { User: ReportController_User } = require("../models/user");
 
 
 // ===================================== START OF REPORT MANAGEMENT FEATURES =====================================
@@ -133,5 +136,94 @@ exports.generateReport = (pool) => (req, res) => {
       }
     });
   }
-  
+
+  // ===================================== START OF REVIEW + FAVORITE + RATING MANAGEMENT FEATURES =====================================
+
+// This is a function that allows the user to leave a rating and review an accomodation.
+// It takes a database connection pool as input, along with the rating, comment, username, timestamp and accommodation name.
+// It then queries the database to retrieve the user ID and accommodation ID for the provided username and accommodation name.
+// If the user ID and accommodation ID are found, it inserts the rating and review into the database.
+// Otherwise, it returns a response indicating the unsuccessful operation to the client.
+exports.addReport = (pool) => (req, res) => {
+  const{details, userName, accommName} = req.body;
+
+  console.log("----------Add Report Feature----------");
+  console.log("Details: " + details);
+  console.log("Username: " + userName);
+  console.log("Accommodation Name: "+ accommName);
+
+
+  var uid = null;
+  var accomid = null;
+
+  ReportController_User.getUserIdByUsername(pool, userName, (err, userId) => {
+    if(err){
+      console.log("Error: " + err);
+      return res.send({ success: false });
+    }
+    else if(userId>0){
+      uid = userId;
+      ReportController_Accommodation.getAccommodationIdByName(pool, accommName, (err, accommodationId) => {
+        if(err){
+          console.log("Error: " + err);
+          return res.send({ success: false });
+        }
+        else if(accommodationId>0){
+          accomid = accommodationId;
+
+          pool.getConnection((err, connection) => {
+            if(err){
+              console.log("Get Connection Error" + err);
+              return res.send({ success: false });
+            }
+
+            connection.beginTransaction((err) => {
+              if(err){
+                console.log("Error: " + err);
+                return res.send({ success: false });
+              }
+              else{
+                const insertQuery = `INSERT INTO report (REPORT_DETAILS, ACCOMMODATION_ID, USER_ID) VALUES (?, ?, ?)`;
+
+                connection.query(insertQuery, [details, accomid, uid], (err, result) => {
+                  if(err){
+                    connection.rollback(() => {
+                      console.log("Insert report error: " + err);
+                      return res.send({ success: false });
+                    })
+                  }
+                  else{
+                    connection.commit((err) => {
+                      if(err){
+                        connection.rollback(() => {
+                          console.log("Commit error: " + err);
+                          return res.send({ success: false });
+                        })
+                      }
+                      else{
+                        console.log("Report has been inserted!");
+                        return res.send({ success: true });
+                      }
+                    })
+                  }
+                })
+              }
+            })
+          });
+        }
+        else{
+          console.log("Accomodation not found! Cannot add report");
+          return res.send({ success: false });
+        }
+      })
+    }
+    else{
+      console.log("User not found! Cannot add report");
+      return res.send({ success: false });
+    }
+  })
+}
+
+
+
   // ===================================== END OF REPORT MANAGEMENT FEATURES =====================================

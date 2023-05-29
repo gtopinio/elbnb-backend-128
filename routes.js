@@ -8,6 +8,9 @@ module.exports = (app, pool) => {
     // endpoints with GET method
     app.get("/view-all-students", userController.viewAllStudents(pool));
     app.get("/view-all-owners", userController.viewAllOwners(pool));
+    
+    // report management endpoints
+    app.get("/view-all-reports", reportController.viewAllReports(pool));
 
     // endpoints with POST method
 

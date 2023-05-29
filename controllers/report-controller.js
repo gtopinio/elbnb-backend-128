@@ -137,82 +137,6 @@ exports.generateReport = (pool) => (req, res) => {
     });
   }
 
-/* This code exports a function called `deleteReport` that takes a database connection pool as a
-parameter and returns a function that takes a request and response object as parameters. */
-exports.deleteReport = (pool) => (req, res) => {
-  const {userName, accommName, details} = req.body;
-
-  console.log("----------Delete Report Feature----------");
-  console.log("Username: " + userName);
-  console.log("Accommodation Name: " + accommName);
-
-  var uId = null;
-  var aId = null;
-
-  ReportController_User.getUserIdByUsername(pool, userName, (err, userId) => {
-    if(err){
-      console.log("Error: " + err);
-      return res.send({success: false, message: "Error in getting user id"});
-    }else if(userId > 0){
-      uId = userId;
-      ReportController_Accommodation.getAccommodationIdByName(pool, accommName, (err, accommId) => {
-        if(err){
-          console.log("Error: " + err);
-          return res.send({success: false, message: "Error in getting accommodation id"});
-        }else if(accommId > 0){
-          aId = accommId;
-          
-          pool.getConnection((err, connection) => {
-            if(err){
-              console.log("Error: " + err);
-              return res.send({success: false, message: "Error in getting connection"});
-            }
-            connection.beginTransaction((err) => {
-              if(err){
-                console.log("Error: " + err);
-                return res.send({success: false, message: "Error in starting transaction"});
-              }else{
-                const deleteQuery = `DELETE FROM report WHERE USER_ID = ? AND ACCOMMODATION_ID = ? AND REPORT_DETAILS = ?`;
-
-                connection.query(deleteQuery, [uId, aId, details], (err, result) => {
-                  if(err){
-                    connection.rollback(() => {
-                      console.log("Error: " + err);
-                      return res.send({success: false, message: "Error in deleting report"});
-                    });
-                  }else if(result.affectedRows == 0){
-                    connection.rollback(() => {
-                      console.log("Error: Report not found");
-                      return res.send({success: false, message: "Report not found"});
-                    });
-                  }else{
-                    connection.commit((err) => {
-                      if(err){
-                        connection.rollback(() => {
-                          console.log("Error: " + err);
-                          return res.send({success: false, message: "Error in committing transaction"});
-                        });
-                      }else{
-                        console.log("Report successfully deleted");
-                        return res.send({success: true});
-                      }
-                    });
-                  }
-                });
-              }
-            });
-          });
-        }
-      });
-    }
-  });
-}
-
-
-  
-  // ===================================== END OF REPORT MANAGEMENT FEATURES =====================================
-
-  
   // This function takes a database connection pool and lets the user add a new report based on the accommodation name.
   // It also checks first if the combination of the user id and accommodation id already exists in the reports table.
   exports.addReport = (pool) => (req, res) => {
@@ -294,3 +218,105 @@ exports.deleteReport = (pool) => (req, res) => {
       }
     })
   }
+
+
+// This function only needs a connection pool, and gets all of the entries
+// in the report table, ordered by the timestamp according to recency 
+// (most recent at top)
+exports.viewAllReports = (pool) => (req, res) => {
+  console.log("========== View All Reports ==========");
+
+  // Querying
+  pool.getConnection((err, connection) => {
+    if (err) {
+      // If error occured in starting connection
+      console.log("Error: " + err);
+      return res.send({ success: false });
+    } else {
+      connection.query('SELECT * FROM report ORDER BY timestamp(REPORT_DATE) DESC', (err, results) => {
+        // Getting the results
+        if (err) {
+          console.log("Error: " + err);
+          return res.send({ success: false });
+        } else {
+          return res.send({ success: true, results });
+        }
+      });
+    }
+  });
+}
+
+/* This code exports a function called `deleteReport` that takes a database connection pool as a
+parameter and returns a function that takes a request and response object as parameters. */
+exports.deleteReport = (pool) => (req, res) => {
+  const {userName, accommName, details} = req.body;
+
+  console.log("----------Delete Report Feature----------");
+  console.log("Username: " + userName);
+  console.log("Accommodation Name: " + accommName);
+
+  var uId = null;
+  var aId = null;
+
+  ReportController_User.getUserIdByUsername(pool, userName, (err, userId) => {
+    if(err){
+      console.log("Error: " + err);
+      return res.send({success: false, message: "Error in getting user id"});
+    }else if(userId > 0){
+      uId = userId;
+      ReportController_Accommodation.getAccommodationIdByName(pool, accommName, (err, accommId) => {
+        if(err){
+          console.log("Error: " + err);
+          return res.send({success: false, message: "Error in getting accommodation id"});
+        }else if(accommId > 0){
+          aId = accommId;
+          
+          pool.getConnection((err, connection) => {
+            if(err){
+              console.log("Error: " + err);
+              return res.send({success: false, message: "Error in getting connection"});
+            }
+            connection.beginTransaction((err) => {
+              if(err){
+                console.log("Error: " + err);
+                return res.send({success: false, message: "Error in starting transaction"});
+              }else{
+                const deleteQuery = `DELETE FROM report WHERE USER_ID = ? AND ACCOMMODATION_ID = ? AND REPORT_DETAILS = ?`;
+
+                connection.query(deleteQuery, [uId, aId, details], (err, result) => {
+                  if(err){
+                    connection.rollback(() => {
+                      console.log("Error: " + err);
+                      return res.send({success: false, message: "Error in deleting report"});
+                    });
+                  }else if(result.affectedRows == 0){
+                    connection.rollback(() => {
+                      console.log("Error: Report not found");
+                      return res.send({success: false, message: "Report not found"});
+                    });
+                  }else{
+                    connection.commit((err) => {
+                      if(err){
+                        connection.rollback(() => {
+                          console.log("Error: " + err);
+                          return res.send({success: false, message: "Error in committing transaction"});
+                        });
+                      }else{
+                        console.log("Report successfully deleted");
+                        return res.send({success: true});
+                      }
+                    });
+                  }
+                });
+              }
+            });
+          });
+        }
+      });
+    }
+  });
+}
+
+
+  
+  // ===================================== END OF REPORT MANAGEMENT FEATURES =====================================

@@ -1,33 +1,4 @@
 const Report = {
-<<<<<<< HEAD
-    // This function takes a database connection pool and checks if a report with the given accommodation name and username already exists in the database.
-    // It returns a boolean value in the callback function.
-    checkReportIfExists: (pool, accommodationName, username, callback) => {
-        pool.getConnection((err, connection) => {
-            if (err) {
-                console.log("Error: " + err);
-                callback(err, null);
-            } else {
-                const checkQuery = `SELECT REPORT_ID FROM report WHERE ACCOMMODATION_ID = ? AND USER_ID = ?`;
-                connection.query(checkQuery, [accommodationName, username], (err, result) => {
-                    if (err) {
-                        console.log("Check Report if Exists error: " + err);
-                        callback(err, null)
-                    } else {
-                        try{
-                            if(typeof result[0].REPORT_ID === "undefined") {
-                              console.log("Get Report Id: Undefined Object");
-                              callback(null, 0);
-                            }
-                            else {
-                              console.log("Get Report Id: Defined Object");
-                              callback(null, result[0].REPORT_ID);
-                            }
-                          } catch (err) {
-                            console.log("Report Not Found...");
-                            callback(err, null);
-                          }
-=======
     getReportId: (pool, userId, accommodationId, callback) => {
         // This function takes a database connection pool, a user ID and accommodation ID, and a callback function as inputs.
         // The function queries the database to retrieve the ID of a report with the corresponding user ID and accommodation ID and passes the result to the callback function.
@@ -55,16 +26,11 @@ const Report = {
                             console.log("Report Not Found...");
                             callback(err, null);
                         }
->>>>>>> feature_sprint-seven_kyle-v
                     }
                 });
             }
         });
-<<<<<<< HEAD
-    },
-=======
     }
->>>>>>> feature_sprint-seven_kyle-v
 }
 
 module.exports = { Report }

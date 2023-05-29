@@ -5,10 +5,12 @@ const multer = require("multer");
 const upload = multer();
 const http = require('http');
 const cors = require('cors');
+const timeout = require('connect-timeout');
 const { Server } = require('socket.io');
 
 const PORT = process.env.PORT || 3001;
 const app = express();
+app.use(timeout('5s'));
 const appLink = "https://mockup-backend-128.herokuapp.com"
 
 require('./models/user');
@@ -52,6 +54,15 @@ app.use((req, res, next) => {
 
 // Pass the database connection pool to your routes module
 require("./routes")(app, pool);
+
+app.use((req, res, next) => {
+  if (!req.timedout) {
+    next();
+  } else {
+    res.status(504).send("Request timeout");
+  }
+});
+
 
 // ================ START OF MESSAGING FEATURE ================
 // Chat functionalities

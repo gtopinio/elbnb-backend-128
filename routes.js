@@ -8,8 +8,6 @@ module.exports = (app, pool) => {
     // endpoints with GET method
     app.get("/view-all-students", userController.viewAllStudents(pool));
     app.get("/view-all-owners", userController.viewAllOwners(pool));
-    
-    // report management endpoints
     app.get("/view-all-reports", reportController.viewAllReports(pool));
 
     // endpoints with POST method
@@ -69,4 +67,5 @@ module.exports = (app, pool) => {
     app.post("/generate-report", reportController.generateReport(pool));
     app.post("/add-report", reportController.addReport(pool));
     app.post("/delete-report", reportController.deleteReport(pool));
+    app.post("/view-report", reportController.viewReport(pool));
 }

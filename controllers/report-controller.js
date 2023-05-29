@@ -1,7 +1,5 @@
 // Imports
 const pdf = require('pdfkit');
-const { Accommodation: ReportController_Accommodation } = require("../models/accommodation");
-const { User: ReportController_User } = require("../models/user");
 
 
 // ===================================== START OF REPORT MANAGEMENT FEATURES =====================================

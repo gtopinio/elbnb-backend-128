@@ -750,5 +750,42 @@ exports.getOwnerAverageRating = (pool) => (req, res) => {
       }
     });
   }
+
+/*
+This block of code exports a function that retrieves all of the archived accommodation of an owner from the database. The function takes in 
+a pool connection as a parameter and returns a middleware function that handles a POST request with an accommodation name in the request body.
+The function first retrieves the ID of the owner using the ReportController_User.getUserIdByUsername function. If the ID is found, it then 
+executes a SQL query to retrieve all archived accommodation of the owner and sends the results back in the response. If there is an error at 
+any point, the function sends a response with success set to false.
+*/
+exports.viewAllArchiveByOwner = (pool) => (req, res) => {
+  const {username} = req.body;
+
+  AccommodationController_User.getUserIdByUsername(pool, username, (err, userID) => {
+    if(err){
+      console.log("Error: " + err);
+      return res.send({ success: false });
+    }
+    else if (userID > 0 && typeof userID !== 'undefined'){
+      const selectQuery = `SELECT * FROM accommodation WHERE ACCOMMODATION_ISARCHIVED = TRUE AND ACCOMMODATION_OWNER_ID = ?`;
+
+      pool.query(selectQuery, [userID], (err, results) => {
+        if(err){
+          console.log("Error getting all archived accommodation: " + err);
+          return res.send({ success: false });
+        }
+        else{
+          console.log("Archived accommodations found!");
+          return res.send({ success: true, accommodations: results});
+        }
+      })
+    }
+    else{
+      console.log("User not found! Archived accommodations cannot be retrieved");
+      return res.send({ success: false });
+    }
+  })
+}
+
 // ===================================== END OF USER MANAGEMENT FEATURES =====================================
   

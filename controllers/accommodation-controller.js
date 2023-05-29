@@ -535,7 +535,6 @@ exports.filterAccommodations = (pool) => (req, res) => {
     const address = filters.address;
     const location = filters.location;
     const type = filters.type;
-    const owner = filters.ownerUsername;
     const rating = filters.rating;
     const maxPrice = filters.maxPrice;
     const capacity = filters.capacity;
@@ -545,14 +544,13 @@ exports.filterAccommodations = (pool) => (req, res) => {
     console.log("Address: " + address);
     console.log("Location: " + location);
     console.log("Type: " + type);
-    console.log("Owner: " + owner);
     console.log("Rating: " + rating);
     console.log("Max Price: " + maxPrice);
     console.log("Capacity: " + capacity);
 
   
     // Building the query
-    let query = 'SELECT accommodation.*, MAX(room.ROOM_PRICE) AS max_price, user.USER_USERNAME, AVG(review.REVIEW_RATING) AS rating, MIN(room.ROOM_CAPACITY) AS min_capacity, MAX(room.ROOM_CAPACITY) as max_capacity ' +
+    let query = 'SELECT accommodation.*, MAX(room.ROOM_PRICE) AS max_price, user.USER_USERNAME, user.USER_FNAME, user.USER_LNAME, AVG(review.REVIEW_RATING) AS rating, MIN(room.ROOM_CAPACITY) AS min_capacity, MAX(room.ROOM_CAPACITY) as max_capacity ' +
                 'FROM user INNER JOIN accommodation ON user.USER_ID = accommodation.ACCOMMODATION_OWNER_ID ' + 
                 'INNER JOIN review ON accommodation.ACCOMMODATION_ID = review.ACCOMMODATION_ID ' +
                 'LEFT JOIN room ON accommodation.ACCOMMODATION_ID = room.ACCOMMODATION_ID ' + 
@@ -570,9 +568,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
     if (type) {
       query += `accommodation.ACCOMMODATION_TYPE = '${type}' AND `
     }
-    if (owner) {
-      query += `user.USER_USERNAME = '${owner}' AND `
-    }
+
     query = query.slice(0, -4);
     query += 'GROUP BY accommodation.ACCOMMODATION_ID '
     if (rating || maxPrice || capacity) {
@@ -602,13 +598,16 @@ exports.filterAccommodations = (pool) => (req, res) => {
           if (err) {
             console.log("Error: " + err) 
             return res.send({ success: false });
-          } else {
+          } else if (results.length > 0) {
             // Printing the results of the query in numbered list
             console.log("========== FOUND ACCOMMODATIONS ==========");
             for (let i = 0; i < results.length; i++) {
               console.log(i + 1 + ". " + results[i].ACCOMMODATION_NAME);
             }
             return res.send({ message: "Accommodations found!", accommodations: results });
+          } else {
+            console.log("No accommodations found!");
+            return res.send({ message: "No accommodations found!" });
           }
         })
       }

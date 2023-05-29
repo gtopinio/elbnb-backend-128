@@ -1,5 +1,8 @@
 // Imports
 const pdf = require('pdfkit');
+const { User: ReportController_User } = require('../models/user');
+const { Accommodation: ReportController_Accommodation } = require('../models/accommodation');
+const { Report: ReportController_Report } = require('../models/report');
 
 
 // ===================================== START OF REPORT MANAGEMENT FEATURES =====================================
@@ -135,3 +138,86 @@ exports.generateReport = (pool) => (req, res) => {
   }
   
   // ===================================== END OF REPORT MANAGEMENT FEATURES =====================================
+
+  
+  // This function takes a database connection pool and lets the user add a new report based on the accommodation name.
+  // It also checks first if the combination of the user id and accommodation id already exists in the reports table.
+  exports.addReport = (pool) => (req, res) => {
+    const{username, report, accommodationName} = req.body;
+  
+    console.log("----------Add Report Feature----------");
+    console.log("Report: " + report);
+    console.log("Username: " + username);
+    console.log("Accommodation Name: "+ accommodationName);
+
+  
+    var uid = null;
+    var accomid = null;
+  
+    ReportController_User.getUserIdByUsername(pool, username, (err, userId) => {
+      if(err){
+        console.log("Error: " + err);
+        return res.send({ success: false , message: "Error in adding report!"});
+      }
+      else if(userId>0){
+        uid = userId;
+        ReportController_Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+          if(err){
+            console.log("Error: " + err);
+            return res.send({ success: false , message: "Error in adding report!"});
+          }
+          else if(accommodationId>0){
+            accomid = accommodationId;
+  
+            pool.getConnection((err, connection) => {
+              if(err){
+                console.log("Get Connection Error" + err);
+                return res.send({ success: false , message: "Error in adding report!"});
+              }
+  
+              connection.beginTransaction((err) => {
+                if(err){
+                  console.log("Error: " + err);
+                  return res.send({ success: false , message: "Error in adding report!"});
+                }
+                else{
+                      const insertQuery = `INSERT INTO report (REPORT_DETAILS, USER_ID, ACCOMMODATION_ID) VALUES (?, ?, ?)`;
+  
+                      connection.query(insertQuery, [report, uid, accomid], (err, result1) => {
+                        if(err){
+                          connection.rollback(() => {
+                            console.log("Insert report error: " + err);
+                            return res.send({ success: false , message: "Error in adding report!"});
+                          })
+                        }
+                        else{
+                          connection.commit((err) => {
+                            if(err){
+                              connection.rollback(() => {
+                                console.log("Commit error: " + err);
+                                return res.send({ success: false , message: "Error in adding report!"});
+                              })
+                            }
+                            else{
+                              console.log("Reporrt has been inserted!");
+                              return res.send({ success: true });
+                            }
+                          })
+                        }
+                      });
+                }
+              })
+            });
+          }
+          else{
+            console.log("Accomodation not found! Cannot add report");
+            return res.send({ success: false });
+          }
+        })
+      }
+      else{
+        console.log("User not found! Cannot add report");
+        return res.send({ success: false });
+      }
+    })
+  }

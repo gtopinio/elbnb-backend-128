@@ -761,7 +761,7 @@ any point, the function sends a response with success set to false.
 exports.viewAllArchiveByOwner = (pool) => (req, res) => {
   const {username} = req.body;
 
-  AccommodationController_User.getUserIdByUsername(pool, username, (err, userID) => {
+  UserController_User.getUserIdByUsername(pool, username, (err, userID) => {
     if(err){
       console.log("Error: " + err);
       return res.send({ success: false });

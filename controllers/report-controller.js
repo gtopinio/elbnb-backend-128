@@ -148,7 +148,7 @@ exports.addReport = (pool) => (req, res) => {
   const{details, userName, accommName} = req.body;
 
   console.log("----------Add Report Feature----------");
-  console.log("Details: " + details);
+  console.log("Details: " + reportDetails);
   console.log("Username: " + userName);
   console.log("Accommodation Name: "+ accommName);
 
@@ -183,26 +183,40 @@ exports.addReport = (pool) => (req, res) => {
                 return res.send({ success: false });
               }
               else{
-                const insertQuery = `INSERT INTO report (REPORT_DETAILS, ACCOMMODATION_ID, USER_ID) VALUES (?, ?, ?)`;
-
-                connection.query(insertQuery, [details, accomid, uid], (err, result) => {
+                const selectQuery = `SELECT COUNT(*) AS count FROM report WHERE USER_ID = ? AND ACCOMMODATION_ID = ? AND REPORT_DETAILS = ?`;
+                  
+                connection.query(selectQuery, [uid, accomid, reportDetails], (err, result) => {
                   if(err){
-                    connection.rollback(() => {
-                      console.log("Insert report error: " + err);
-                      return res.send({ success: false });
-                    })
+                    console.log("Error: " + err);
+                    return res.send({ success: false })
+                  }
+                  else if(result[0].count>0){
+                    console.log("Report from user already exists!");
+                    return res.send({ success: false })
                   }
                   else{
-                    connection.commit((err) => {
+                    const insertQuery = `INSERT INTO report (REPORT_DETAILS, ACCOMMODATION_ID, USER_ID) VALUES (?, ?, ?)`;
+
+                    connection.query(insertQuery, [details, accomid, uid], (err, result1) => {
                       if(err){
                         connection.rollback(() => {
-                          console.log("Commit error: " + err);
+                          console.log("Insert report error: " + err);
                           return res.send({ success: false });
                         })
                       }
                       else{
-                        console.log("Report has been inserted!");
-                        return res.send({ success: true });
+                        connection.commit((err) => {
+                          if(err){
+                            connection.rollback(() => {
+                              console.log("Commit error: " + err);
+                              return res.send({ success: false });
+                            })
+                          }
+                          else{
+                            console.log("Report has been inserted!");
+                            return res.send({ success: true });
+                          }
+                        })
                       }
                     })
                   }

@@ -325,6 +325,7 @@ exports.deleteReport = (pool) => (req, res) => {
   console.log("----------Delete Report Feature----------");
   console.log("Username: " + userName);
   console.log("Accommodation Name: " + accommName);
+  console.log("Report Details: " + details);
 
   var uId = null;
   var aId = null;

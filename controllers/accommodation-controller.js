@@ -822,4 +822,27 @@ exports.removeAccommodationPicture = (pool) => (req, res) => {
   });
 }
 
+// Function to get the accommodation through an accommodation id.
+exports.getAccommodationById = (pool) => (req, res) => {
+  const {accommodationId} = req.body;
+
+  console.log("========== GET ACCOMMODATION BY ID ==========");
+  console.log("Accommodation ID: " + accommodationId);
+
+  // Use the getAccommodationById function from AccommodationController_Accommodation to get the accommodation
+  AccommodationController_Accommodation.getAccommodationById(pool, accommodationId, (err, accommodation) => {
+    if (err) {
+      console.log("Error: " + err);
+      return res.send({ success: false , message: "Error occurred while fetching the accommodation."});
+    } else if (accommodation.length > 0) {
+      console.log("Successfully fetched the accommodation!");
+      return res.send({ success: true, accommodation: accommodation });
+    } else {
+      console.log("No accommodation found with the id: " + accommodationId);
+      return res.send({ success: false });
+    }
+  });
+}
+
+
 // ===================================== END OF ACCOMMODATION MANAGEMENT FEATURES =====================================

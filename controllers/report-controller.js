@@ -79,7 +79,7 @@ exports.generateReport = (pool) => (req, res) => {
         return res.send({ success: false });
       } else {
         // Else, start connection
-        console.log(query)
+        
         connection.query(query, (err, results) => {
           if (err) {
             console.log("Error: " + err) 

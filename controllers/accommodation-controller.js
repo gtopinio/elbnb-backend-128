@@ -829,20 +829,24 @@ exports.getAccommodationById = (pool) => (req, res) => {
   console.log("========== GET ACCOMMODATION BY ID ==========");
   console.log("Accommodation ID: " + accommodationId);
 
-  // Use the getAccommodationById function from AccommodationController_Accommodation to get the accommodation
-  AccommodationController_Accommodation.getAccommodationById(pool, accommodationId, (err, accommodation) => {
+  // check if the accommodation exists
+  const getAccommodationQuery = `
+    SELECT *
+    FROM accommodation
+    WHERE ACCOMMODATION_ID = ?
+  `;
+  pool.query(getAccommodationQuery, [accommodationId], (err, results) => {
     if (err) {
-      console.log("Error: " + err);
-      return res.send({ success: false , message: "Error occurred while fetching the accommodation."});
-    } else if (accommodation.length > 0) {
-      console.log("Successfully fetched the accommodation!");
-      return res.send({ success: true, accommodation: accommodation });
+      console.log("Error getting accommodation: " + err);
+      return res.send({ success: false , message: "Error occurred while getting the accommodation."});
+    } else if (results.length === 0) {
+      console.log("Accommodation not found!");
+      return res.send({ success: false , message: "Accommodation not found!"});
     } else {
-      console.log("No accommodation found with the id: " + accommodationId);
-      return res.send({ success: false });
+      console.log("Successfully fetched the accommodation!");
+      return res.send({ success: true, accommodation: results[0] });
     }
   });
 }
-
 
 // ===================================== END OF ACCOMMODATION MANAGEMENT FEATURES =====================================

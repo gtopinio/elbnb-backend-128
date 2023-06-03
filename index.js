@@ -3,32 +3,25 @@ const mysql = require("mysql");
 const cookieParser = require("cookie-parser");
 const multer = require("multer");
 const upload = multer();
-const url = require("url");
 const http = require('http');
+const cors = require('cors');
 const { Server } = require('socket.io');
 
 const PORT = process.env.PORT || 3001;
 const app = express();
-const appLink = "https://official-backend-128.herokuapp.com/"
+const appLink = "https://mockup-backend-128.herokuapp.com"
 
 require('./models/user');
 require('./models/accommodation');
 require('./models/room');
 
-// Parse the database URL from the config var
-const dbUrl = url.parse(process.env.CLEARDB_DATABASE_URL);
-// Check if database URL exists
-if (!dbUrl) {
-  throw new Error('Database URL not found');
-}
-
 // Create a connection pool to the database
 const pool = mysql.createPool({
-  host: dbUrl.hostname,
-  user: dbUrl.auth.split(':')[0],
-  password: dbUrl.auth.split(':')[1],
-  database: dbUrl.pathname.substring(1),
-  connectionLimit: 30,
+  host: process.env.AWS_HOST,
+  user: process.env.AWS_USER,
+  password: process.env.AWS_PASS,
+  database: process.env.AWS_DB_NAME,
+  port: process.env.AWS_PORT
 });
 
 pool.getConnection((err, connection) => {
@@ -51,8 +44,8 @@ app.use(upload.fields([{ name: 'accommodationName', maxCount: 1 }, { name: 'data
 // allow CORS
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Access-Control-Allow-Methods", "POST, GET");
+  res.setHeader("Access-Control-Allow-Headers", "Access-Control-Allow-Headers, Access-Control-Allow-Methods, Origin, Accept, Content-Type");
   res.setHeader("Access-Control-Allow-Credentials", "true");
   next();
 });

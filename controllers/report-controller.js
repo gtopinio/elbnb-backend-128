@@ -1,5 +1,9 @@
 // Imports
 const pdf = require('pdfkit');
+// Import the necessary models.
+const { Accommodation: ReportController_Accommodation } = require("../models/accommodation");
+const { User: ReportController_User } = require("../models/user");
+const { Report: ReportController_Report } = require('../models/report');
 
 
 // ===================================== START OF REPORT MANAGEMENT FEATURES =====================================
@@ -75,7 +79,7 @@ exports.generateReport = (pool) => (req, res) => {
         return res.send({ success: false });
       } else {
         // Else, start connection
-        console.log(query)
+        
         connection.query(query, (err, results) => {
           if (err) {
             console.log("Error: " + err) 
@@ -133,5 +137,255 @@ exports.generateReport = (pool) => (req, res) => {
       }
     });
   }
-  
+
+// This function takes a database connection pool and lets the user add a new report based on the accommodation name.
+// It also checks first if the combination of the user id and accommodation id already exists in the reports table.
+exports.addReport = (pool) => (req, res) => {
+  const{username, report, accommodationName} = req.body;
+
+  console.log("----------Add Report Feature----------");
+  console.log("Report: " + report);
+  console.log("Username: " + username);
+  console.log("Accommodation Name: "+ accommodationName);
+
+
+  var uid = null;
+  var accomid = null;
+
+  ReportController_User.getUserIdByUsername(pool, username, (err, userId) => {
+    if(err){
+      console.log("Error: " + err);
+      return res.send({ success: false , message: "Error in adding report!"});
+    }
+    else if(userId>0){
+      uid = userId;
+      ReportController_Accommodation.getAccommodationIdByName(pool, accommodationName, (err, accommodationId) => {
+        if(err){
+          console.log("Error: " + err);
+          return res.send({ success: false , message: "Error in adding report!"});
+        }
+        else if(accommodationId>0){
+          accomid = accommodationId;
+
+          pool.getConnection((err, connection) => {
+            if(err){
+              console.log("Get Connection Error" + err);
+              return res.send({ success: false , message: "Error in adding report!"});
+            }
+
+            connection.beginTransaction((err) => {
+              if(err){
+                console.log("Error: " + err);
+                return res.send({ success: false , message: "Error in adding report!"});
+              }
+              else{
+                    const insertQuery = `INSERT INTO report (REPORT_DETAILS, USER_ID, ACCOMMODATION_ID) VALUES (?, ?, ?)`;
+
+                    connection.query(insertQuery, [report, uid, accomid], (err, result1) => {
+                      if(err){
+                        connection.rollback(() => {
+                          console.log("Insert report error: " + err);
+                          return res.send({ success: false , message: "Error in adding report!"});
+                        })
+                      }
+                      else{
+                        connection.commit((err) => {
+                          if(err){
+                            connection.rollback(() => {
+                              console.log("Commit error: " + err);
+                              return res.send({ success: false , message: "Error in adding report!"});
+                            })
+                          }
+                          else{
+                            console.log("Reporrt has been inserted!");
+                            return res.send({ success: true });
+                          }
+                        })
+                      }
+                    });
+              }
+            })
+          });
+        }
+        else{
+          console.log("Accomodation not found! Cannot add report");
+          return res.send({ success: false });
+        }
+      })
+    }
+    else{
+      console.log("User not found! Cannot add report");
+      return res.send({ success: false });
+    }
+  })
+}
+
+
+// This function only needs a connection pool, and gets all of the entries
+// in the report table, ordered by the timestamp according to recency 
+// (most recent at top)
+exports.viewAllReports = (pool) => (req, res) => {
+  console.log("========== View All Reports ==========");
+
+  // Querying
+  pool.getConnection((err, connection) => {
+    if (err) {
+      // If error occured in starting connection
+      console.log("Error: " + err);
+      return res.send({ success: false });
+    } else {
+      connection.query('SELECT * FROM report ORDER BY timestamp(REPORT_DATE) DESC', (err, results) => {
+        // Getting the results
+        if (err) {
+          console.log("Error: " + err);
+          return res.send({ success: false });
+        } else {
+          return res.send({ success: true, results });
+        }
+      });
+    }
+  });
+}
+
+
+// The viewReport function takes a database connection pool and returns a callback function that handles a POST request for viewing a single report.
+// The function takes the username, accommodation name, and report details from the request body and uses the helper functions ReportController_User.findBy
+// and ReportController_Accommodation.getAccommodationIdByName to identify the corresponding IDs of the username and accommodation name.
+// The function then uses the user ID, accommodation ID, and report details to query the report table and get the ID of the given report.
+// If successful, the function returns a JSON response with the username, report review details, timestamp, accommodation name, and a success flag set to true.
+// If there is an error at any point, returns a JSON respone with a success flag set to false.
+exports.viewReport = (pool) => (req, res) => {
+  const {username, accommName, details} = req.body;
+  console.log("----------View Single Report Feature----------");
+  console.log("Username: " + username);
+  console.log("Accommodation Name: " + accommName);
+  console.log("Report Details: " + details);
+
+  // Get user ID using username.
+  ReportController_User.getUserIdByUsername(pool, username, (err, userId) => {
+    if (err) {
+      console.log("Get User ID Error: " + err);
+      return res.send({ success: false , message: "User not found!"});
+    } else if (userId > 0 && typeof userId !== 'undefined') {
+      // If found and not undefined, get accommodation ID by accommodation name.
+      ReportController_Accommodation.getAccommodationIdByName(pool, accommName, (err, accommodationId) => {
+        if (err) {
+          console.log("Get Accommodation ID Error: " + err);
+          return res.send({ success: false , message: "Accommodation not found!"});
+        } else if (accommodationId > 0 && accommodationId !== 'undefined') {
+          // If found and not underfined, find report ID by using user ID and accommodation ID
+          ReportController_Report.getReportId(pool, userId, accommodationId, (err, reportId) => {
+            if (err) {
+              console.log("Get Report ID Error: " + err);
+              return res.send({ success: false , message: "Report not found!"});
+            } else if (reportId > 0 && reportId !== 'undefined') {
+              // if found and not undefined, get the report with the corresponding user id and accommodation id
+              const reportQuery = `SELECT * FROM report WHERE REPORT_ID = ? AND REPORT_DETAILS = ?`;
+              pool.query(reportQuery, [reportId, details], (err, reportResult) => {
+                if (err) {
+                  console.log("Get Report ID Error: " + err);
+                  return res.send({ success: false , message: "Report not found!"});
+                } else if (reportResult.length > 0) {
+                  console.log("Report found! Sending report data...");
+                  return res.send({
+                    success: true,
+                    reportUsername: username,
+                    reportDetails: reportResult[0].REPORT_DETAILS,
+                    reportTimestamp: reportResult[0].REPORT_DATE,
+                    accommodationName: accommName
+                  });
+                } else {
+                  console.log("Report not found!");
+                  return res.send({ success: false , message: "Report not found!"});
+                }
+              });
+            } else {
+              console.log("Report not found!");
+              return res.send({ success: false , message: "Report not found!"});
+            }
+          });
+        } else {
+          console.log("Accommodation not found! Cannot select a report");
+          return res.send({ success: false , message: "Accommodation not found!"})
+        }
+      });
+    } else {
+      console.log("User not found! Cannot select a report");
+      return res.send({ success: false , message: "User not found!"});
+    }
+  });
+}
+
+
+/* This code exports a function called `deleteReport` that takes a database connection pool as a
+parameter and returns a function that takes a request and response object as parameters. */
+exports.deleteReport = (pool) => (req, res) => {
+  const {userName, accommName, details} = req.body;
+
+  console.log("----------Delete Report Feature----------");
+  console.log("Username: " + userName);
+  console.log("Accommodation Name: " + accommName);
+  console.log("Report Details: " + details);
+
+  var uId = null;
+  var aId = null;
+
+  ReportController_User.getUserIdByUsername(pool, userName, (err, userId) => {
+    if(err){
+      console.log("Error: " + err);
+      return res.send({success: false, message: "Error in getting user id"});
+    }else if(userId > 0){
+      uId = userId;
+      ReportController_Accommodation.getAccommodationIdByName(pool, accommName, (err, accommId) => {
+        if(err){
+          console.log("Error: " + err);
+          return res.send({success: false, message: "Error in getting accommodation id"});
+        }else if(accommId > 0){
+          aId = accommId;
+          
+          pool.getConnection((err, connection) => {
+            if(err){
+              console.log("Error: " + err);
+              return res.send({success: false, message: "Error in getting connection"});
+            }
+            connection.beginTransaction((err) => {
+              if(err){
+                console.log("Error: " + err);
+                return res.send({success: false, message: "Error in starting transaction"});
+              }else{
+                const deleteQuery = `DELETE FROM report WHERE USER_ID = ? AND ACCOMMODATION_ID = ? AND REPORT_DETAILS = ?`;
+
+                connection.query(deleteQuery, [uId, aId, details], (err, result) => {
+                  if(err){
+                    connection.rollback(() => {
+                      console.log("Error: " + err);
+                      return res.send({success: false, message: "Error in deleting report"});
+                    });
+                  }else if(result.affectedRows == 0){
+                    connection.rollback(() => {
+                      console.log("Error: Report not found");
+                      return res.send({success: false, message: "Report not found"});
+                    });
+                  }else{
+                    connection.commit((err) => {
+                      if(err){
+                        connection.rollback(() => {
+                          console.log("Error: " + err);
+                          return res.send({success: false, message: "Error in committing transaction"});
+                        });
+                      }else{
+                        console.log("Report successfully deleted");
+                        return res.send({success: true});
+                      }
+                    });
+                  }
+                });
+              }
+            });
+          });
+        }
+      });
+    }
+  });
+}
   // ===================================== END OF REPORT MANAGEMENT FEATURES =====================================

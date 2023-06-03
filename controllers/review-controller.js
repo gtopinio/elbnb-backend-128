@@ -494,8 +494,6 @@ exports.getFeaturedAccommodations = (pool) => (req, res) => {
         LIMIT 5
         `;
     }
-    // Printing the query
-    console.log("Query: " + query);
 
     pool.query(query, [type], (err, results) => {
         if (err) {
@@ -505,7 +503,7 @@ exports.getFeaturedAccommodations = (pool) => (req, res) => {
           console.log("Featured Accommodations: ");
           // Printing the results one by one
           for (i = 0; i < results.length; i++) {
-            console.log(results[i]);
+            console.log(results[i].ACCOMMODATION_NAME);
           }
         return res.send({ success: true, accommodation: results });
         }

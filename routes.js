@@ -8,6 +8,7 @@ module.exports = (app, pool) => {
     // endpoints with GET method
     app.get("/view-all-students", userController.viewAllStudents(pool));
     app.get("/view-all-owners", userController.viewAllOwners(pool));
+    app.get("/view-all-reports", reportController.viewAllReports(pool));
 
     // endpoints with POST method
 
@@ -24,6 +25,7 @@ module.exports = (app, pool) => {
     app.post("/filter-users", userController.filterUsersByString(pool));
     app.post("/user/get-all-favorites", reviewController.getUserFavorites(pool));
     app.post("/owner/get-average-rating", userController.getOwnerAverageRating(pool));
+    app.post("/owner/view-all-archived-accommodations", userController.viewAllArchiveByOwner(pool));
     app.post("/get-user-by-id", userController.viewProfileById(pool));
 
     // accommodation management endpoints
@@ -34,9 +36,10 @@ module.exports = (app, pool) => {
     app.post("/view-accommodation", accomodationController.viewAccommodation(pool));
     app.post("/filter-accommodation", accomodationController.filterAccommodations(pool));
     app.post("/accommodation/upload-accommodation-pic", accomodationController.uploadAccommodationPic(pool));
-    app.post("/accommodation/get-accommodation-pic", accomodationController.getAccommodationPic(pool));
+    // app.post("/accommodation/get-accommodation-pic", accomodationController.getAccommodationPic(pool));
     app.post("/accommodation/remove-accommodation-pic", accomodationController.removeAccommodationPicture(pool));
     app.post("/accommodation/get-user-accommodations", accomodationController.getAccommodationsByOwner(pool));
+    app.post("/get-accommodation-by-id", accomodationController.getAccommodationById(pool));
 
     // room management endpoints
     app.post("/accommodation/add-room", roomController.addNewRoom(pool));
@@ -63,4 +66,7 @@ module.exports = (app, pool) => {
     
     // report management endpoints
     app.post("/generate-report", reportController.generateReport(pool));
+    app.post("/add-report", reportController.addReport(pool));
+    app.post("/delete-report", reportController.deleteReport(pool));
+    app.post("/view-report", reportController.viewReport(pool));
 }

@@ -27,7 +27,7 @@ exports.signUp = (pool) => (req, res) => {
           console.log(err);
         } else {
             const { email, password, username, firstName, lastName, contactNum, isBusinessAccount, isPersonalAccount } = req.body;
-            console.log("----------Sign Up Feature----------");
+            console.log("============ Sign Up Feature ============");
             console.log("Email: " + email);
             console.log("Password : " + password);
             console.log("UserName: " + username);
@@ -87,7 +87,7 @@ exports.login = (pool) => (req, res) => {
   // Credentials
   const email = req.body.email.trim();
   const password = req.body.password;
-  console.log("----------Log In Feature----------");
+  console.log("============ Log In Feature ============");
   console.log("Email: " + email);
   console.log("Password: " + password);
 
@@ -160,10 +160,12 @@ exports.login = (pool) => (req, res) => {
 // It also verifies the user type and checks if the user exists in the database for that user type. It returns a JSON object containing 'isLoggedIn',
 // which could either be true or false depending if the user is really logged in or not.
 exports.checkIfLoggedIn = (pool) => (req, res) => {
+  console.log("============ Check If Logged In Feature ============");
+
   // Checking if cookies/authToken cookie exists
   if (!req.cookies.authToken) {
     console.log("failed")
-    return res.send({ isLoggedIn: false });
+    return res.send({ isLoggedIn: false , message: "No authToken cookie found"});
   }
 
   jwt.verify(
@@ -171,7 +173,7 @@ exports.checkIfLoggedIn = (pool) => (req, res) => {
     process.env.AUTH_SECRET_STRING,
     (err, tokenPayload) => {
       if (err) {
-        return res.send({ isLoggedIn: false });
+        return res.send({ isLoggedIn: false , message: "Invalid authToken cookie"});
       }
 
       const user_id = tokenPayload.user_id; // Use the id that has been sent
@@ -189,11 +191,11 @@ exports.checkIfLoggedIn = (pool) => (req, res) => {
           // If an error occured or user is not found
           if (error) {
             console.log(error);
-            return res.send({ isLoggedIn: false });
+            return res.send({ isLoggedIn: false , message: "Error finding user"});
           }
           if (result <= 0) {
             console.log(user_type + " not found");
-            return res.send({ isLoggedIn: false });
+            return res.send({ isLoggedIn: false , message: "User not found"});
           } else {
             console.log(user_type + " is currently logged in");
             return res.send({ isLoggedIn: true });
@@ -208,7 +210,7 @@ exports.checkIfLoggedIn = (pool) => (req, res) => {
 // Finally, it returns a response with success true if the user is successfully deleted, and success false if the user is not deleted or an error occurs.
 exports.deleteUserByEmail = (pool) => (req, res) => {
   const email = req.body.email;
-  console.log("----------Delete User by Email Feature----------");
+  console.log("============ Delete User by Email Feature ============");
   console.log("Email to be Deleted: " + email);
 
 
@@ -219,6 +221,7 @@ exports.deleteUserByEmail = (pool) => (req, res) => {
   pool.getConnection((err, connection) => {
     if (err) {
       console.log(err);
+      return res.send({success:false, message: "Error connecting to database"});
     } else {
       connection.beginTransaction((err) => {
         if (err) {
@@ -229,14 +232,14 @@ exports.deleteUserByEmail = (pool) => (req, res) => {
             if (error) {
               console.log(error);
               connection.rollback();
-              return res.send({success:false});
+              return res.send({success:false, message: "Error finding user"});
             }
             if (user) {
               UserController_User.delete(connection, user.USER_ID, (error) => {
                 if (error) {
                   console.log(error);
                   connection.rollback();
-                  return res.send({success:false});
+                  return res.send({success:false, message: "Error deleting user"});
                 }
                 console.log(`User with email ${email} has been deleted.`);
                 connection.commit();
@@ -245,7 +248,7 @@ exports.deleteUserByEmail = (pool) => (req, res) => {
             } else {
                 console.log(`User with email ${email} does not exist.`);
                 connection.rollback();
-                return res.send({success:false});
+                return res.send({success:false, message: "User not found"});
             }
           });
         }
@@ -260,7 +263,7 @@ exports.deleteUserByEmail = (pool) => (req, res) => {
 // Finally, it returns a response with success true if the user is successfully updated, and success false if the user is not updated or an error occurs.
 exports.editUserByEmail = (pool) => (req, res) => {
   const { email, newPassword, newUsername, newFirstName, newLastName, newContactNum} = req.body;
-  console.log("----------Edit User bu Email Feature----------");
+  console.log("============ Edit User bu Email Feature ============");
   console.log("Email: " + email);
   console.log("Password : " + newPassword);
   console.log("UserName: " + newUsername);
@@ -275,26 +278,26 @@ exports.editUserByEmail = (pool) => (req, res) => {
   pool.getConnection((err, connection) => {
     if (err) {
       console.log(err);
-      return res.send({success:false});
+      return res.send({success:false, message: "Error connecting to database"});
     } else {
       connection.beginTransaction((err) => {
         if (err) {
           console.log(err);
-          return res.send({success:false});
+          return res.send({success:false, message: "Error connecting to database"});
         } else {
           // Check if email exists in any of the tables
           UserController_User.findBy(connection, "USER_EMAIL", email, (error, user) => {
             if (error) {
               console.log(error);
               connection.rollback();
-              return res.send({success:false});
+              return res.send({success:false, message: "Error finding user"});
             }
             if (user) {
               UserController_User.edit(connection, user.USER_ID, newPassword, newUsername, newFirstName, newLastName, newContactNum, (error) => {
                 if (error) {
                   console.log(error);
                   connection.rollback();
-                  return res.send({success:false});
+                  return res.send({success:false, message: "Error editing user"});
                 }
                 console.log(`User with email ${email} has been edited.`);
                 connection.commit();
@@ -303,7 +306,7 @@ exports.editUserByEmail = (pool) => (req, res) => {
             } else {
               console.log(`User with email ${email} does not exist.`);
               connection.rollback();
-              return res.send({success:false});
+              return res.send({success:false, message: "User not found"});
             }});
         }
       });
@@ -317,7 +320,7 @@ exports.editUserByEmail = (pool) => (req, res) => {
 // Finally, it returns a response with success true if the user is successfully found, and success false if the user is not found or an error occurs.
 exports.viewProfile = (pool) => (req, res) => {
   const email = req.body.email;
-  console.log("----------View Profile Feature----------");
+  console.log("============ View Profile Feature ============");
   console.log("Email: " + email);
 
   // Console log the email to be deleted
@@ -327,6 +330,7 @@ exports.viewProfile = (pool) => (req, res) => {
   pool.getConnection((err, connection) => {
     if (err) {
       console.log(err);
+      return res.send({success:false, message: "Error connecting to database"});
     } else {
         // Check if email exists in any of the tables
         UserController_User.findBy(connection, "USER_EMAIL", email, (error, user) => {
@@ -360,7 +364,7 @@ exports.filterUsersByString = (pool) => (req, res) => {
   const {name, isStudent} = req.body;
   const empty=[];
 
-  console.log("----------Filter User by String Feature----------");
+  console.log("============ Filter User by String Feature ============");
   console.log("Username: " + name);
   console.log("Is Student? : " + isStudent);
 
@@ -434,7 +438,7 @@ exports.filterUsersByString = (pool) => (req, res) => {
 // The viewAllStudents function takes a database connection pool, and gets all
 // entries in the user table whose USER_TYPE is a "Student"
 exports.viewAllStudents = (pool) => (req, res) => {
-  console.log("Viewing All Students");
+  console.log("========== View All Students Feature ==========");
 
   pool.getConnection((err, connection) => {
     if(err){
@@ -459,7 +463,7 @@ exports.viewAllStudents = (pool) => (req, res) => {
 // The viewAllOwners function takes a database connection pool, and gets all
 // entries in the user table whose USER_TYPE is a "Owners"
 exports.viewAllOwners = (pool) => (req, res) => {
-  console.log("Viewing All Owners");
+  console.log("========== View All Owners Feature ==========");
 
   pool.getConnection((err, connection) => {
     if(err){
@@ -507,7 +511,7 @@ exports.uploadUserPic = (pool) => async (req, res) => {
     const username = req.body.username;
 
     // console.log("Data: " + base64Data);
-    console.log("----------Upload User Picture Feature----------");
+    console.log("============ Upload User Picture Feature ============");
     console.log("Username: " + username);
   
   // get the user id
@@ -602,7 +606,7 @@ exports.uploadUserPic = (pool) => async (req, res) => {
 // If there is no error, it sends a response with a success value of true and the image url
 exports.getUserPic = (pool) => (req, res) => {
   const username = req.body.username;
-  console.log("----------Get User Picture Feature----------");
+  console.log("============ Get User Picture Feature ============");
   console.log("Username: " + username);
 
   UserController_User.findBy(pool, "USER_USERNAME", username, (err, user) => {
@@ -637,7 +641,7 @@ exports.getUserPic = (pool) => (req, res) => {
 exports.removeUserPicture = (pool) => (req, res) => {
   // get the username from the request body
   const {username} = req.body;
-  console.log("----------Delete User Picture Feature----------");
+  console.log("============ Delete User Picture Feature ============");
   console.log("Username: " + username);
 
   // see if the user exists
@@ -693,14 +697,14 @@ This function get the average rating of an owner based of their accommodation ra
 exports.getOwnerAverageRating = (pool) => (req, res) => {
   // get the username from the request body
   const {username} = req.body;
-  console.log("----------Get Owner Average Rating----------");
+  console.log("============ Get Owner Average Rating ============");
   console.log("Username: " + username);
   // see if the user exists
 
   UserController_User.getUserIdByUsername(pool, username, (err, userId) => {
     if (err) {
       console.log("Error: " + err);
-      return res.send({ success: false });
+      return res.send({ success: false , message: "Error finding user."});
     }
     else if(userId>0) {
       const selectQuery = `
@@ -712,7 +716,7 @@ exports.getOwnerAverageRating = (pool) => (req, res) => {
       pool.query(selectQuery, [userId], (err, results) => {
         if(err) {
           console.log("Error getting owner average ratings: " + err);
-          return res.send({ success: false });
+          return res.send({ success: false , message: "Error getting owner average ratings."});
         }
         else {
           console.log("Average Rating of " + username + ": " + results [0].AVG_RATING);
@@ -722,7 +726,7 @@ exports.getOwnerAverageRating = (pool) => (req, res) => {
     } 
     else {
       console.log("Owner not found!");
-      return res.send({ success: false });
+      return res.send({ success: false , message: "Owner not found!"});
     }
   });
 }
@@ -731,7 +735,7 @@ exports.getOwnerAverageRating = (pool) => (req, res) => {
   // Function to return the user given the user id
   exports.viewProfileById = (pool) => (req, res) => {
     const userId = req.body.userId;
-    console.log("----------Get User By Id Feature----------");
+    console.log("============ Get User By Id Feature ============");
     console.log("User Id: " + userId);
   
     UserController_User.findBy(pool, "USER_ID", userId, (err, user) => {
@@ -746,5 +750,45 @@ exports.getOwnerAverageRating = (pool) => (req, res) => {
       }
     });
   }
+
+/*
+This block of code exports a function that retrieves all of the archived accommodation of an owner from the database. The function takes in 
+a pool connection as a parameter and returns a middleware function that handles a POST request with an accommodation name in the request body.
+The function first retrieves the ID of the owner using the ReportController_User.getUserIdByUsername function. If the ID is found, it then 
+executes a SQL query to retrieve all archived accommodation of the owner and sends the results back in the response. If there is an error at 
+any point, the function sends a response with success set to false.
+*/
+exports.viewAllArchiveByOwner = (pool) => (req, res) => {
+  const {username} = req.body;
+
+  console.log("============ View All Archived Accommodation By Owner Feature ============");
+  console.log("Username: " + username);
+
+  UserController_User.getUserIdByUsername(pool, username, (err, userID) => {
+    if(err){
+      console.log("Error: " + err);
+      return res.send({ success: false , message: "Error finding user."});
+    }
+    else if (userID > 0 && typeof userID !== 'undefined'){
+      const selectQuery = `SELECT * FROM accommodation WHERE ACCOMMODATION_ISARCHIVED = TRUE AND ACCOMMODATION_OWNER_ID = ?`;
+
+      pool.query(selectQuery, [userID], (err, results) => {
+        if(err){
+          console.log("Error getting all archived accommodation: " + err);
+          return res.send({ success: false , message: "Error getting all archived accommodation."});
+        }
+        else{
+          console.log("Archived accommodations found!");
+          return res.send({ success: true, accommodations: results});
+        }
+      })
+    }
+    else{
+      console.log("User not found! Archived accommodations cannot be retrieved");
+      return res.send({ success: false , message: "User not found! Archived accommodations cannot be retrieved"});
+    }
+  })
+}
+
 // ===================================== END OF USER MANAGEMENT FEATURES =====================================
   

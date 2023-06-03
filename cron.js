@@ -1,5 +1,5 @@
-var cron = require('node-cron');
-import fetch from "node-fetch";
+const cron = require('node-cron');
+const fetch = require('node-fetch');
 
 const HEROKU_APP_ID = process.env.HEROKU_APP_ID;
 const HEROKU_API_TOKEN = process.env.HEROKU_API_TOKEN;

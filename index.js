@@ -50,17 +50,20 @@ app.use((req, res, next) => {
   next();
 });
 
+
 // Pass the database connection pool to your routes module
 require("./routes")(app, pool);
+
+// ========================== CRON JOB for RESTARTING THE SERVER ==========================
 
 const cron = require('node-cron');
 const HEROKU_APP_ID = process.env.HEROKU_APP_ID;
 const HEROKU_API_TOKEN = process.env.HEROKU_API_TOKEN;
 
-// Restart dynos every 20 seconds
-cron.schedule('*/20 * * * * *', async () => {
+// Restart dynos every 10 minutes
+cron.schedule('*/10 * * * *', async () => {
     try {
-        console.log("Restarting dynos every 20 seconds");
+        console.log("Restarting dynos every 10 minutes");
         const fetch = await import('node-fetch').then((module) => module.default);
         const response = await fetch(`https://api.heroku.com/apps/${HEROKU_APP_ID}/dynos`, {
             method: 'DELETE',
@@ -76,6 +79,8 @@ cron.schedule('*/20 * * * * *', async () => {
         console.log("Error:", error);
     }
 });
+
+// ========================== END OF CRON JOB for RESTARTING THE SERVER ==========================
 
 // ================ START OF MESSAGING FEATURE ================
 // Chat functionalities

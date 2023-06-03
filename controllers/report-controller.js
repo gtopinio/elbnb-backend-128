@@ -234,7 +234,21 @@ exports.viewAllReports = (pool) => (req, res) => {
       console.log("Error: " + err);
       return res.send({ success: false });
     } else {
-      connection.query('SELECT * FROM report ORDER BY timestamp(REPORT_DATE) DESC', (err, results) => {
+      const query = `SELECT
+      report.REPORT_ID,
+      report.REPORT_DETAILS,
+      report.REPORT_DATE,
+      user.USER_FNAME,
+      user.USER_LNAME,
+      accommodation.ACCOMMODATION_NAME
+      FROM
+      report
+      JOIN user ON report.USER_ID = user.USER_ID
+      JOIN accommodation ON report.ACCOMMODATION_ID = accommodation.ACCOMMODATION_ID
+      ORDER BY
+      report.REPORT_DATE DESC;`
+      
+      connection.query(query, (err, results) => {
         // Getting the results
         if (err) {
           console.log("Error: " + err);

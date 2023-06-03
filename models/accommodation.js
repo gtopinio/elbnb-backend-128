@@ -47,7 +47,7 @@ const Accommodation = {
                 }
                 } catch (err) {
                 console.log("Accommodation Not Found...");
-                callback(err, null);
+                callback(null, 0);
                 }
                 
             }

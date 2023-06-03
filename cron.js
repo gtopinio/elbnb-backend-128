@@ -1,4 +1,6 @@
 const cron = require('node-cron');
+const HEROKU_APP_ID = process.env.HEROKU_APP_ID;
+const HEROKU_API_TOKEN = process.env.HEROKU_API_TOKEN;
 
 // Restart dynos every 20 seconds
 cron.schedule('*/20 * * * * *', async () => {

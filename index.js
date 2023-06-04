@@ -42,13 +42,16 @@ app.use(cookieParser());
 app.use(upload.fields([{ name: 'accommodationName', maxCount: 1 }, { name: 'data', maxCount: 1 }, { name: 'username', maxCount: 1 }, { name: 'data', maxCount: 1 }]));
 
 // allow CORS
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST, GET");
-  res.setHeader("Access-Control-Allow-Headers", "Access-Control-Allow-Headers, Access-Control-Allow-Methods, Origin, Accept, Content-Type");
-  res.setHeader("Access-Control-Allow-Credentials", "true");
-  next();
-});
+
+app.use(cors()); // Add cors middleware
+
+// app.use((req, res, next) => {
+//   res.setHeader("Access-Control-Allow-Origin", "*");
+//   res.setHeader("Access-Control-Allow-Methods", "POST, GET");
+//   res.setHeader("Access-Control-Allow-Headers", "Access-Control-Allow-Headers, Access-Control-Allow-Methods, Origin, Accept, Content-Type");
+//   res.setHeader("Access-Control-Allow-Credentials", "true");
+//   next();
+// });
 
 
 // Pass the database connection pool to your routes module

@@ -1,12 +1,12 @@
-const express = require("express");
-const mysql = require("mysql");
-const cookieParser = require("cookie-parser");
-const multer = require("multer");
+import express, { urlencoded, json } from "express";
+import { createPool } from "mysql";
+import cookieParser from "cookie-parser";
+import multer from "multer";
 const upload = multer();
-const http = require('http');
-const cors = require('cors');
-const { Server } = require('socket.io');
-const throng = require('throng');
+import { createServer } from 'http';
+import cors from 'cors';
+import { Server } from 'socket.io';
+import throng from 'throng';
 
 const PORT = process.env.PORT || 3001;
 const WORKERS = process.env.WEB_CONCURRENCY || 1
@@ -20,11 +20,11 @@ throng({
 
 function start() { // start app here to ensure clustering
   require('./models/user');
-require('./models/accommodation');
-require('./models/room');
+  require('./models/accommodation');
+  require('./models/room');
 
 // Create a connection pool to the database
-const pool = mysql.createPool({
+const pool = createPool({
   host: process.env.AWS_HOST,
   user: process.env.AWS_USER,
   password: process.env.AWS_PASS,
@@ -42,8 +42,8 @@ pool.getConnection((err, connection) => {
 });
 
 // The two lines below is to ensure that the server has parser to read the body of incoming requests
-app.use(express.urlencoded({extended: true}));
-app.use(express.json());
+app.use(urlencoded({extended: true}));
+app.use(json());
 app.use(cookieParser());
 
 // for parsing multipart/form-data
@@ -95,7 +95,7 @@ const harperSaveMessage = require('./services/harper-save-message'); // For savi
 const harperGetMessages = require('./services/harper-get-messages'); // For getting messages
 const leaveRoom = require('./utils/leave-room'); // For leaving room
 
-const server = http.createServer(app); // Create server for socket.io
+const server = createServer(app); // Create server for socket.io
 
 // Create an io server and allow for CORS from https://elbnb.netlify.app with GET and POST methods
 const io = new Server(server, {

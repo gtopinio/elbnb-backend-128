@@ -11,9 +11,17 @@ const PORT = process.env.PORT || 3001;
 const app = express();
 const appLink = "https://mockup-backend-128.herokuapp.com"
 
-require('./models/user');
-require('./models/accommodation');
-require('./models/room');
+const throng = require('throng');
+
+const WORKERS = process.env.WEB_CONCURRENCY || 1;
+
+throng({
+  workers: WORKERS,
+  lifetime: Infinity
+}, () => {
+  require('./models/user');
+  require('./models/accommodation');
+  require('./models/room');
 
 // Create a connection pool to the database
 const pool = mysql.createPool({
@@ -193,3 +201,11 @@ server.listen(PORT, (err) => {
     if(err){ console.log(err);}
     else{console.log("Server listening at port " + PORT);}
 });
+
+
+
+
+});
+
+
+

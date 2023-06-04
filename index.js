@@ -8,10 +8,17 @@ const cors = require('cors');
 const { Server } = require('socket.io');
 
 const PORT = process.env.PORT || 3001;
+const WORKERS = process.env.WEB_CONCURRENCY || 1
 const app = express();
 const appLink = "https://mockup-backend-128.herokuapp.com"
 
-require('./models/user');
+throng({
+  workers: WORKERS,
+  lifetime: Infinity
+}, start);
+
+function start() { // start app here to ensure clustering
+  require('./models/user');
 require('./models/accommodation');
 require('./models/room');
 
@@ -193,3 +200,7 @@ server.listen(PORT, (err) => {
     if(err){ console.log(err);}
     else{console.log("Server listening at port " + PORT);}
 });
+
+}
+
+

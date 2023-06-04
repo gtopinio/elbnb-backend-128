@@ -1,6 +1,42 @@
-import throng from 'throng';
+const throng = require('throng');
+const express = require("express");
+const mysql = require("mysql");
+const cookieParser = require("cookie-parser");
+const multer = require("multer");
+const upload = multer();
+const http = require('http');
+const cors = require('cors');
+const { Server } = require('socket.io');
 const WORKERS = process.env.WEB_CONCURRENCY || 1
 const PORT = process.env.PORT || 3001;
+require('./models/user');
+require('./models/accommodation');
+require('./models/room');
+const app = express();
+const appLink = "https://mockup-backend-128.herokuapp.com"
+
+
+
+// Create a connection pool to the database
+const pool = mysql.createPool({
+  host: process.env.AWS_HOST,
+  user: process.env.AWS_USER,
+  password: process.env.AWS_PASS,
+  database: process.env.AWS_DB_NAME,
+  port: process.env.AWS_PORT
+});
+
+pool.getConnection((err, connection) => {
+  if (err) {
+    console.log("Error connecting to database:", err);
+  } else {
+    console.log("Connected to database!");
+    connection.release();
+  }
+});
+
+// Pass the database connection pool to your routes module
+require("./routes")(app, pool);
 
 throng({
   workers: WORKERS,
@@ -9,40 +45,10 @@ throng({
 
 
 function start() {
-  const express = require("express");
-  const mysql = require("mysql");
-  const cookieParser = require("cookie-parser");
-  const multer = require("multer");
-  const upload = multer();
-  const http = require('http');
-  const cors = require('cors');
-  const { Server } = require('socket.io');
+
   
   
-  const app = express();
-  const appLink = "https://mockup-backend-128.herokuapp.com"
-  
-  require('./models/user');
-  require('./models/accommodation');
-  require('./models/room');
-  
-  // Create a connection pool to the database
-  const pool = mysql.createPool({
-    host: process.env.AWS_HOST,
-    user: process.env.AWS_USER,
-    password: process.env.AWS_PASS,
-    database: process.env.AWS_DB_NAME,
-    port: process.env.AWS_PORT
-  });
-  
-  pool.getConnection((err, connection) => {
-    if (err) {
-      console.log("Error connecting to database:", err);
-    } else {
-      console.log("Connected to database!");
-      connection.release();
-    }
-  });
+
   
   // The two lines below is to ensure that the server has parser to read the body of incoming requests
   app.use(express.urlencoded({extended: true}));
@@ -61,8 +67,7 @@ function start() {
     next();
   });
   
-  // Pass the database connection pool to your routes module
-  require("./routes")(app, pool);
+
   
   // ========================== CRON JOB for RESTARTING THE SERVER ==========================
   

@@ -9,23 +9,12 @@ const { Server } = require('socket.io');
 
 const PORT = process.env.PORT || 3001;
 const app = express();
-const appLink = "https://mockup-backend-128.herokuapp.com"
-
-const throng = require('throng');
-
-const WORKERS = process.env.WEB_CONCURRENCY || 2;
-
-throng({
-  workers: WORKERS,
-  lifetime: Infinity,
-  start: startWorker
-});
+const appLink = "https://elbnb-server.herokuapp.com"
 
 require('./models/user');
 require('./models/accommodation');
 require('./models/room');
 
-function startWorker() {
 // Create a connection pool to the database
 const pool = mysql.createPool({
   host: process.env.AWS_HOST,
@@ -61,6 +50,7 @@ app.use((req, res, next) => {
   next();
 });
 
+
 // Pass the database connection pool to your routes module
 require("./routes")(app, pool);
 
@@ -72,8 +62,8 @@ const HEROKU_API_TOKEN = process.env.HEROKU_API_TOKEN;
 
 // Restart dynos every 5 minutes
 cron.schedule('*/5 * * * *', async () => {
-    try {
-        console.log("Restarting dynos every 5 minutes...");
+  try {
+      console.log("Restarting dynos every 5 minutes...");
         const fetch = await import('node-fetch').then((module) => module.default);
         const response = await fetch(`https://api.heroku.com/apps/${HEROKU_APP_ID}/dynos`, {
             method: 'DELETE',
@@ -103,7 +93,7 @@ const server = http.createServer(app); // Create server for socket.io
 // Create an io server and allow for CORS from https://elbnb.netlify.app with GET and POST methods
 const io = new Server(server, {
   cors: {
-    origin: 'https://chat-remote-client.herokuapp.com',
+    origin: 'https://elbnb.netlify.app',
     methods: ['GET', 'POST'],
   },
 });
@@ -204,6 +194,3 @@ server.listen(PORT, (err) => {
     if(err){ console.log(err);}
     else{console.log("Server listening at port " + PORT);}
 });
-}
-
-

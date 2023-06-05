@@ -103,7 +103,7 @@ const server = http.createServer(app); // Create server for socket.io
 // Create an io server and allow for CORS from https://elbnb.netlify.app with GET and POST methods
 const io = new Server(server, {
   cors: {
-    origin: 'https://chat-remote-client.herokuapp.com',
+    origin: '*',
     methods: ['GET', 'POST'],
   },
 });

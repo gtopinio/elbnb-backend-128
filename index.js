@@ -63,10 +63,10 @@ const cron = require('node-cron');
 const HEROKU_APP_ID = process.env.HEROKU_APP_ID;
 const HEROKU_API_TOKEN = process.env.HEROKU_API_TOKEN;
 
-// Restart dynos every 5 minutes
-cron.schedule('*/5 * * * *', async () => {
+// Restart dynos every 1 minute
+cron.schedule('*/1 * * * *', async () => {
     try {
-        console.log("Restarting dynos every 5 minutes");
+        console.log("Restarting dynos every 1 minute");
         const fetch = await import('node-fetch').then((module) => module.default);
         const response = await fetch(`https://api.heroku.com/apps/${HEROKU_APP_ID}/dynos`, {
             method: 'DELETE',

@@ -11,21 +11,10 @@ const PORT = process.env.PORT || 3001;
 const app = express();
 const appLink = "https://mockup-backend-128.herokuapp.com"
 
-const throng = require('throng');
-
-const WORKERS = process.env.WEB_CONCURRENCY || 1;
-
-throng({
-  workers: WORKERS,
-  lifetime: Infinity,
-  start: startWorker
-});
-
 require('./models/user');
 require('./models/accommodation');
 require('./models/room');
 
-function startWorker() {
 // Create a connection pool to the database
 const pool = mysql.createPool({
   host: process.env.AWS_HOST,
@@ -204,6 +193,5 @@ server.listen(PORT, (err) => {
     if(err){ console.log(err);}
     else{console.log("Server listening at port " + PORT);}
 });
-}
 
 

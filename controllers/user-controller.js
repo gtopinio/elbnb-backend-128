@@ -52,7 +52,7 @@ exports.signUp = (pool) => (req, res) => {
               // If an error occured or user is not found
               if (error) {
                 console.log(error);
-                return res.send({ success: false });
+                return res.send({ success: false , message: "Error finding user."});
               }
               if (!result) {
                 console.log("Email is unique! Creating user...");
@@ -68,7 +68,7 @@ exports.signUp = (pool) => (req, res) => {
                 });
               } else {
                 console.log("Email is already registered!");
-                return res.send({ success: false });
+                return res.send({ success: false , message: "Email is already registered."});
               }});
         }
       });
@@ -95,13 +95,13 @@ exports.login = (pool) => (req, res) => {
   pool.getConnection((err, connection) => {
     if(err){
       console.log(err);
-      return res.send({success: false});
+      return res.send({success: false, message : "Error connecting to database"});
     } else{
         // Check if email exists in the user table
       UserController_User.checkIfEmailExists(connection, email, (error, results) => {
     if (error) {
       console.log(error);
-      return res.send({ success: false });
+      return res.send({ success: false, message: "Error finding user."});
     }
     if (results) {
       // After finding out that the user exists, we find the user
@@ -118,11 +118,11 @@ exports.login = (pool) => (req, res) => {
           UserController_User.comparePassword(password, user.USER_PASSWORD, (error, isMatch) => {
             if (error) {
               console.log(error);
-              return res.send({ success: false });
+              return res.send({ success: false , message: "Error comparing passwords."});
             }
             if (!isMatch) {
               console.log("Incorrect password");
-              return res.send({ success: false });
+              return res.send({ success: false , message: "Incorrect password."});
             }
             const tokenPayload = {
                 user_id: user.USER_ID,
@@ -148,7 +148,7 @@ exports.login = (pool) => (req, res) => {
       });
     } else {
         console.log("User not found");
-        return res.send({ success: false });
+        return res.send({ success: false , message: "User not found."});
       }
   });
 }});

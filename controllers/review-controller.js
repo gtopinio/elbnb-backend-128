@@ -678,13 +678,16 @@ ReviewController_Accommodation.getAccommodationIdByName(pool, accommodationName,
             console.log("Error getting favorites: " + err);
             return res.send({ success: false , message: "Error getting favorites"});
           } else {
+            const accommodationIds = results.map(result => result.ACCOMMODATION_ID);
+            const placeholders = accommodationIds.map(() => '?').join(', ');
+
             // once we have all the accommodation IDs, we can get the accommodation(s) from the accommodation table
             const accommodationQuery = `
               SELECT *
               FROM accommodation
-              WHERE ACCOMMODATION_ID IN (?)
+              WHERE ACCOMMODATION_ID IN (${placeholders})
             `;
-            pool.query(accommodationQuery, [results.map(result => result.ACCOMMODATION_ID)], (err, results) => {
+            pool.query(accommodationQuery, accommodationIds, (err, results) => {
               if (err) {
                 console.log("Error getting favorites: " + err);
                 return res.send({ success: false , message: "Error getting favorites"});

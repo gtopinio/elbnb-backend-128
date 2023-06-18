@@ -130,7 +130,7 @@ exports.login = (pool) => (req, res) => {
             }
 
             // Create a token
-            const token = jwt.sign(tokenPayload, process.env.AUTH_SECRET_STRING);
+            const token = jwt.sign(tokenPayload, process.env.AUTH_SECRET_STRING, { expiresIn: '1h' });
             console.log("Successfully logged in as " + user.USER_TYPE);
             return res.send({
               success: true,

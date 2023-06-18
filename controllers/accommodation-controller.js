@@ -531,7 +531,7 @@ exports.viewAccommodation = (pool) => (req, res) => {
 // The function also logs the filter details and SQL query for debugging purposes.
 exports.filterAccommodations = (pool) => (req, res) => {
     const filters = req.body.filters;
-    const name = filters.name;
+    const name = filters.name !== null ? null : filters.name.replace(/\s+/g,' ').trim(); // Trimming extra whitepaces in name
     const address = filters.address;
     const location = filters.location;
     const type = filters.type;

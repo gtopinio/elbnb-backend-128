@@ -14,7 +14,7 @@ const { Report: ReportController_Report } = require('../models/report');
 exports.generateReport = (pool) => (req, res) => {
     // Building PDF from filters
     const filters = req.body.filters;
-    const name = filters.name;
+    const name = filters.name.replace(/\s+/g,' ').trim(); // Trimming extra whitepaces in name
     const address = filters.address;
     const location = filters.location;
     const type = filters.type;

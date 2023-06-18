@@ -468,36 +468,34 @@ a middleware function that handles HTTP requests and responses. If there is an e
 query, the function returns a response with success set to false. Otherwise, it returns a response
 with success set to true and the list of featured accommodation. */
 exports.getFeaturedAccommodations = (pool) => (req, res) => {
-  console.log("----------Get Featured Accommodations----------");
-  const { type } = req.body;
-
-  let query;
-  if (type === "" || type === null) {
-      // Query that gets the top 5 featured accommodations with rooms based on their average review rating
-      query = `
-          SELECT a.ACCOMMODATION_ID, a.ACCOMMODATION_NAME, a.ACCOMMODATION_TYPE, a.ACCOMMODATION_DESCRIPTION, a.ACCOMMODATION_AMENITIES, a.ACCOMMODATION_ADDRESS, a.ACCOMMODATION_LOCATION, a.ACCOMMODATION_OWNER_ID, AVG(r.REVIEW_RATING) AS AVERAGE_RATING
-          FROM accommodation a
-          JOIN review r ON a.ACCOMMODATION_ID = r.ACCOMMODATION_ID
-          JOIN room rm ON a.ACCOMMODATION_ID = rm.ACCOMMODATION_ID
-          GROUP BY a.ACCOMMODATION_ID
-          HAVING COUNT(rm.ROOM_ID) > 0
-          ORDER BY AVERAGE_RATING DESC
-          LIMIT 5
-      `;
-  } else {
-      // Query that gets the top 5 featured accommodations with rooms based on their average review rating and type
-      query = `
-          SELECT a.ACCOMMODATION_ID, a.ACCOMMODATION_NAME, a.ACCOMMODATION_TYPE, a.ACCOMMODATION_DESCRIPTION, a.ACCOMMODATION_AMENITIES, a.ACCOMMODATION_ADDRESS, a.ACCOMMODATION_LOCATION, a.ACCOMMODATION_OWNER_ID, AVG(r.REVIEW_RATING) AS AVERAGE_RATING
-          FROM accommodation a
-          JOIN review r ON a.ACCOMMODATION_ID = r.ACCOMMODATION_ID
-          JOIN room rm ON a.ACCOMMODATION_ID = rm.ACCOMMODATION_ID
-          WHERE a.ACCOMMODATION_TYPE = ?
-          GROUP BY a.ACCOMMODATION_ID
-          HAVING COUNT(rm.ROOM_ID) > 0
-          ORDER BY AVERAGE_RATING DESC
-          LIMIT 5
-      `;
-  }
+    console.log("----------Get Featured Accommodations----------");
+    const {type} = req.body;
+    
+    var query;
+    if(type === "" || type === null){
+        // Query that gets the top 5 featured accommodation based on their average review rating
+         query = `
+        SELECT a.ACCOMMODATION_ID, a.ACCOMMODATION_NAME, a.ACCOMMODATION_TYPE, a.ACCOMMODATION_DESCRIPTION, a.ACCOMMODATION_AMENITIES, a.ACCOMMODATION_ADDRESS, a.ACCOMMODATION_LOCATION, a.ACCOMMODATION_OWNER_ID, AVG(r.REVIEW_RATING) AS AVERAGE_RATING
+        FROM accommodation a
+        LEFT JOIN room rm ON a.ACCOMMODATION_ID = rm.ACCOMMODATION_ID 
+        JOIN review r ON a.ACCOMMODATION_ID = r.ACCOMMODATION_ID
+        GROUP BY a.ACCOMMODATION_ID
+        ORDER BY AVERAGE_RATING DESC
+        LIMIT 5
+        `;
+    } else {
+        // Query that gets the top 5 featured accommodation based on their average review rating and type
+        query = `
+        SELECT a.ACCOMMODATION_ID, a.ACCOMMODATION_NAME, a.ACCOMMODATION_TYPE, a.ACCOMMODATION_DESCRIPTION, a.ACCOMMODATION_AMENITIES, a.ACCOMMODATION_ADDRESS, a.ACCOMMODATION_LOCATION, a.ACCOMMODATION_OWNER_ID, AVG(r.REVIEW_RATING) AS AVERAGE_RATING
+        FROM accommodation a
+        LEFT JOIN room rm ON a.ACCOMMODATION_ID = rm.ACCOMMODATION_ID 
+        JOIN review r ON a.ACCOMMODATION_ID = r.ACCOMMODATION_ID
+        WHERE a.ACCOMMODATION_TYPE = ?
+        GROUP BY a.ACCOMMODATION_ID
+        ORDER BY AVERAGE_RATING DESC
+        LIMIT 5
+        `;
+    }
 
   pool.query(query, [type], (err, results) => {
       if (err) {

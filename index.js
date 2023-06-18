@@ -93,7 +93,7 @@ const leaveRoom = require('./utils/leave-room'); // For leaving room
 
 const server = http.createServer(app); // Create server for socket.io
 
-// Create an io server and allow for CORS from https://elbnb.netlify.app with GET and POST methods
+// Create an io server and allow for CORS from https://elbnb.netlify.app (from all origin points for now) with GET and POST methods
 const io = new Server(server, {
   cors: {
     origin: '*',
@@ -103,7 +103,7 @@ const io = new Server(server, {
 
 // Listen for when the client connects via socket.io-client
 const CHAT_BOT = 'ChatBot';
-let chatRoom = ''; // E.g. student1 and owner1 room,...
+let chatRoom = ''; // E.g. "Mountain View Lodge, Beachfront Resort"
 let allUsers = []; // All users in current chat room
 
 io.on('connection', (socket) => {
@@ -152,6 +152,7 @@ io.on('connection', (socket) => {
 
   // Send message to all users in room
   socket.on('send_message', (data) => {
+    console.log("send_message:" + data);
   const { message, username, room, __createdtime__ } = data;
   io.in(room).emit('receive_message', data); // Send to all users in room, including sender
   // harperSaveMessage(message, username, room, __createdtime__) // Save message in db

@@ -152,8 +152,8 @@ io.on('connection', (socket) => {
 
   // Send message to all users in room
   socket.on('send_message', (data) => {
-    console.log("send_message:" + data);
   const { message, username, room, __createdtime__ } = data;
+  console.log("message details from client" + message + " | " + username + " | " + room);
   io.in(room).emit('receive_message', data); // Send to all users in room, including sender
   // harperSaveMessage(message, username, room, __createdtime__) // Save message in db
   //   .then((response) => console.log(response))

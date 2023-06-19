@@ -61,14 +61,24 @@ const User = {
     });
   },
   edit: (connection, userId, newPassword, newUsername, newFirstName, newLastName, newContactNum, callback) => {
-    const sql = 'UPDATE user SET USER_PASSWORD=?, USER_USERNAME=?, USER_FNAME=?, USER_LNAME=?, USER_CONTACTNUM=? WHERE USER_ID=?';
-    const hash = bcrypt.hashSync(newPassword, 10);
-    connection.query(sql, [hash, newUsername, newFirstName, newLastName, newContactNum, userId], (error) => {
-      if (error) {
-        return callback(error);
-      }
-      return callback(null);
-    });
+    if (newPassword) {
+      const sql = 'UPDATE user SET USER_PASSWORD=?, USER_USERNAME=?, USER_FNAME=?, USER_LNAME=?, USER_CONTACTNUM=? WHERE USER_ID=?';
+      const hash = bcrypt.hashSync(newPassword, 10);
+      connection.query(sql, [hash, newUsername, newFirstName, newLastName, newContactNum, userId], (error) => {
+        if (error) {
+          return callback(error);
+        }
+        return callback(null);
+      });
+    } else {
+      const sql = 'UPDATE user SET USER_USERNAME=?, USER_FNAME=?, USER_LNAME=?, USER_CONTACTNUM=? WHERE USER_ID=?';
+      connection.query(sql, [newUsername, newFirstName, newLastName, newContactNum, userId], (error) => {
+        if (error) {
+          return callback(error);
+        }
+        return callback(null);
+      });
+    }
   },
   /*
   This function takes a database connection pool, an accommodation name (unique), and a callback function as inputs. 

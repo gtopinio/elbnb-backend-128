@@ -552,7 +552,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
     // Building the query
     let query = 'SELECT accommodation.*, MAX(room.ROOM_PRICE) AS max_price, user.USER_USERNAME, user.USER_FNAME, user.USER_LNAME, AVG(review.REVIEW_RATING) AS rating, MIN(room.ROOM_CAPACITY) AS min_capacity, MAX(room.ROOM_CAPACITY) as max_capacity ' +
                 'FROM user INNER JOIN accommodation ON user.USER_ID = accommodation.ACCOMMODATION_OWNER_ID ' + 
-                'INNER JOIN review ON accommodation.ACCOMMODATION_ID = review.ACCOMMODATION_ID ' +
+                'LEFT JOIN review ON accommodation.ACCOMMODATION_ID = review.ACCOMMODATION_ID ' +
                 'LEFT JOIN room ON accommodation.ACCOMMODATION_ID = room.ACCOMMODATION_ID ' + 
                 'WHERE accommodation.ACCOMMODATION_ISARCHIVED = false AND room.ROOM_ISARCHIVED = false AND '
 
@@ -602,7 +602,7 @@ exports.filterAccommodations = (pool) => (req, res) => {
             // Printing the results of the query in numbered list
             console.log("========== FOUND ACCOMMODATIONS ==========");
             for (let i = 0; i < results.length; i++) {
-              console.log(i + 1 + ". " + results[i].ACCOMMODATION_NAME);
+              console.log(i + 1 + ". " + results[i].ACCOMMODATION_NAME + " - " + results[i].rating);
             }
             return res.send({ message: "Accommodations found!", accommodations: results });
           } else {

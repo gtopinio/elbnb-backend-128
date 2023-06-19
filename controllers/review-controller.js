@@ -569,7 +569,6 @@ accommodation and sends the results back in the response. If there is an error a
 function sends a response with success set to false. */
 exports.getAccommodationReviews = (pool) => (req, res) => {
   const {accommodationName} = req.body;
-  res.header("Access-Control-Allow-Origin", "*");
   console.log("----------Get Accommodation Reviews----------");
   console.log("Accommodation name: " + accommodationName);
 

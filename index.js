@@ -43,23 +43,23 @@ app.use(upload.fields([{ name: 'accommodationName', maxCount: 1 }, { name: 'data
 
 // allow CORS
 
-const corsOptions = {
-  origin: '*',
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Origin', 'X-Requested-With', 'Accept', 'x-client-key', 'x-client-token', 'x-client-secret', 'Authorization'],
-  optionSuccessStatus: 200,
-}
+// const corsOptions = {
+//   origin: '*',
+//   credentials: true,
+//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'],
+//   allowedHeaders: ['Content-Type', 'Origin', 'X-Requested-With', 'Accept', 'x-client-key', 'x-client-token', 'x-client-secret', 'Authorization'],
+//   optionSuccessStatus: 200,
+// }
 
-app.use(cors(corsOptions)); // Add cors middleware
+// app.use(cors(corsOptions)); // Add cors middleware
 
-// app.use((req, res, next) => {
-//   res.setHeader("Access-Control-Allow-Origin", "*");
-//   res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
-//   res.setHeader("Access-Control-Allow-Headers", "Access-Control-Allow-Headers, Access-Control-Allow-Methods, Origin, Accept, Content-Type, Authorization, X-Requested-With");
-//   res.setHeader("Access-Control-Allow-Credentials", "true");
-//   next();
-// });
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Access-Control-Allow-Headers, Access-Control-Allow-Methods, Origin, Accept, Content-Type, Authorization, X-Requested-With");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  next();
+});
 
 
 // Pass the database connection pool to your routes module
@@ -71,10 +71,10 @@ const cron = require('node-cron');
 const HEROKU_APP_ID = process.env.HEROKU_APP_ID;
 const HEROKU_API_TOKEN = process.env.HEROKU_API_TOKEN;
 
-// Restart dynos every 2 minutes
-cron.schedule('*/2 * * * *', async () => {
+// Restart dynos every 1 minute
+cron.schedule('*/1 * * * *', async () => {
     try {
-        console.log("Restarting dynos every 2 minutes...");
+        console.log("Restarting dynos every 1 minute...");
         const fetch = await import('node-fetch').then((module) => module.default);
         const response = await fetch(`https://api.heroku.com/apps/${HEROKU_APP_ID}/dynos`, {
             method: 'DELETE',

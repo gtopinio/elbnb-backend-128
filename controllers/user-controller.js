@@ -130,7 +130,7 @@ exports.login = (pool) => (req, res) => {
             }
 
             // Create a token
-            const token = jwt.sign(tokenPayload, process.env.AUTH_SECRET_STRING);
+            const token = jwt.sign(tokenPayload, "HELLO WORLD");
             console.log("Successfully logged in as " + user.USER_TYPE);
             return res.send({
               success: true,
@@ -262,7 +262,7 @@ exports.deleteUserByEmail = (pool) => (req, res) => {
 // It extracts the email, new password, new username, new first name, new last name, and new contact number from the request body, checks if the email exists in the user table, and updates the user in the user table.
 // Finally, it returns a response with success true if the user is successfully updated, and success false if the user is not updated or an error occurs.
 exports.editUserByEmail = (pool) => (req, res) => {
-  const { email, newPassword, newUsername, newFirstName, newLastName, newContactNum} = req.body;
+  const { email, newPassword, newUsername, newFirstName, newLastName, newContactNum, password } = req.body;
   console.log("============ Edit User bu Email Feature ============");
   console.log("Email: " + email);
   console.log("Password : " + newPassword);
@@ -291,23 +291,36 @@ exports.editUserByEmail = (pool) => (req, res) => {
               console.log(error);
               connection.rollback();
               return res.send({success:false, message: "Error finding user"});
-            }
-            if (user) {
-              UserController_User.edit(connection, user.USER_ID, newPassword, newUsername, newFirstName, newLastName, newContactNum, (error) => {
-                if (error) {
-                  console.log(error);
-                  connection.rollback();
-                  return res.send({success:false, message: "Error editing user"});
-                }
-                console.log(`User with email ${email} has been edited.`);
-                connection.commit();
-                return res.send({success:true});
-              });
             } else {
-              console.log(`User with email ${email} does not exist.`);
-              connection.rollback();
-              return res.send({success:false, message: "User not found"});
-            }});
+              if (user) {
+                UserController_User.comparePassword(password, user.USER_PASSWORD, (error, isMatch) => {
+                  if (error) {
+                    console.log("Error checking password: " + error);
+                    connection.rollback();
+                    return res.send({success:false, message: "Old password didn't match"});
+                  } else if (!isMatch) {
+                    console.log("Error: Old password didn't match");
+                    connection.rollback();
+                    return res.send({success:false, message: "Old password didn't match"});
+                  } else {
+                    UserController_User.edit(connection, user.USER_ID, newPassword, newUsername, newFirstName, newLastName, newContactNum, (error) => {
+                      if (error) {
+                        console.log(error);
+                        connection.rollback();
+                        return res.send({success:false, message: "Error editing user"});
+                      }
+                      console.log(`User with email ${email} has been edited.`);
+                      connection.commit();
+                      return res.send({success:true});
+                    });
+                  }
+                });
+              } else {
+                console.log(`User with email ${email} does not exist.`);
+                connection.rollback();
+                return res.send({success:false, message: "User not found"});
+              }}
+            });
         }
       });
     }

@@ -4,7 +4,7 @@ const cookieParser = require("cookie-parser");
 const multer = require("multer");
 const upload = multer();
 // const http = require('http');
-// const cors = require('cors');
+const cors = require('cors');
 // const { Server } = require('socket.io');
 
 const PORT = process.env.PORT || 3001;
@@ -43,15 +43,21 @@ app.use(upload.fields([{ name: 'accommodationName', maxCount: 1 }, { name: 'data
 
 // allow CORS
 
-// app.use(cors()); // Add cors middleware
+const corsOptions = {
+  origin: '*',
+  credentials: true,
+  optionSuccessStatus: 200,
+}
 
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Access-Control-Allow-Headers, Access-Control-Allow-Methods, Origin, Accept, Content-Type, Authorization, X-Requested-With");
-  res.setHeader("Access-Control-Allow-Credentials", "true");
-  next();
-});
+app.use(cors(corsOptions)); // Add cors middleware
+
+// app.use((req, res, next) => {
+//   res.setHeader("Access-Control-Allow-Origin", "*");
+//   res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+//   res.setHeader("Access-Control-Allow-Headers", "Access-Control-Allow-Headers, Access-Control-Allow-Methods, Origin, Accept, Content-Type, Authorization, X-Requested-With");
+//   res.setHeader("Access-Control-Allow-Credentials", "true");
+//   next();
+// });
 
 
 // Pass the database connection pool to your routes module

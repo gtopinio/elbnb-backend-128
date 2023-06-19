@@ -678,30 +678,31 @@ ReviewController_Accommodation.getAccommodationIdByName(pool, accommodationName,
             console.log("Error getting favorites: " + err);
             return res.send({ success: false , message: "Error getting favorites"});
           } else {
-            const accommodationIds = results.map(result => result.ACCOMMODATION_ID);
+            // once we have all the accommodation IDs, we can get the accommodation(s) from the accommodation table
+            const ids = results.map(result => result.ACCOMMODATION_ID);
+            let accommodationQuery;
 
-            if (accommodationIds.length === 0) {
-              // If no accommodation IDs found, return empty favorites
-              return res.send({ success: true, favorites: [] });
+            if (ids.length == 0) {
+              accommodationQuery = `
+              SELECT *
+              FROM accommodation
+              WHERE ACCOMMODATION_ID IN (-1)
+            `;
             } else {
-                const placeholders = accommodationIds.map(() => '?').join(', ');
-
-              // once we have all the accommodation IDs, we can get the accommodation(s) from the accommodation table
-              const accommodationQuery = `
-                SELECT *
-                FROM accommodation
-                WHERE ACCOMMODATION_ID IN (${placeholders})
-              `;
-              pool.query(accommodationQuery, accommodationIds, (err, results) => {
-                if (err) {
-                  console.log("Error getting favorites: " + err);
-                  return res.send({ success: false , message: "Error getting favorites"});
-                } else {
-                  return res.send({ success: true, favorites: results });
-                }
-              });
-
-            }  
+              accommodationQuery = `
+              SELECT *
+              FROM accommodation
+              WHERE ACCOMMODATION_ID IN (?)
+            `;
+            }
+            pool.query(accommodationQuery, [ids], (err, results) => {
+              if (err) {
+                console.log("Error getting favorites from table: " + err);
+                return res.send({ success: false , message: "Error getting favorites"});
+              } else {
+                return res.send({ success: true, favorites: results });
+              }
+            });
           }
         });
       }

@@ -194,7 +194,7 @@ cron.schedule('*/2 * * * *', async () => {
 // // ================ END OF MESSAGING FEATURE ================
 
 // start server
-server.listen(PORT, (err) => {
+app.listen(PORT, (err) => {
     if(err){ console.log(err);}
     else{console.log("Server listening at port " + PORT);}
 });

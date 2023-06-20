@@ -530,88 +530,88 @@ exports.viewAccommodation = (pool) => (req, res) => {
 // The results are returned in a JSON object with a success property indicating whether the query was successful and an accommodation property containing the filtered results. 
 // The function also logs the filter details and SQL query for debugging purposes.
 exports.filterAccommodations = (pool) => (req, res) => {
-    const filters = req.body.filters;
-    const name = filters.name !== null ? null : filters.name.replace(/\s+/g,' ').trim(); // Trimming extra whitepaces in name
-    const address = filters.address;
-    const location = filters.location;
-    const type = filters.type;
-    const rating = filters.rating;
-    const maxPrice = filters.maxPrice;
-    const capacity = filters.capacity;
+  const filters = req.body.filters;
+  const name = filters.name;
+  const address = filters.address;
+  const location = filters.location;
+  const type = filters.type;
+  const rating = filters.rating;
+  const maxPrice = filters.maxPrice;
+  const capacity = filters.capacity;
 
-    console.log("========== FILTER ACCOMMODATIONS ==========");
-    console.log("Name: " + name);
-    console.log("Address: " + address);
-    console.log("Location: " + location);
-    console.log("Type: " + type);
-    console.log("Rating: " + rating);
-    console.log("Max Price: " + maxPrice);
-    console.log("Capacity: " + capacity);
+  console.log("========== FILTER ACCOMMODATIONS ==========");
+  console.log("Name: " + name);
+  console.log("Address: " + address);
+  console.log("Location: " + location);
+  console.log("Type: " + type);
+  console.log("Rating: " + rating);
+  console.log("Max Price: " + maxPrice);
+  console.log("Capacity: " + capacity);
 
-  
-    // Building the query
-    let query = 'SELECT accommodation.*, MAX(room.ROOM_PRICE) AS max_price, user.USER_USERNAME, user.USER_FNAME, user.USER_LNAME, AVG(review.REVIEW_RATING) AS rating, MIN(room.ROOM_CAPACITY) AS min_capacity, MAX(room.ROOM_CAPACITY) as max_capacity ' +
-                'FROM user INNER JOIN accommodation ON user.USER_ID = accommodation.ACCOMMODATION_OWNER_ID ' + 
-                'LEFT JOIN review ON accommodation.ACCOMMODATION_ID = review.ACCOMMODATION_ID ' +
-                'LEFT JOIN room ON accommodation.ACCOMMODATION_ID = room.ACCOMMODATION_ID ' + 
-                'WHERE accommodation.ACCOMMODATION_ISARCHIVED = false AND room.ROOM_ISARCHIVED = false AND '
 
-    if (name) {
-      query += `accommodation.ACCOMMODATION_NAME LIKE '%${name}%' AND `
-    }
-    if (address) {
-      query += `accommodation.ACCOMMODATION_ADDRESS LIKE '%${address}%' AND `
-    }
-    if (location) {
-      query += `accommodation.ACCOMMODATION_LOCATION = '${location}' AND `
-    }
-    if (type) {
-      query += `accommodation.ACCOMMODATION_TYPE = '${type}' AND `
-    }
+  // Building the query
+  let query = 'SELECT accommodation.*, MAX(room.ROOM_PRICE) AS max_price, user.USER_USERNAME, user.USER_FNAME, user.USER_LNAME, AVG(review.REVIEW_RATING) AS rating, MIN(room.ROOM_CAPACITY) AS min_capacity, MAX(room.ROOM_CAPACITY) as max_capacity ' +
+              'FROM user INNER JOIN accommodation ON user.USER_ID = accommodation.ACCOMMODATION_OWNER_ID ' + 
+              'INNER JOIN review ON accommodation.ACCOMMODATION_ID = review.ACCOMMODATION_ID ' +
+              'LEFT JOIN room ON accommodation.ACCOMMODATION_ID = room.ACCOMMODATION_ID ' + 
+              'WHERE accommodation.ACCOMMODATION_ISARCHIVED = false AND room.ROOM_ISARCHIVED = false AND '
 
+  if (name) {
+    query += `accommodation.ACCOMMODATION_NAME LIKE '%${name}%' AND `
+  }
+  if (address) {
+    query += `accommodation.ACCOMMODATION_ADDRESS LIKE '%${address}%' AND `
+  }
+  if (location) {
+    query += `accommodation.ACCOMMODATION_LOCATION = '${location}' AND `
+  }
+  if (type) {
+    query += `accommodation.ACCOMMODATION_TYPE = '${type}' AND `
+  }
+
+  query = query.slice(0, -4);
+  query += 'GROUP BY accommodation.ACCOMMODATION_ID '
+  if (rating || maxPrice || capacity) {
+    query += 'HAVING '
+    if (rating) {
+      query += `AVG(review.REVIEW_RATING) >= '${rating}' AND `
+    }
+    if (maxPrice) {
+      query += `MAX(room.ROOM_PRICE) <= ${maxPrice} AND `
+    }
+    if (capacity) {
+      query += `(MAX(room.ROOM_CAPACITY) = ${capacity} OR MIN(room.ROOM_CAPACITY) = ${capacity}) AND `
+    }
     query = query.slice(0, -4);
-    query += 'GROUP BY accommodation.ACCOMMODATION_ID '
-    if (rating || maxPrice || capacity) {
-      query += 'HAVING '
-      if (rating) {
-        query += `AVG(review.REVIEW_RATING) >= '${rating}' AND `
-      }
-      if (maxPrice) {
-        query += `MAX(room.ROOM_PRICE) <= ${maxPrice} AND `
-      }
-      if (capacity) {
-        query += `(MAX(room.ROOM_CAPACITY) = ${capacity} OR MIN(room.ROOM_CAPACITY) = ${capacity}) AND `
-      }
-      query = query.slice(0, -4);
-    }
-    query += 'ORDER BY accommodation.ACCOMMODATION_NAME'
-    
-    // Querying
-    pool.getConnection((err, connection) => {
-      if (err) {
-        // If error is encountered
-        console.log("Error: " + err);
-        return res.send({ success: false });
-      } else {
-        // Else, start connection
-        connection.query(query, (err, results) => {
-          if (err) {
-            console.log("Error: " + err) 
-            return res.send({ success: false });
-          } else if (results.length > 0) {
-            // Printing the results of the query in numbered list
-            console.log("========== FOUND ACCOMMODATIONS ==========");
-            for (let i = 0; i < results.length; i++) {
-              console.log(i + 1 + ". " + results[i].ACCOMMODATION_NAME + " - " + results[i].rating);
-            }
-            return res.send({ message: "Accommodations found!", accommodations: results });
-          } else {
-            console.log("No accommodations found!");
-            return res.send({ message: "No accommodations found!" });
+  }
+  query += 'ORDER BY accommodation.ACCOMMODATION_NAME'
+  
+  // Querying
+  pool.getConnection((err, connection) => {
+    if (err) {
+      // If error is encountered
+      console.log("Error: " + err);
+      return res.send({ success: false });
+    } else {
+      // Else, start connection
+      connection.query(query, (err, results) => {
+        if (err) {
+          console.log("Error: " + err) 
+          return res.send({ success: false });
+        } else if (results.length > 0) {
+          // Printing the results of the query in numbered list
+          console.log("========== FOUND ACCOMMODATIONS ==========");
+          for (let i = 0; i < results.length; i++) {
+            console.log(i + 1 + ". " + results[i].ACCOMMODATION_NAME);
           }
-        })
-      }
-    })
+          return res.send({ message: "Accommodations found!", accommodations: results });
+        } else {
+          console.log("No accommodations found!");
+          return res.send({ message: "No accommodations found!" });
+        }
+      })
+    }
+  })
 };
 
 // This is a function that uploads/updates an image to Cloudinary and updates the accommodation_pictures table in 

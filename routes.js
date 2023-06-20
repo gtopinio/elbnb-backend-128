@@ -60,6 +60,7 @@ module.exports = (app, pool) => {
     app.post("/accommodation/remove-from-favorites", reviewController.removeAccommodationFromFavorite(pool));
     app.post("/accommodation/is-favorite", reviewController.isAccommodationFavorited(pool));
     app.post("/accommodation/get-reviews", reviewController.getAccommodationReviews(pool));
+    app.post("/accommodation/reviews", reviewController.getAccommodationReviews(pool));
     app.post("/accommodation/get-ratings", reviewController.getAccommodationAverageRating(pool));
     app.post("/accommodation/get-filtered-reviews-by-rating", reviewController.getFilteredAccommodationReviews(pool));
     app.post("/get-top-five-accommodations", reviewController.getFeaturedAccommodations(pool));

@@ -18,5 +18,8 @@ MERN + Heroku as the remote host
 
 - Dayahan, Rey Russel
 - Lacuesta, Lyco
+- Loria, Brian Angelo
 - Topinio, Mark Genesis
+- Ratuiste, Alesundreau Dale
+- Sotto, Kyle
 - Villagen, Kyle Martin

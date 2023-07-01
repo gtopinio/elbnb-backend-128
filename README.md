@@ -1,6 +1,6 @@
 # Student Accommodation and Lodging System (STALS) - Backend Server
 
-An information system that allows users to search, get information, review, and report hotels, apartments, bed space, dormitories, and transient spaces in Los Banos.
+An information system that allows users to search, get information, review, and report hotels, apartments, bed space, dormitories, and transient spaces in Los Banos. The web application can be accessed using this link: https://elbnb.netlify.app/
 
 ## Tech Stack
 
